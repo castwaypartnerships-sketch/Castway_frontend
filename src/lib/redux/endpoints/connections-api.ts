@@ -1,0 +1,58 @@
+import { api } from "@/lib/redux/api";
+import type { ConnectionListItem } from "@/lib/types/connection";
+import type { SuggestedConnection } from "@/lib/types/feed";
+
+export const connectionsApi = api.injectEndpoints({
+  endpoints: (builder) => ({
+    getConnections: builder.query<{ items: ConnectionListItem[] }, void>({
+      query: () => "/connections",
+      transformResponse: (response: { data: { items: ConnectionListItem[] } }) => response.data,
+      providesTags: ["Connections"],
+    }),
+    getPendingConnections: builder.query<
+      { incoming: ConnectionListItem[]; outgoing: ConnectionListItem[] },
+      void
+    >({
+      query: () => "/connections/pending",
+      transformResponse: (response: {
+        data: { incoming: ConnectionListItem[]; outgoing: ConnectionListItem[] };
+      }) => response.data,
+      providesTags: ["PendingConnections"],
+    }),
+    getSuggestedConnections: builder.query<{ items: SuggestedConnection[] }, void>({
+      query: () => "/connections/suggested",
+      transformResponse: (response: { data: { items: SuggestedConnection[] } }) => response.data,
+      providesTags: ["SuggestedConnections"],
+    }),
+    sendConnectionRequest: builder.mutation<void, string>({
+      query: (addresseeId) => ({
+        url: "/connections",
+        method: "POST",
+        body: { addresseeId },
+      }),
+      invalidatesTags: ["SuggestedConnections", "PendingConnections"],
+    }),
+    acceptConnection: builder.mutation<void, string>({
+      query: (connectionId) => ({ url: `/connections/${connectionId}/accept`, method: "POST" }),
+      invalidatesTags: ["Connections", "PendingConnections", "Dashboard"],
+    }),
+    rejectConnection: builder.mutation<void, string>({
+      query: (connectionId) => ({ url: `/connections/${connectionId}/reject`, method: "POST" }),
+      invalidatesTags: ["PendingConnections"],
+    }),
+    removeConnection: builder.mutation<void, string>({
+      query: (connectionId) => ({ url: `/connections/${connectionId}`, method: "DELETE" }),
+      invalidatesTags: ["Connections", "Dashboard"],
+    }),
+  }),
+});
+
+export const {
+  useGetConnectionsQuery,
+  useGetPendingConnectionsQuery,
+  useGetSuggestedConnectionsQuery,
+  useSendConnectionRequestMutation,
+  useAcceptConnectionMutation,
+  useRejectConnectionMutation,
+  useRemoveConnectionMutation,
+} = connectionsApi;
