@@ -1,10 +1,14 @@
 import { api } from "@/lib/redux/api";
 import type { ProfileCompletion } from "@/lib/types/feed";
 import type { PortfolioItemInput, Profile, ProfileUpdateInput } from "@/lib/types/profile";
+import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
 interface ProfileMeResponse {
   profile: Profile | null;
   completion: ProfileCompletion;
+  isVerified: boolean;
+  trustScore: number;
+  reviewSummary: ReviewSummary;
 }
 
 export const profileApi = api.injectEndpoints({

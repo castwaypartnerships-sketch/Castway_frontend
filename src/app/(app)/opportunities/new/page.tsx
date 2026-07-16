@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RoleGuard } from "@/components/auth/role-guard";
+import { HIRING_ROLES } from "@/lib/rbac";
 
 const TYPE_OPTIONS: { value: OpportunityType; label: string }[] = [
   { value: "HIRING", label: "Hiring" },
@@ -66,93 +68,98 @@ export default function NewOpportunityPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-      <Link
-        href="/opportunities"
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        Back to Opportunities
-      </Link>
+    <RoleGuard allowed={HIRING_ROLES} redirectTo="/opportunities">
+      <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
+        <Link
+          href="/opportunities"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Opportunities
+        </Link>
 
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Post an opportunity</h1>
-        <p className="text-sm text-muted-foreground">
-          Visible to every creator browsing the Opportunities board.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6">
-        <div className="space-y-1.5">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+        <div>
+          <h1 className="text-foreground text-lg font-semibold">Post an opportunity</h1>
+          <p className="text-muted-foreground text-sm">
+            Visible to every creator browsing the Opportunities board.
+          </p>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            required
-            rows={5}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <form
+          onSubmit={handleSubmit}
+          className="border-border bg-card space-y-5 rounded-2xl border p-6"
+        >
           <div className="space-y-1.5">
-            <Label>Type</Label>
-            <Select value={type} onValueChange={(value) => setType(value as OpportunityType)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="title">Title</Label>
+            <Input id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="category">Category</Label>
-            <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
-          </div>
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="skills">Skills required (comma-separated)</Label>
-          <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="location">Location</Label>
-            <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="budget">Budget</Label>
-            <Input
-              id="budget"
-              placeholder="$5,000 / Project"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              required
+              rows={5}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <Switch id="isRemote" checked={isRemote} onCheckedChange={setIsRemote} />
-          <Label htmlFor="isRemote">Remote-friendly</Label>
-        </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Type</Label>
+              <Select value={type} onValueChange={(value) => setType(value as OpportunityType)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="category">Category</Label>
+              <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
+            </div>
+          </div>
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <div className="space-y-1.5">
+            <Label htmlFor="skills">Skills required (comma-separated)</Label>
+            <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
+          </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? "Posting…" : "Post opportunity"}
-        </Button>
-      </form>
-    </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="budget">Budget</Label>
+              <Input
+                id="budget"
+                placeholder="$5,000 / Project"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Switch id="isRemote" checked={isRemote} onCheckedChange={setIsRemote} />
+            <Label htmlFor="isRemote">Remote-friendly</Label>
+          </div>
+
+          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? "Posting…" : "Post opportunity"}
+          </Button>
+        </form>
+      </div>
+    </RoleGuard>
   );
 }

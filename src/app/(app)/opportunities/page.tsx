@@ -4,12 +4,15 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isHiringRole } from "@/lib/rbac";
 
 export default function OpportunitiesPage() {
   const { data, isLoading, isError } = useGetOpportunitiesQuery();
+  const { data: session } = useGetSessionQuery();
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
@@ -20,10 +23,12 @@ export default function OpportunitiesPage() {
             Open hiring posts, collaborations, and brand deals from the network.
           </p>
         </div>
-        <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
-          <Plus className="size-4" />
-          Post Opportunity
-        </Link>
+        {isHiringRole(session?.user?.role) ? (
+          <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
+            <Plus className="size-4" />
+            Post Opportunity
+          </Link>
+        ) : null}
       </div>
 
       {isLoading ? (

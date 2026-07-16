@@ -10,7 +10,7 @@ import { NAV_ITEMS } from "@/lib/nav-items";
 // server-side on every backend API call via `requireApiActor()`.
 const ACCESS_TOKEN_COOKIE = "castway_access_token";
 
-const PROTECTED_PREFIXES = [...NAV_ITEMS.map((item) => item.href), "/onboarding"];
+const PROTECTED_PREFIXES = [...NAV_ITEMS.map((item) => item.href), "/onboarding", "/verify-email"];
 
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(

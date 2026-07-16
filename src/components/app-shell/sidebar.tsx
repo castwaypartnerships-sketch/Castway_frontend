@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 
-import { NAV_ITEMS } from "@/lib/nav-items";
+import { getNavItemsForRole } from "@/lib/nav-items";
 import { initialsFromName } from "@/lib/format";
 import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
 import { useGetSessionQuery, useLogoutMutation } from "@/lib/redux/endpoints/auth-api";
@@ -23,6 +23,7 @@ export function AppSidebar() {
 
   const displayName = profileData?.profile?.name ?? session?.user?.email ?? "Your account";
   const displayRole = profileData?.profile?.bio ?? session?.user?.role ?? "";
+  const navItems = getNavItemsForRole(session?.user?.role);
 
   async function handleLogout() {
     await logout();
@@ -45,7 +46,7 @@ export function AppSidebar() {
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -68,6 +69,23 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        {session?.user?.isAdmin ? (
+          <Link
+            href="/admin"
+            className={cn(
+              "flex items-center justify-between rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+              pathname.startsWith("/admin")
+                ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            )}
+          >
+            <span className="flex items-center gap-2.5">
+              <ShieldCheck className="size-4" />
+              Admin
+            </span>
+          </Link>
+        ) : null}
       </nav>
 
       <div className="space-y-2 px-3 pb-4">

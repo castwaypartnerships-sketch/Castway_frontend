@@ -9,15 +9,20 @@ import {
   useRemovePortfolioItemMutation,
   useUpdateProfileMutation,
 } from "@/lib/redux/endpoints/profile-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { initialsFromName } from "@/lib/format";
+import { isHiringRole } from "@/lib/rbac";
+import { TrustBadge } from "@/components/profile/trust-badge";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
+  const { data: session } = useGetSessionQuery();
+  const hiring = isHiringRole(session?.user?.role);
 
   if (isLoading) {
     return (
@@ -39,21 +44,31 @@ export default function PortfolioPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">My Portfolio</h1>
+      <div className="space-y-3">
+        <h1 className="text-lg font-semibold text-foreground">
+          {hiring ? "Company Profile" : "My Portfolio"}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          This is what other creators and brands see on your public profile.
+          {hiring
+            ? "This is what creators see when you post an opportunity or reach out."
+            : "This is what other creators and brands see on your public profile."}
         </p>
+        <TrustBadge
+          isVerified={data.isVerified}
+          trustScore={data.trustScore}
+          reviewSummary={data.reviewSummary}
+        />
       </div>
 
-      <ProfileForm profile={data.profile} />
-      <PortfolioItems items={data.profile.portfolioItems} />
+      <ProfileForm profile={data.profile} hiring={hiring} />
+      {hiring ? null : <PortfolioItems items={data.profile.portfolioItems} />}
     </div>
   );
 }
 
 function ProfileForm({
   profile,
+  hiring,
 }: {
   profile: {
     name: string;
@@ -63,7 +78,9 @@ function ProfileForm({
     location: string | null;
     skills: string[];
     services: string[];
+    businessEmail: string | null;
   };
+  hiring: boolean;
 }) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const [name, setName] = useState(profile.name);
@@ -72,6 +89,7 @@ function ProfileForm({
   const [location, setLocation] = useState(profile.location ?? "");
   const [skills, setSkills] = useState(profile.skills.join(", "));
   const [services, setServices] = useState(profile.services.join(", "));
+  const [businessEmail, setBusinessEmail] = useState(profile.businessEmail ?? "");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -95,6 +113,7 @@ function ProfileForm({
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
+      ...(hiring ? { businessEmail: businessEmail || undefined } : {}),
     }).unwrap();
     setSaved(true);
   }
@@ -117,13 +136,26 @@ function ProfileForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="bio">Bio / role</Label>
+        <Label htmlFor="bio">{hiring ? "About the company" : "Bio / role"}</Label>
         <Textarea id="bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
       </div>
 
+      {hiring ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="businessEmail">Business email</Label>
+          <Input
+            id="businessEmail"
+            type="email"
+            required
+            value={businessEmail}
+            onChange={(e) => setBusinessEmail(e.target.value)}
+          />
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">{hiring ? "Industry" : "Category"}</Label>
           <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
         </div>
         <div className="space-y-1.5">
@@ -132,14 +164,18 @@ function ProfileForm({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="skills">Skills (comma-separated)</Label>
-        <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="services">Services (comma-separated)</Label>
-        <Input id="services" value={services} onChange={(e) => setServices(e.target.value)} />
-      </div>
+      {hiring ? null : (
+        <>
+          <div className="space-y-1.5">
+            <Label htmlFor="skills">Skills (comma-separated)</Label>
+            <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="services">Services (comma-separated)</Label>
+            <Input id="services" value={services} onChange={(e) => setServices(e.target.value)} />
+          </div>
+        </>
+      )}
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isLoading}>

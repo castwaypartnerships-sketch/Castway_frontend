@@ -9,9 +9,11 @@ import {
   useApplyToOpportunityMutation,
   useToggleSaveOpportunityMutation,
 } from "@/lib/redux/endpoints/opportunities-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isHiringRole } from "@/lib/rbac";
 
 const TYPE_LABEL: Record<Opportunity["type"], string> = {
   HIRING: "Hiring",
@@ -24,6 +26,8 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
   const [apply, { isLoading: isApplying, isSuccess: hasApplied }] = useApplyToOpportunityMutation();
   const [toggleSave] = useToggleSaveOpportunityMutation();
   const [saved, setSaved] = useState(initiallySaved);
+  const { data: session } = useGetSessionQuery();
+  const canApply = !isHiringRole(session?.user?.role);
 
   async function handleSave() {
     setSaved((prev) => !prev);
@@ -112,13 +116,15 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
         >
           <Bookmark className={cn("size-4", saved && "fill-foreground")} />
         </Button>
-        <Button
-          size="sm"
-          disabled={isApplying || hasApplied || opportunity.status === "CLOSED"}
-          onClick={() => apply({ opportunityId: opportunity.id })}
-        >
-          {hasApplied ? "Applied" : opportunity.status === "CLOSED" ? "Closed" : isApplying ? "Applying…" : "Apply"}
-        </Button>
+        {canApply ? (
+          <Button
+            size="sm"
+            disabled={isApplying || hasApplied || opportunity.status === "CLOSED"}
+            onClick={() => apply({ opportunityId: opportunity.id })}
+          >
+            {hasApplied ? "Applied" : opportunity.status === "CLOSED" ? "Closed" : isApplying ? "Applying…" : "Apply"}
+          </Button>
+        ) : null}
       </div>
     </article>
   );

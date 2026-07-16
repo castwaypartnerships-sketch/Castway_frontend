@@ -8,6 +8,7 @@ import { useSignupMutation } from "@/lib/redux/endpoints/auth-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/components/auth/google-button";
 
 interface ApiErrorBody {
   error?: string;
@@ -26,7 +27,7 @@ export default function SignupPage() {
 
     try {
       await signup({ email, password }).unwrap();
-      router.push("/onboarding/role");
+      router.push("/verify-email");
       router.refresh();
     } catch (err) {
       const body = (err as { data?: ApiErrorBody } | undefined)?.data;
@@ -78,6 +79,14 @@ export default function SignupPage() {
             {isLoading ? "Creating account…" : "Create account"}
           </Button>
         </form>
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <GoogleSignInButton />
 
         <p className="text-center text-xs text-muted-foreground">
           Already have an account?{" "}

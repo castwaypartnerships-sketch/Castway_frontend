@@ -8,6 +8,7 @@ import { useLoginMutation } from "@/lib/redux/endpoints/auth-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSignInButton } from "@/components/auth/google-button";
 
 interface LoginErrorBody {
   error?: string;
@@ -77,6 +78,14 @@ export default function LoginPage() {
             {isLoading ? "Signing in…" : "Sign in"}
           </Button>
         </form>
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <GoogleSignInButton />
 
         <p className="text-center text-xs text-muted-foreground">
           Demo login: <span className="font-medium">demo@castway.dev</span> /{" "}

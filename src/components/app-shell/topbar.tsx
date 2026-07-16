@@ -5,13 +5,20 @@ import { Bell, Search } from "lucide-react";
 
 import { findNavItemByPathname } from "@/lib/nav-items";
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
+import { isHiringRole } from "@/lib/rbac";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function AppTopbar() {
   const pathname = usePathname();
   const activeItem = findNavItemByPathname(pathname);
-  const breadcrumbLabel = activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview";
+  const { data: session } = useGetSessionQuery();
+  const isPortfolio = activeItem?.href === "/portfolio";
+  const breadcrumbLabel =
+    isPortfolio && isHiringRole(session?.user?.role)
+      ? "Company Profile"
+      : (activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview");
   const { data: dashboard } = useGetDashboardQuery();
   const hasUnreadNotifications = (dashboard?.unreadNotificationsCount ?? 0) > 0;
 

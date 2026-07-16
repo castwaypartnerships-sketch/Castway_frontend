@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import { BadgeCheck, Check, X } from "lucide-react";
 
 import type { ConnectionListItem } from "@/lib/types/connection";
@@ -13,8 +14,10 @@ import {
   useRemoveConnectionMutation,
   useSendConnectionRequestMutation,
 } from "@/lib/redux/endpoints/connections-api";
+import { useSubmitReviewMutation } from "@/lib/redux/endpoints/reviews-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ConnectionsPage() {
@@ -87,12 +90,72 @@ function MyConnectionsTab() {
     <ul className="space-y-3">
       {data.items.map((connection: ConnectionListItem) => (
         <PersonRow key={connection.id} person={connection.counterpart}>
-          <Button variant="outline" size="sm" onClick={() => remove(connection.id)}>
-            Remove
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => remove(connection.id)}>
+              Remove
+            </Button>
+            <LeaveReviewAction revieweeUserId={connection.counterpart.userId} />
+          </div>
         </PersonRow>
       ))}
     </ul>
+  );
+}
+
+/** Inline (not modal) review form — this codebase has no Dialog primitive
+ * yet, and one collaborator per connection row doesn't need one. Eligibility
+ * (must share an accepted connection or accepted application) is enforced
+ * server-side by `ReviewService`; this only decides where the action is
+ * surfaced. */
+function LeaveReviewAction({ revieweeUserId }: { revieweeUserId: string }) {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitReview, { isLoading, isSuccess }] = useSubmitReviewMutation();
+
+  if (isSuccess) return <span className="text-xs text-success">Review submitted</span>;
+
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        Leave a review
+      </Button>
+    );
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitReview({ revieweeUserId, rating, comment: comment || undefined }).unwrap();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="w-56 space-y-2 rounded-xl border border-border p-3">
+      <select
+        value={rating}
+        onChange={(e) => setRating(Number(e.target.value))}
+        className="w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+      >
+        {[5, 4, 3, 2, 1].map((n) => (
+          <option key={n} value={n}>
+            {n} star{n === 1 ? "" : "s"}
+          </option>
+        ))}
+      </select>
+      <Textarea
+        rows={2}
+        placeholder="Optional comment"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+        <Button type="submit" size="sm" disabled={isLoading}>
+          {isLoading ? "Submitting…" : "Submit"}
+        </Button>
+      </div>
+    </form>
   );
 }
 

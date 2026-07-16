@@ -5,6 +5,8 @@ export interface SessionUser {
   email: string;
   role: string | null;
   isAdmin: boolean;
+  isEmailVerified: boolean;
+  isOnboarded: boolean;
 }
 
 const SESSION_AFFECTING_TAGS = [
@@ -40,7 +42,21 @@ export const authApi = api.injectEndpoints({
       query: () => ({ url: "/auth/logout", method: "POST" }),
       invalidatesTags: [...SESSION_AFFECTING_TAGS],
     }),
+    verifyEmail: builder.mutation<void, { code: string }>({
+      query: (body) => ({ url: "/auth/verify-email", method: "POST", body }),
+      invalidatesTags: ["Session"],
+    }),
+    resendOtp: builder.mutation<void, void>({
+      query: () => ({ url: "/auth/resend-otp", method: "POST" }),
+    }),
   }),
 });
 
-export const { useGetSessionQuery, useSignupMutation, useLoginMutation, useLogoutMutation } = authApi;
+export const {
+  useGetSessionQuery,
+  useSignupMutation,
+  useLoginMutation,
+  useLogoutMutation,
+  useVerifyEmailMutation,
+  useResendOtpMutation,
+} = authApi;

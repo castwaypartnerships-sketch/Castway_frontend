@@ -23,6 +23,8 @@ export const api = createApi({
     "Conversations",
     "Messages",
     "NotificationPreferences",
+    "Reviews",
+    "AdminUsers",
   ],
   endpoints: () => ({}),
 });

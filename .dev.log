@@ -1,0 +1,129 @@
+
+> frontend@0.1.0 dev
+> next dev -p 3100
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3100
+- Network:       http://10.52.198.31:3100
+✓ Ready in 896ms
+
+○ Compiling /feed ...
+ GET /login 200 in 4.1s (next.js: 3.9s, proxy.ts: 11ms, application-code: 167ms)
+ GET /feed 200 in 6.2s (next.js: 5.2s, proxy.ts: 283ms, application-code: 654ms)
+✓ Compiled in 179ms
+ GET /login 200 in 205ms (next.js: 10ms, proxy.ts: 10ms, application-code: 186ms)
+✓ Compiled in 198ms
+ GET /feed 200 in 58ms (next.js: 8ms, proxy.ts: 10ms, application-code: 40ms)
+ GET /feed 200 in 66ms (next.js: 12ms, proxy.ts: 10ms, application-code: 44ms)
+ GET /login 200 in 176ms (next.js: 9ms, proxy.ts: 9ms, application-code: 159ms)
+ GET /login 200 in 126ms (next.js: 14ms, proxy.ts: 17ms, application-code: 95ms)
+ GET /feed 200 in 64ms (next.js: 8ms, proxy.ts: 12ms, application-code: 43ms)
+ GET /feed 200 in 71ms (next.js: 7ms, proxy.ts: 7ms, application-code: 56ms)
+ GET /opportunities 200 in 860ms (next.js: 735ms, proxy.ts: 7ms, application-code: 118ms)
+✓ Compiled in 194ms
+ GET /opportunities/new 200 in 1063ms (next.js: 914ms, proxy.ts: 6ms, application-code: 143ms)
+ GET /opportunities 200 in 69ms (next.js: 9ms, proxy.ts: 13ms, application-code: 47ms)
+ GET /opportunities 200 in 50ms (next.js: 11ms, proxy.ts: 10ms, application-code: 29ms)
+ GET /login 200 in 83ms (next.js: 8ms, proxy.ts: 5ms, application-code: 70ms)
+ GET /feed 200 in 58ms (next.js: 9ms, proxy.ts: 10ms, application-code: 39ms)
+ GET /feed 200 in 64ms (next.js: 11ms, proxy.ts: 11ms, application-code: 42ms)
+ GET /login 200 in 129ms (next.js: 82ms, proxy.ts: 9ms, application-code: 39ms)
+ GET /opportunities 200 in 156ms (next.js: 11ms, proxy.ts: 9ms, application-code: 136ms)
+ GET /opportunities/new 200 in 84ms (next.js: 7ms, proxy.ts: 6ms, application-code: 72ms)
+ GET /portfolio 200 in 615ms (next.js: 523ms, proxy.ts: 6ms, application-code: 86ms)
+ GET /login 200 in 76ms (next.js: 6ms, proxy.ts: 6ms, application-code: 64ms)
+ GET /feed 200 in 74ms (next.js: 12ms, proxy.ts: 13ms, application-code: 50ms)
+ GET /feed 200 in 65ms (next.js: 8ms, proxy.ts: 10ms, application-code: 47ms)
+ GET /feed 200 in 57ms (next.js: 11ms, proxy.ts: 6ms, application-code: 40ms)
+✓ Compiled in 202ms
+✓ Compiled in 168ms
+✓ Compiled in 161ms
+✓ Compiled in 260ms
+ GET /login 200 in 102ms (next.js: 9ms, proxy.ts: 6ms, application-code: 87ms)
+ GET /feed 200 in 53ms (next.js: 9ms, proxy.ts: 8ms, application-code: 36ms)
+ GET /feed 200 in 68ms (next.js: 11ms, proxy.ts: 14ms, application-code: 44ms)
+ GET /login 200 in 136ms (next.js: 72ms, proxy.ts: 7ms, application-code: 57ms)
+ GET /opportunities 200 in 198ms (next.js: 9ms, proxy.ts: 10ms, application-code: 179ms)
+ GET /login 200 in 80ms (next.js: 8ms, proxy.ts: 5ms, application-code: 67ms)
+ GET /login 200 in 117ms (next.js: 9ms, proxy.ts: 6ms, application-code: 103ms)
+ GET /feed 200 in 49ms (next.js: 7ms, proxy.ts: 9ms, application-code: 33ms)
+✓ Compiled in 173ms
+✓ Compiled in 179ms
+✓ Compiled in 222ms
+✓ Compiled in 179ms
+✓ Compiled in 173ms
+ GET /login 200 in 80ms (next.js: 8ms, proxy.ts: 5ms, application-code: 67ms)
+ GET /feed 200 in 60ms (next.js: 9ms, proxy.ts: 7ms, application-code: 43ms)
+ GET /feed 200 in 56ms (next.js: 9ms, proxy.ts: 9ms, application-code: 38ms)
+ GET /login 200 in 135ms (next.js: 81ms, proxy.ts: 7ms, application-code: 47ms)
+ GET /portfolio 200 in 174ms (next.js: 10ms, proxy.ts: 10ms, application-code: 154ms)
+✓ Compiled in 158ms
+✓ Compiled in 175ms
+✓ Compiled in 284ms
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/feed" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true} className="geist_a715...">
+                          <body
+                            className="min-h-full flex flex-col"
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /login 200 in 91ms (next.js: 9ms, proxy.ts: 7ms, application-code: 75ms)
+ GET /feed 200 in 55ms (next.js: 9ms, proxy.ts: 7ms, application-code: 39ms)
+ GET /login 200 in 142ms (next.js: 14ms, proxy.ts: 19ms, application-code: 110ms)
+ GET /login 200 in 86ms (next.js: 12ms, proxy.ts: 6ms, application-code: 68ms)
+ GET /login 200 in 66ms (next.js: 11ms, proxy.ts: 7ms, application-code: 48ms)
+ GET /login 200 in 57ms (next.js: 7ms, proxy.ts: 6ms, application-code: 44ms)
+ GET / 200 in 1005ms (next.js: 673ms, proxy.ts: 9ms, application-code: 324ms)
+ GET /login 200 in 53ms (next.js: 9ms, proxy.ts: 6ms, application-code: 37ms)
+ GET /signup 200 in 724ms (next.js: 674ms, proxy.ts: 6ms, application-code: 44ms)
+ GET /verify-email 200 in 1361ms (next.js: 1080ms, proxy.ts: 13ms, application-code: 268ms)
+ GET /verify-email 200 in 328ms (next.js: 40ms, proxy.ts: 17ms, application-code: 271ms)
+ GET /signup 200 in 322ms (next.js: 31ms, proxy.ts: 135ms, application-code: 157ms)
+ GET /onboarding/role 200 in 704ms (next.js: 652ms, proxy.ts: 8ms, application-code: 44ms)
+ GET /onboarding/profile 200 in 737ms (next.js: 631ms, proxy.ts: 9ms, application-code: 97ms)
+ GET /onboarding/profile 200 in 60ms (next.js: 11ms, proxy.ts: 11ms, application-code: 39ms)
+ GET /feed 200 in 66ms (next.js: 9ms, proxy.ts: 9ms, application-code: 49ms)
+ GET /feed 200 in 60ms (next.js: 7ms, proxy.ts: 13ms, application-code: 41ms)
+ GET /onboarding/profile 200 in 140ms (next.js: 8ms, proxy.ts: 12ms, application-code: 120ms)
+ GET /onboarding/profile 200 in 80ms (next.js: 20ms, proxy.ts: 18ms, application-code: 42ms)
+ GET /feed 200 in 142ms (next.js: 8ms, proxy.ts: 7ms, application-code: 127ms)
+ GET /feed 200 in 88ms (next.js: 13ms, proxy.ts: 9ms, application-code: 66ms)
+ GET /settings 200 in 664ms (next.js: 621ms, proxy.ts: 6ms, application-code: 37ms)
+ GET /portfolio 200 in 61ms (next.js: 16ms, proxy.ts: 6ms, application-code: 39ms)
+ GET /saved 200 in 688ms (next.js: 639ms, proxy.ts: 7ms, application-code: 43ms)
+ GET /dashboard 200 in 610ms (next.js: 567ms, proxy.ts: 7ms, application-code: 36ms)
+✓ Compiled in 388ms
