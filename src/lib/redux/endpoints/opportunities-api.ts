@@ -31,6 +31,16 @@ export const opportunitiesApi = api.injectEndpoints({
       transformResponse: (response: { data: Opportunity }) => response.data,
       invalidatesTags: [{ type: "Opportunities", id: "LIST" }],
     }),
+    createBulkOpportunities: builder.mutation<
+      { created: Opportunity[]; errors: { index: number; error: string }[] },
+      OpportunityWriteInput[]
+    >({
+      query: (opportunities) => ({ url: "/opportunities/bulk", method: "POST", body: { opportunities } }),
+      transformResponse: (response: {
+        data: { created: Opportunity[]; errors: { index: number; error: string }[] };
+      }) => response.data,
+      invalidatesTags: [{ type: "Opportunities", id: "LIST" }],
+    }),
     applyToOpportunity: builder.mutation<void, { opportunityId: string; message?: string }>({
       query: ({ opportunityId, message }) => ({
         url: `/opportunities/${opportunityId}/apply`,
@@ -50,6 +60,7 @@ export const {
   useGetOpportunitiesQuery,
   useGetSavedOpportunitiesQuery,
   useCreateOpportunityMutation,
+  useCreateBulkOpportunitiesMutation,
   useApplyToOpportunityMutation,
   useToggleSaveOpportunityMutation,
 } = opportunitiesApi;

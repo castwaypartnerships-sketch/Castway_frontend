@@ -17,6 +17,7 @@ export const messagesApi = api.injectEndpoints({
     }),
     startConversation: builder.mutation<ConversationListItem, string>({
       query: (otherUserId) => ({ url: "/conversations", method: "POST", body: { otherUserId } }),
+      transformResponse: (response: { data: ConversationListItem }) => response.data,
       invalidatesTags: ["Conversations"],
     }),
     getMessages: builder.query<MessagesResponse, string>({

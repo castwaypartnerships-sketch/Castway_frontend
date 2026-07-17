@@ -5,6 +5,11 @@ export interface SocialLinks {
   website?: string | null;
 }
 
+export interface PortfolioMetric {
+  label: string;
+  value: string;
+}
+
 export interface PortfolioItem {
   id: string;
   title: string;
@@ -12,6 +17,19 @@ export interface PortfolioItem {
   description?: string | null;
   link?: string | null;
   order: number;
+  metrics?: PortfolioMetric[];
+}
+
+export interface DateRange {
+  id: string;
+  start: string;
+  end: string;
+  note?: string | null;
+}
+
+export interface Availability {
+  isAvailableNow: boolean;
+  nextAvailableDate: string | null;
 }
 
 export interface Profile {
@@ -34,6 +52,7 @@ export interface Profile {
   availableForWork: boolean;
   socialLinks: SocialLinks | null;
   portfolioItems: PortfolioItem[];
+  unavailableRanges: DateRange[];
   createdAt: string;
   updatedAt: string;
 }
@@ -62,4 +81,23 @@ export interface PortfolioItemInput {
   description?: string;
   link?: string;
   order?: number;
+  metrics?: PortfolioMetric[];
+}
+
+export type EndorsementCounts = Record<string, number>;
+
+export interface UnavailableRangeInput {
+  start: string;
+  end: string;
+  note?: string;
+}
+
+export interface ProfileSearchFilters {
+  query?: string;
+  category?: string;
+  skills?: string[];
+  location?: string;
+  openForCollaboration?: boolean;
+  lookingToHire?: boolean;
+  availableForWork?: boolean;
 }

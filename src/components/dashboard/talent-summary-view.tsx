@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Bookmark, Rss, Send, UserPlus, Users } from "lucide-react";
+import { Bell, Bookmark, Eye, Rss, Send, TrendingUp, UserPlus, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import type {
@@ -12,7 +12,19 @@ import { ApplicationStatusBadge } from "./status-badge";
 
 type TalentSummary = CreatorDashboardSummary | FreelancerDashboardSummary;
 
-const STATS: { key: keyof TalentSummary; label: string; icon: LucideIcon }[] = [
+const STATS: {
+  key: keyof TalentSummary;
+  label: string;
+  icon: LucideIcon;
+  format?: (value: number) => string;
+}[] = [
+  { key: "profileViewsCount", label: "Profile Views (30d)", icon: Eye },
+  {
+    key: "connectionsGrowthLast30Days",
+    label: "Connection Growth (30d)",
+    icon: TrendingUp,
+    format: (value) => (value > 0 ? `+${value}` : `${value}`),
+  },
   { key: "applicationsSubmittedCount", label: "Applications Submitted", icon: Send },
   { key: "savedOpportunitiesCount", label: "Saved Opportunities", icon: Bookmark },
   { key: "connectionsCount", label: "Connections", icon: Users },
@@ -53,7 +65,7 @@ export function TalentSummaryView({
               <stat.icon className="size-4.5" />
             </span>
             <p className="mt-4 text-2xl font-semibold text-foreground tabular-nums">
-              {data[stat.key] as number}
+              {stat.format ? stat.format(data[stat.key] as number) : (data[stat.key] as number)}
             </p>
             <p className="text-sm text-muted-foreground">{stat.label}</p>
           </div>

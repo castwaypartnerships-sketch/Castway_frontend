@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Send } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Send, SquarePen } from "lucide-react";
+import { toast } from "sonner";
 
 import type { ConversationListItem } from "@/lib/types/messaging";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
@@ -10,23 +12,61 @@ import {
   useGetMessagesQuery,
   useMarkConversationReadMutation,
   useSendMessageMutation,
+  useStartConversationMutation,
 } from "@/lib/redux/endpoints/messages-api";
+import { useGetConnectionsQuery } from "@/lib/redux/endpoints/connections-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+type InboxFilter = "all" | "brand-deals";
 
 export default function MessagesPage() {
   const { data: conversations, isLoading } = useGetConversationsQuery();
+  const { data: session } = useGetSessionQuery();
+  const searchParams = useSearchParams();
+  const conversationIdFromQuery = searchParams.get("conversationId");
   const [manuallySelectedId, setManuallySelectedId] = useState<string | null>(null);
-  const selectedId = manuallySelectedId ?? conversations?.items[0]?.id ?? null;
+  const [filter, setFilter] = useState<InboxFilter>("all");
+  const selectedId = manuallySelectedId ?? conversationIdFromQuery ?? conversations?.items[0]?.id ?? null;
+
+  const isCreator = session?.user?.role === "CREATOR";
+  const items = conversations?.items.filter(
+    (c) => filter === "all" || c.context === "BRAND_DEAL",
+  );
 
   return (
     <div className="flex h-full">
       <aside className="w-80 shrink-0 overflow-y-auto border-r border-border">
         <div className="border-b border-border px-5 py-4">
-          <h1 className="text-sm font-semibold text-foreground">Messages</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-sm font-semibold text-foreground">Messages</h1>
+            <NewChatMenu onStarted={setManuallySelectedId} />
+          </div>
+          {isCreator ? (
+            <Tabs value={filter} onValueChange={(v) => setFilter(v as InboxFilter)} className="mt-3">
+              <TabsList className="w-full">
+                <TabsTrigger value="all" className="flex-1">
+                  All
+                </TabsTrigger>
+                <TabsTrigger value="brand-deals" className="flex-1">
+                  Brand Deals
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          ) : null}
         </div>
         {isLoading ? (
           <div className="space-y-2 p-4">
@@ -34,11 +74,13 @@ export default function MessagesPage() {
               <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />
             ))}
           </div>
-        ) : !conversations || conversations.items.length === 0 ? (
-          <p className="p-5 text-sm text-muted-foreground">No conversations yet.</p>
+        ) : !items || items.length === 0 ? (
+          <p className="p-5 text-sm text-muted-foreground">
+            {filter === "brand-deals" ? "No Brand Deal conversations yet." : "No conversations yet."}
+          </p>
         ) : (
           <ul>
-            {conversations.items.map((conversation) => (
+            {items.map((conversation) => (
               <ConversationRow
                 key={conversation.id}
                 conversation={conversation}
@@ -60,6 +102,57 @@ export default function MessagesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function NewChatMenu({ onStarted }: { onStarted: (conversationId: string) => void }) {
+  const { data: connections, isLoading } = useGetConnectionsQuery();
+  const [startConversation, { isLoading: isStarting }] = useStartConversationMutation();
+
+  async function handlePick(userId: string) {
+    try {
+      const conversation = await startConversation(userId).unwrap();
+      onStarted(conversation.id);
+    } catch {
+      toast.error("Couldn't start that conversation. Please try again.");
+    }
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon-sm" aria-label="New message" disabled={isStarting}>
+            <SquarePen className="size-4" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Start a chat with a connection</DropdownMenuLabel>
+          {isLoading ? (
+            <p className="px-1.5 py-2 text-sm text-muted-foreground">Loading…</p>
+          ) : !connections || connections.items.length === 0 ? (
+            <p className="px-1.5 py-2 text-sm text-muted-foreground">
+              No connections yet — connect with people first.
+            </p>
+          ) : (
+            connections.items.map((connection) => (
+              <DropdownMenuItem
+                key={connection.id}
+                onClick={() => void handlePick(connection.counterpart.userId)}
+              >
+                <Avatar size="sm">
+                  <AvatarImage src={connection.counterpart.avatarUrl ?? undefined} />
+                  <AvatarFallback>{initialsFromName(connection.counterpart.name)}</AvatarFallback>
+                </Avatar>
+                {connection.counterpart.name}
+              </DropdownMenuItem>
+            ))
+          )}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -87,8 +180,13 @@ function ConversationRow({
           <AvatarFallback>{initialsFromName(conversation.otherParticipant.name)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-foreground">
+          <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
             {conversation.otherParticipant.name}
+            {conversation.context === "BRAND_DEAL" ? (
+              <Badge variant="secondary" className="shrink-0 text-[10px]">
+                Brand Deal
+              </Badge>
+            ) : null}
           </p>
           <p className="truncate text-xs text-muted-foreground">
             {conversation.lastMessageAt ? formatRelativeTime(conversation.lastMessageAt) : "No messages yet"}

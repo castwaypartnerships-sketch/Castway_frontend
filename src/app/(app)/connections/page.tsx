@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { BadgeCheck, Check, X } from "lucide-react";
 
 import type { ConnectionListItem } from "@/lib/types/connection";
@@ -21,6 +22,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ConnectionsPage() {
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const initialTab =
+    requestedTab === "requests" || requestedTab === "suggested" ? requestedTab : "connections";
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
       <h1 className="text-lg font-semibold text-foreground">Connections</h1>
@@ -28,7 +34,7 @@ export default function ConnectionsPage() {
         People you&apos;re connected with, pending requests, and who to connect with next.
       </p>
 
-      <Tabs defaultValue="connections" className="mt-6">
+      <Tabs defaultValue={initialTab} className="mt-6">
         <TabsList>
           <TabsTrigger value="connections">My Connections</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>

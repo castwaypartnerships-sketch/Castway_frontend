@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Briefcase, CheckCircle2, UserPlus, Users } from "lucide-react";
+import { Bell, Briefcase, CheckCircle2, Eye, UserPlus, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import type {
@@ -14,6 +14,7 @@ import { ApplicationStatusBadge } from "./status-badge";
 type HiringSummary = BrandDashboardSummary | AgencyDashboardSummary;
 
 const STATS: { key: keyof HiringSummary; label: string; icon: LucideIcon }[] = [
+  { key: "profileViewsCount", label: "Profile Views (30d)", icon: Eye },
   { key: "postedOpportunitiesCount", label: "Opportunities Posted", icon: Briefcase },
   { key: "activeOpportunitiesCount", label: "Active Postings", icon: CheckCircle2 },
   { key: "totalApplicantsCount", label: "Total Applicants", icon: Users },

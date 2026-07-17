@@ -1,7 +1,10 @@
+export type ConversationContext = "GENERAL" | "BRAND_DEAL";
+
 export interface ConversationListItem {
   id: string;
   lastMessageAt: string | null;
   createdAt: string;
+  context: ConversationContext;
   otherParticipant: { userId: string; username: string; name: string; avatarUrl: string | null };
 }
 

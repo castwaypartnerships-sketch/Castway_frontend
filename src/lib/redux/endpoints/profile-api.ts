@@ -1,6 +1,13 @@
 import { api } from "@/lib/redux/api";
 import type { ProfileCompletion } from "@/lib/types/feed";
-import type { PortfolioItemInput, Profile, ProfileUpdateInput } from "@/lib/types/profile";
+import type {
+  Availability,
+  EndorsementCounts,
+  PortfolioItemInput,
+  Profile,
+  ProfileUpdateInput,
+  UnavailableRangeInput,
+} from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
 interface ProfileMeResponse {
@@ -9,6 +16,8 @@ interface ProfileMeResponse {
   isVerified: boolean;
   trustScore: number;
   reviewSummary: ReviewSummary;
+  availability: Availability;
+  endorsementCounts: EndorsementCounts;
 }
 
 export const profileApi = api.injectEndpoints({
@@ -45,6 +54,16 @@ export const profileApi = api.injectEndpoints({
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
       invalidatesTags: ["Dashboard"],
     }),
+    addUnavailableRange: builder.mutation<{ profile: Profile }, UnavailableRangeInput>({
+      query: (body) => ({ url: "/profile/me/unavailable-ranges", method: "POST", body }),
+      transformResponse: (response: { data: { profile: Profile } }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    removeUnavailableRange: builder.mutation<{ profile: Profile }, string>({
+      query: (rangeId) => ({ url: `/profile/me/unavailable-ranges/${rangeId}`, method: "DELETE" }),
+      transformResponse: (response: { data: { profile: Profile } }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
   }),
 });
 
@@ -54,4 +73,6 @@ export const {
   useAddPortfolioItemMutation,
   useUpdatePortfolioItemMutation,
   useRemovePortfolioItemMutation,
+  useAddUnavailableRangeMutation,
+  useRemoveUnavailableRangeMutation,
 } = profileApi;
