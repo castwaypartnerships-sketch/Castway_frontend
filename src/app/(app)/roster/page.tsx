@@ -38,7 +38,7 @@ export default function RosterPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div>
-        <h1 className="text-lg font-semibold text-foreground">Roster</h1>
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Roster</h1>
         <p className="text-sm text-muted-foreground">
           Creators and freelancers you represent — they keep full control of their own profile and must
           accept your invite.

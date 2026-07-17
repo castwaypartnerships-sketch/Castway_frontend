@@ -103,7 +103,7 @@ function SingleOpportunityForm() {
   return (
     <>
       <div>
-        <h1 className="text-foreground text-lg font-semibold">Post an opportunity</h1>
+        <h1 className="font-heading text-foreground text-lg font-semibold tracking-tight">Post an opportunity</h1>
         <p className="text-muted-foreground text-sm">
           Visible to every creator browsing the Opportunities board.
         </p>
@@ -228,7 +228,7 @@ function BulkOpportunityForm() {
   return (
     <>
       <div>
-        <h1 className="text-foreground text-lg font-semibold">Bulk add opportunities</h1>
+        <h1 className="font-heading text-foreground text-lg font-semibold tracking-tight">Bulk add opportunities</h1>
         <p className="text-muted-foreground text-sm">
           Post several opportunities at once. A row with an error won&apos;t block the rest.
         </p>

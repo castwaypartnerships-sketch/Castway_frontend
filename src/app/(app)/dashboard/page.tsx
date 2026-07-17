@@ -11,7 +11,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-6">
-      <h1 className="text-lg font-semibold text-foreground">Dashboard & Stats</h1>
+      <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Dashboard & Stats</h1>
 
       {isLoading ? (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

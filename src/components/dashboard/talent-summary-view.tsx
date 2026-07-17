@@ -64,7 +64,7 @@ export function TalentSummaryView({
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <stat.icon className="size-4.5" />
             </span>
-            <p className="mt-4 text-2xl font-semibold text-foreground tabular-nums">
+            <p className="mt-4 font-mono text-2xl font-semibold text-foreground tabular-nums">
               {stat.format ? stat.format(data[stat.key] as number) : (data[stat.key] as number)}
             </p>
             <p className="text-sm text-muted-foreground">{stat.label}</p>

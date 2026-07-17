@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { ConversationListItem } from "@/lib/types/messaging";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
 import {
+  messagesApi,
   useGetConversationsQuery,
   useGetMessagesQuery,
   useMarkConversationReadMutation,
@@ -16,6 +17,8 @@ import {
 } from "@/lib/redux/endpoints/messages-api";
 import { useGetConnectionsQuery } from "@/lib/redux/endpoints/connections-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
+import { useAppDispatch } from "@/lib/redux/hooks";
+import { conversationChannelName, getPusherClient, PUSHER_EVENTS } from "@/lib/pusher-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -47,12 +50,14 @@ export default function MessagesPage() {
     (c) => filter === "all" || c.context === "BRAND_DEAL",
   );
 
+  useConversationsRealtime(conversations?.items.map((c) => c.id) ?? []);
+
   return (
     <div className="flex h-full">
       <aside className="w-80 shrink-0 overflow-y-auto border-r border-border">
         <div className="border-b border-border px-5 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-sm font-semibold text-foreground">Messages</h1>
+            <h1 className="font-heading text-sm font-semibold tracking-tight text-foreground">Messages</h1>
             <NewChatMenu onStarted={setManuallySelectedId} />
           </div>
           {isCreator ? (
@@ -103,6 +108,44 @@ export default function MessagesPage() {
       </div>
     </div>
   );
+}
+
+/** Live delivery: the backend fans new messages out over Pusher (see
+ * backend/src/modules/messaging/messaging-event-publisher.ts), but RTK
+ * Query's cache only knows to refetch on the sender's own mutation. This
+ * subscribes to every conversation the user is part of — not just the open
+ * one — so the sidebar's ordering/preview and an unopened thread's cache
+ * both stay live. Keyed off a sorted, joined id string rather than the raw
+ * array so a same-ids refetch (a new array reference) doesn't churn the
+ * Pusher subscriptions. */
+function useConversationsRealtime(conversationIds: string[]) {
+  const dispatch = useAppDispatch();
+  const idsKey = [...conversationIds].sort().join(",");
+
+  useEffect(() => {
+    const ids = idsKey ? idsKey.split(",") : [];
+    const client = getPusherClient();
+    const bindings = ids.map((id) => {
+      const channel = client.subscribe(conversationChannelName(id));
+      const onNewMessage = () => {
+        dispatch(messagesApi.util.invalidateTags([{ type: "Messages", id }, "Conversations"]));
+      };
+      const onMessageRead = () => {
+        dispatch(messagesApi.util.invalidateTags([{ type: "Messages", id }]));
+      };
+      channel.bind(PUSHER_EVENTS.newMessage, onNewMessage);
+      channel.bind(PUSHER_EVENTS.messageRead, onMessageRead);
+      return { id, channel, onNewMessage, onMessageRead };
+    });
+
+    return () => {
+      for (const { id, channel, onNewMessage, onMessageRead } of bindings) {
+        channel.unbind(PUSHER_EVENTS.newMessage, onNewMessage);
+        channel.unbind(PUSHER_EVENTS.messageRead, onMessageRead);
+        client.unsubscribe(conversationChannelName(id));
+      }
+    };
+  }, [idsKey, dispatch]);
 }
 
 function NewChatMenu({ onStarted }: { onStarted: (conversationId: string) => void }) {

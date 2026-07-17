@@ -29,7 +29,7 @@ export default function ConnectionsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
-      <h1 className="text-lg font-semibold text-foreground">Connections</h1>
+      <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Connections</h1>
       <p className="text-sm text-muted-foreground">
         People you&apos;re connected with, pending requests, and who to connect with next.
       </p>

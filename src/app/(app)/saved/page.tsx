@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function SavedBoardPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
-      <h1 className="text-lg font-semibold text-foreground">Saved Board</h1>
+      <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Saved Board</h1>
       <p className="text-sm text-muted-foreground">Posts and opportunities you&apos;ve bookmarked.</p>
 
       <Tabs defaultValue="posts" className="mt-6">

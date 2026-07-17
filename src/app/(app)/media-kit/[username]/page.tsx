@@ -44,7 +44,7 @@ export default function MediaKitPage({ params }: { params: Promise<{ username: s
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-foreground">Media Kit</h1>
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Media Kit</h1>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={handleCopyLink}>
           <Link2 className="size-4" />
           {copied ? "Link copied" : "Copy link to share"}

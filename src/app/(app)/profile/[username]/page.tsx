@@ -68,7 +68,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-lg font-semibold text-foreground">{profile.name}</h1>
+              <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">{profile.name}</h1>
               <p className="text-sm text-muted-foreground">
                 @{profile.username}
                 {profile.location ? ` · ${profile.location}` : ""}

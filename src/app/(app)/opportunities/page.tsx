@@ -18,7 +18,7 @@ export default function OpportunitiesPage() {
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-foreground">Opportunities</h1>
+          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Opportunities</h1>
           <p className="text-sm text-muted-foreground">
             Open hiring posts, collaborations, and brand deals from the network.
           </p>

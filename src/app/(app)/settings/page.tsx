@@ -37,7 +37,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div>
-        <h1 className="text-lg font-semibold text-foreground">Workspace Settings</h1>
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Workspace Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your account security and notifications.</p>
       </div>
 

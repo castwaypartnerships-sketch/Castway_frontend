@@ -34,7 +34,7 @@ export default function SearchPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
       <div>
-        <h1 className="text-lg font-semibold text-foreground">Search Professionals</h1>
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Search Professionals</h1>
         <p className="text-sm text-muted-foreground">
           Find creators, freelancers, brands, and agencies across the network.
         </p>
