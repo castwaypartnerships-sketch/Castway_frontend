@@ -8,7 +8,7 @@ import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { isHiringRole } from "@/lib/rbac";
+import { canPostOpportunity } from "@/lib/rbac";
 
 export default function OpportunitiesPage() {
   const { data, isLoading, isError } = useGetOpportunitiesQuery();
@@ -23,7 +23,7 @@ export default function OpportunitiesPage() {
             Open hiring posts, collaborations, and brand deals from the network.
           </p>
         </div>
-        {isHiringRole(session?.user?.role) ? (
+        {canPostOpportunity(session?.user?.role) ? (
           <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
             <Plus className="size-4" />
             Post Opportunity

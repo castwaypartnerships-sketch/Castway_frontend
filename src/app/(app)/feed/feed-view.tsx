@@ -4,10 +4,12 @@ import { useState } from "react";
 
 import { useGetFeedQuery } from "@/lib/redux/endpoints/feed-api";
 import { FeedFilterTabs, type FeedFilter } from "@/components/feed/filter-tabs";
+import { CreatePostDialog } from "@/components/feed/create-post-dialog";
 import { PostCard } from "@/components/feed/post-card";
 
 export function FeedView() {
   const [filter, setFilter] = useState<FeedFilter>("ALL");
+  const [composerOpen, setComposerOpen] = useState(false);
 
   const { data, isLoading, isError } = useGetFeedQuery(
     filter === "ALL" ? undefined : { category: filter },
@@ -15,7 +17,8 @@ export function FeedView() {
 
   return (
     <div className="space-y-5">
-      <FeedFilterTabs value={filter} onValueChange={setFilter} />
+      <FeedFilterTabs value={filter} onValueChange={setFilter} onNewProposal={() => setComposerOpen(true)} />
+      <CreatePostDialog open={composerOpen} onOpenChange={setComposerOpen} />
 
       {isLoading ? (
         <div className="space-y-5">

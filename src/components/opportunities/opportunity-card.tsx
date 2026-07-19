@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { isHiringRole } from "@/lib/rbac";
+import { canApplyToOpportunity } from "@/lib/rbac";
 
 const TYPE_LABEL: Record<Opportunity["type"], string> = {
   HIRING: "Hiring",
@@ -31,7 +31,7 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
   const [toggleSave] = useToggleSaveOpportunityMutation();
   const [saved, setSaved] = useState(initiallySaved);
   const { data: session } = useGetSessionQuery();
-  const canApply = !isHiringRole(session?.user?.role);
+  const canApply = canApplyToOpportunity(session?.user?.role);
   const isFreelancer = session?.user?.role === "FREELANCER";
   const [composing, setComposing] = useState(false);
   const [message, setMessage] = useState("");

@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RoleGuard } from "@/components/auth/role-guard";
-import { HIRING_ROLES } from "@/lib/rbac";
+import { OPPORTUNITY_POSTER_ROLES } from "@/lib/rbac";
 
 const TYPE_OPTIONS: { value: OpportunityType; label: string }[] = [
   { value: "HIRING", label: "Hiring" },
@@ -39,7 +39,7 @@ export default function NewOpportunityPage() {
   const [bulkMode, setBulkMode] = useState(false);
 
   return (
-    <RoleGuard allowed={HIRING_ROLES} redirectTo="/opportunities">
+    <RoleGuard allowed={OPPORTUNITY_POSTER_ROLES} redirectTo="/opportunities">
       <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
         <div className="flex items-center justify-between">
           <Link
