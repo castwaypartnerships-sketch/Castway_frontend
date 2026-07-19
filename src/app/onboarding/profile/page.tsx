@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { useCompleteOnboardingMutation } from "@/lib/redux/endpoints/onboarding-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,17 @@ interface ApiErrorBody {
   error?: string;
 }
 
+// Mirrors `ROLE_REQUIRED_FIELDS` in `backend/src/modules/onboarding/completeness.ts` —
+// Brand/Agency accounts aren't marked onboarded until a business email is on file.
+const BUSINESS_EMAIL_ROLES = new Set(["BRAND", "AGENCY"]);
+
 export default function OnboardingProfilePage() {
   const router = useRouter();
+  const { data: session } = useGetSessionQuery();
   const [completeOnboarding, { isLoading }] = useCompleteOnboardingMutation();
+  const requiresBusinessEmail = session?.user?.role
+    ? BUSINESS_EMAIL_ROLES.has(session.user.role)
+    : false;
 
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
@@ -23,6 +32,7 @@ export default function OnboardingProfilePage() {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
+  const [businessEmail, setBusinessEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -44,6 +54,7 @@ export default function OnboardingProfilePage() {
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
+        businessEmail: businessEmail || undefined,
         openForCollaboration: true,
         availableForWork: true,
       }).unwrap();
@@ -104,6 +115,19 @@ export default function OnboardingProfilePage() {
             <Label htmlFor="skills">Skills (comma-separated)</Label>
             <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
           </div>
+          {requiresBusinessEmail ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="businessEmail">Business email</Label>
+              <Input
+                id="businessEmail"
+                type="email"
+                required
+                value={businessEmail}
+                onChange={(e) => setBusinessEmail(e.target.value)}
+                placeholder="team@yourcompany.com"
+              />
+            </div>
+          ) : null}
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

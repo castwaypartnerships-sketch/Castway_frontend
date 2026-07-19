@@ -10,6 +10,7 @@ export interface OnboardingProfileInput {
   location?: string;
   skills?: string[];
   services?: string[];
+  businessEmail?: string;
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
   availableForWork?: boolean;
