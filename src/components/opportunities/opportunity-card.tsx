@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Bookmark, Briefcase, DollarSign, MapPin } from "lucide-react";
 
 import type { Opportunity } from "@/lib/types/opportunity";
@@ -17,6 +18,15 @@ const TYPE_LABEL: Record<Opportunity["type"], string> = {
   COLLABORATION: "Collaboration",
   BRAND_DEAL: "Brand Deal",
   FREELANCE_GIG: "Freelance Gig",
+};
+
+const STATUS_LABEL: Record<Opportunity["status"], string> = {
+  DRAFT: "Draft",
+  OPEN: "Open",
+  PAUSED: "Paused",
+  CLOSED: "Closed",
+  ARCHIVED: "Archived",
+  DELETED: "Deleted",
 };
 
 export function OpportunityCard({ opportunity, initiallySaved = false }: { opportunity: Opportunity; initiallySaved?: boolean }) {
@@ -48,9 +58,9 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
                 {TYPE_LABEL[opportunity.type]}
               </span>
-              {opportunity.status === "CLOSED" ? (
+              {opportunity.status !== "OPEN" ? (
                 <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
-                  Closed
+                  {STATUS_LABEL[opportunity.status]}
                 </span>
               ) : null}
             </div>
@@ -64,7 +74,9 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
         </time>
       </div>
 
-      <h3 className="mt-4 text-lg font-semibold text-foreground">{opportunity.title}</h3>
+      <h3 className="mt-4 text-lg font-semibold text-foreground hover:underline">
+        <Link href={`/opportunities/${opportunity.id}`}>{opportunity.title}</Link>
+      </h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{opportunity.description}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
@@ -115,13 +127,19 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
         {canApply && !composing ? (
           <Button
             size="sm"
-            disabled={isApplying || hasApplied || opportunity.status === "CLOSED"}
+            disabled={isApplying || hasApplied || opportunity.status !== "OPEN"}
             onClick={() => {
               if (isFreelancer) setComposing(true);
               else void handleApply();
             }}
           >
-            {hasApplied ? "Applied" : opportunity.status === "CLOSED" ? "Closed" : isApplying ? "Applying…" : "Apply"}
+            {hasApplied
+              ? "Applied"
+              : opportunity.status !== "OPEN"
+                ? STATUS_LABEL[opportunity.status]
+                : isApplying
+                  ? "Applying…"
+                  : "Apply"}
           </Button>
         ) : null}
       </div>

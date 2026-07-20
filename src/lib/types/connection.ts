@@ -1,4 +1,4 @@
-export type ConnectionStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+export type ConnectionStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "BLOCKED" | "REMOVED";
 
 export interface ConnectionListItem {
   id: string;

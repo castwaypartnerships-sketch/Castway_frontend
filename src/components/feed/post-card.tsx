@@ -1,23 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { BadgeCheck, Bookmark, CalendarDays, DollarSign, Heart, MessageCircle } from "lucide-react";
 
 import type { FeedItem } from "@/lib/types/feed";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
-import { useToggleLikeMutation } from "@/lib/redux/endpoints/feed-api";
+import { useToggleLikeMutation, useToggleSavePostMutation } from "@/lib/redux/endpoints/feed-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/feed/category-badge";
+import { CommentDialog } from "@/components/feed/comment-dialog";
 import { useApplyFlow } from "@/components/opportunities/use-apply-flow";
 import { ApplyComposer } from "@/components/opportunities/apply-composer";
 import { cn } from "@/lib/utils";
 
 export function PostCard({ item }: { item: FeedItem }) {
   const [toggleLike] = useToggleLikeMutation();
+  const [toggleSave] = useToggleSavePostMutation();
   const [liked, setLiked] = useState(item.viewerHasLiked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const [saved, setSaved] = useState(item.viewerHasSaved);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   // Called even when there's no linked Opportunity (hook rules — can't call
   // conditionally); the trigger button below only renders when
   // `item.proposal.opportunityId` is actually present, so `handleApply`
@@ -39,17 +43,28 @@ export function PostCard({ item }: { item: FeedItem }) {
     }
   }
 
+  async function handleToggleSave() {
+    const nextSaved = !saved;
+    setSaved(nextSaved);
+
+    try {
+      await toggleSave(item.id).unwrap();
+    } catch {
+      setSaved(!nextSaved);
+    }
+  }
+
   return (
     <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
+        <Link href={`/profile/${item.author.username}`} className="flex items-start gap-3">
           <Avatar size="lg">
             <AvatarImage src={item.author.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(item.author.name)}</AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-1.5">
-              <p className="text-sm font-semibold text-foreground">{item.author.name}</p>
+              <p className="text-sm font-semibold text-foreground hover:underline">{item.author.name}</p>
               {item.author.verified ? (
                 <BadgeCheck className="size-4 text-primary" aria-label="Verified" />
               ) : null}
@@ -57,7 +72,7 @@ export function PostCard({ item }: { item: FeedItem }) {
             </div>
             <p className="text-sm text-muted-foreground">{item.author.role}</p>
           </div>
-        </div>
+        </Link>
         <time
           dateTime={item.createdAt}
           className="shrink-0 text-xs whitespace-nowrap text-muted-foreground"
@@ -67,7 +82,7 @@ export function PostCard({ item }: { item: FeedItem }) {
       </div>
 
       <h3 className="mt-4 text-lg font-semibold text-primary hover:underline">
-        <a href="#">{item.title}</a>
+        <Link href={`/feed/${item.id}`}>{item.title}</Link>
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
 
@@ -137,14 +152,19 @@ export function PostCard({ item }: { item: FeedItem }) {
             <Heart className={cn("size-4", liked && "fill-destructive")} />
             {likeCount}
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setCommentsOpen(true)}
+          >
             <MessageCircle className="size-4" />
             {item.commentCount}
           </Button>
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => setSaved((prev) => !prev)}
+            onClick={handleToggleSave}
             aria-pressed={saved}
             aria-label={saved ? "Remove from saved" : "Save post"}
           >
@@ -166,6 +186,8 @@ export function PostCard({ item }: { item: FeedItem }) {
       </div>
 
       {composing ? <ApplyComposer flow={applyFlow} /> : null}
+
+      <CommentDialog postId={item.id} open={commentsOpen} onOpenChange={setCommentsOpen} />
     </article>
   );
 }

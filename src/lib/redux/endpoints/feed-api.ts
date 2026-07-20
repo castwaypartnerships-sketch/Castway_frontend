@@ -1,8 +1,15 @@
 import { api } from "@/lib/redux/api";
-import type { FeedItem, PostCategory } from "@/lib/types/feed";
+import type { FeedComment, FeedItem, PostCategory } from "@/lib/types/feed";
 
 interface FeedResponse {
   items: FeedItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+interface CommentsResponse {
+  items: FeedComment[];
   page: number;
   pageSize: number;
   total: number;
@@ -53,7 +60,47 @@ export const feedApi = api.injectEndpoints({
       transformResponse: (response: { data: { items: FeedItem[] } }) => response.data,
       providesTags: ["SavedFeed"],
     }),
+    toggleSavePost: builder.mutation<{ saved: boolean }, string>({
+      query: (postId) => ({ url: `/feed/${postId}/save`, method: "POST" }),
+      transformResponse: (response: { data: { saved: boolean } }) => response.data,
+      invalidatesTags: ["SavedFeed"],
+    }),
+    getPost: builder.query<FeedItem, string>({
+      query: (postId) => `/feed/${postId}`,
+      transformResponse: (response: { data: FeedItem }) => response.data,
+      providesTags: (_result, _error, postId) => [{ type: "Feed", id: postId }],
+    }),
+    getComments: builder.query<CommentsResponse, string>({
+      query: (postId) => `/feed/${postId}/comments`,
+      transformResponse: (response: { data: CommentsResponse }) => response.data,
+      providesTags: (_result, _error, postId) => [{ type: "Comments", id: postId }],
+    }),
+    addComment: builder.mutation<FeedComment, { postId: string; content: string }>({
+      query: ({ postId, content }) => ({ url: `/feed/${postId}/comments`, method: "POST", body: { content } }),
+      transformResponse: (response: { data: FeedComment }) => response.data,
+      invalidatesTags: (_result, _error, { postId }) => [
+        { type: "Comments", id: postId },
+        { type: "Feed", id: postId },
+      ],
+    }),
+    deleteComment: builder.mutation<void, { commentId: string; postId: string }>({
+      query: ({ commentId }) => ({ url: `/feed/comments/${commentId}`, method: "DELETE" }),
+      invalidatesTags: (_result, _error, { postId }) => [
+        { type: "Comments", id: postId },
+        { type: "Feed", id: postId },
+      ],
+    }),
   }),
 });
 
-export const { useGetFeedQuery, useCreatePostMutation, useToggleLikeMutation, useGetSavedPostsQuery } = feedApi;
+export const {
+  useGetFeedQuery,
+  useCreatePostMutation,
+  useToggleLikeMutation,
+  useGetSavedPostsQuery,
+  useToggleSavePostMutation,
+  useGetPostQuery,
+  useGetCommentsQuery,
+  useAddCommentMutation,
+  useDeleteCommentMutation,
+} = feedApi;

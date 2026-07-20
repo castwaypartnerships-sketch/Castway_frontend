@@ -33,7 +33,7 @@ export function AppSidebar() {
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-2.5 px-5 pt-6 pb-5">
+      <Link href="/feed" className="flex items-center gap-2.5 px-5 pt-6 pb-5">
         <div className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
           C
         </div>
@@ -45,7 +45,7 @@ export function AppSidebar() {
             Creator OS
           </p>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
         {navItems.map((item) => {

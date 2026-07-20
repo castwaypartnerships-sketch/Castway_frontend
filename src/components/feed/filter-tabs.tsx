@@ -32,7 +32,7 @@ export function FeedFilterTabs({ value, onValueChange, onNewProposal }: FeedFilt
       </Tabs>
       <Button size="sm" className="gap-1.5" onClick={onNewProposal}>
         <Plus className="size-4" />
-        New Proposal
+        Create Post
       </Button>
     </div>
   );

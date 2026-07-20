@@ -5,7 +5,16 @@ export interface ConversationListItem {
   lastMessageAt: string | null;
   createdAt: string;
   context: ConversationContext;
-  otherParticipant: { userId: string; username: string; name: string; avatarUrl: string | null };
+  isPinned: boolean;
+  isMuted: boolean;
+  isArchived: boolean;
+  otherParticipant: {
+    userId: string;
+    username: string;
+    name: string;
+    avatarUrl: string | null;
+    lastSeenAt: string | null;
+  };
 }
 
 export interface Message {

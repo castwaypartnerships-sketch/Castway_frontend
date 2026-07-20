@@ -22,6 +22,7 @@ import type { Availability, DateRange, PortfolioItem } from "@/lib/types/profile
 import { initialsFromName } from "@/lib/format";
 import { isHiringRole } from "@/lib/rbac";
 import { TrustBadge } from "@/components/profile/trust-badge";
+import { VerificationStatusAction } from "@/components/profile/verification-status-action";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -62,6 +63,7 @@ export default function PortfolioPage() {
           trustScore={data.trustScore}
           reviewSummary={data.reviewSummary}
         />
+        <VerificationStatusAction isVerified={data.isVerified} />
       </div>
 
       <ProfileForm profile={data.profile} hiring={hiring} />

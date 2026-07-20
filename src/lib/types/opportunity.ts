@@ -1,5 +1,5 @@
 export type OpportunityType = "HIRING" | "COLLABORATION" | "BRAND_DEAL" | "FREELANCE_GIG";
-export type OpportunityStatus = "OPEN" | "CLOSED";
+export type OpportunityStatus = "DRAFT" | "OPEN" | "PAUSED" | "CLOSED" | "ARCHIVED" | "DELETED";
 
 export interface Opportunity {
   id: string;

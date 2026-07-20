@@ -21,6 +21,11 @@ export const opportunitiesApi = api.injectEndpoints({
             ]
           : [{ type: "Opportunities" as const, id: "LIST" }],
     }),
+    getOpportunity: builder.query<Opportunity, string>({
+      query: (opportunityId) => `/opportunities/${opportunityId}`,
+      transformResponse: (response: { data: Opportunity }) => response.data,
+      providesTags: (_result, _error, opportunityId) => [{ type: "Opportunities", id: opportunityId }],
+    }),
     getSavedOpportunities: builder.query<{ items: Opportunity[] }, void>({
       query: () => "/opportunities/saved",
       transformResponse: (response: { data: { items: Opportunity[] } }) => response.data,
@@ -58,6 +63,7 @@ export const opportunitiesApi = api.injectEndpoints({
 
 export const {
   useGetOpportunitiesQuery,
+  useGetOpportunityQuery,
   useGetSavedOpportunitiesQuery,
   useCreateOpportunityMutation,
   useCreateBulkOpportunitiesMutation,

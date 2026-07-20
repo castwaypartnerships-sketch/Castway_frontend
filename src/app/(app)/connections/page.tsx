@@ -8,12 +8,15 @@ import type { ConnectionListItem } from "@/lib/types/connection";
 import { initialsFromName } from "@/lib/format";
 import {
   useAcceptConnectionMutation,
+  useBlockUserMutation,
+  useGetBlockedConnectionsQuery,
   useGetConnectionsQuery,
   useGetPendingConnectionsQuery,
   useGetSuggestedConnectionsQuery,
   useRejectConnectionMutation,
   useRemoveConnectionMutation,
   useSendConnectionRequestMutation,
+  useUnblockUserMutation,
 } from "@/lib/redux/endpoints/connections-api";
 import { useSubmitReviewMutation } from "@/lib/redux/endpoints/reviews-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,7 +28,9 @@ export default function ConnectionsPage() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const initialTab =
-    requestedTab === "requests" || requestedTab === "suggested" ? requestedTab : "connections";
+    requestedTab === "requests" || requestedTab === "suggested" || requestedTab === "blocked"
+      ? requestedTab
+      : "connections";
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-6">
@@ -39,6 +44,7 @@ export default function ConnectionsPage() {
           <TabsTrigger value="connections">My Connections</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
           <TabsTrigger value="suggested">Suggested</TabsTrigger>
+          <TabsTrigger value="blocked">Blocked</TabsTrigger>
         </TabsList>
 
         <TabsContent value="connections" className="mt-5">
@@ -49,6 +55,9 @@ export default function ConnectionsPage() {
         </TabsContent>
         <TabsContent value="suggested" className="mt-5">
           <SuggestedTab />
+        </TabsContent>
+        <TabsContent value="blocked" className="mt-5">
+          <BlockedTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -88,6 +97,7 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 function MyConnectionsTab() {
   const { data, isLoading } = useGetConnectionsQuery();
   const [remove] = useRemoveConnectionMutation();
+  const [blockUser] = useBlockUserMutation();
 
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
   if (!data || data.items.length === 0) return <EmptyState>No connections yet.</EmptyState>;
@@ -97,11 +107,41 @@ function MyConnectionsTab() {
       {data.items.map((connection: ConnectionListItem) => (
         <PersonRow key={connection.id} person={connection.counterpart}>
           <div className="flex flex-col items-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => remove(connection.id)}>
-              Remove
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => remove(connection.id)}>
+                Remove
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive"
+                onClick={() => blockUser(connection.counterpart.userId)}
+              >
+                Block
+              </Button>
+            </div>
             <LeaveReviewAction revieweeUserId={connection.counterpart.userId} />
           </div>
+        </PersonRow>
+      ))}
+    </ul>
+  );
+}
+
+function BlockedTab() {
+  const { data, isLoading } = useGetBlockedConnectionsQuery();
+  const [unblock] = useUnblockUserMutation();
+
+  if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
+  if (!data || data.items.length === 0) return <EmptyState>No blocked users.</EmptyState>;
+
+  return (
+    <ul className="space-y-3">
+      {data.items.map((connection: ConnectionListItem) => (
+        <PersonRow key={connection.id} person={connection.counterpart}>
+          <Button variant="outline" size="sm" onClick={() => unblock(connection.id)}>
+            Unblock
+          </Button>
         </PersonRow>
       ))}
     </ul>
@@ -169,6 +209,7 @@ function RequestsTab() {
   const { data, isLoading } = useGetPendingConnectionsQuery();
   const [accept] = useAcceptConnectionMutation();
   const [reject] = useRejectConnectionMutation();
+  const [blockUser] = useBlockUserMutation();
 
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
 
@@ -196,6 +237,14 @@ function RequestsTab() {
                     aria-label="Reject"
                   >
                     <X className="size-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive"
+                    onClick={() => blockUser(connection.counterpart.userId)}
+                  >
+                    Block
                   </Button>
                 </div>
               </PersonRow>

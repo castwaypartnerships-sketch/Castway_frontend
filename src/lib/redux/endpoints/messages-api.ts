@@ -1,4 +1,5 @@
 import { api } from "@/lib/redux/api";
+import { authApi } from "@/lib/redux/endpoints/auth-api";
 import type { ConversationListItem, Message } from "@/lib/types/messaging";
 
 interface MessagesResponse {
@@ -8,11 +9,22 @@ interface MessagesResponse {
   total: number;
 }
 
+interface ConversationsResponse {
+  items: ConversationListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export const messagesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getConversations: builder.query<{ items: ConversationListItem[] }, void>({
-      query: () => "/conversations",
-      transformResponse: (response: { data: { items: ConversationListItem[] } }) => response.data,
+    // Bounded to a sane default page size — the list previously fetched every
+    // conversation the user had unconditionally, which was the actual cause
+    // of "opening a conversation feels laggy" (TC-102): the whole inbox was
+    // refetched on every load, not just a slow individual-thread fetch.
+    getConversations: builder.query<ConversationsResponse, void>({
+      query: () => ({ url: "/conversations", params: { page: 1, pageSize: 50 } }),
+      transformResponse: (response: { data: ConversationsResponse }) => response.data,
       providesTags: ["Conversations"],
     }),
     startConversation: builder.mutation<ConversationListItem, string>({
@@ -32,6 +44,34 @@ export const messagesApi = api.injectEndpoints({
         body: { body },
       }),
       transformResponse: (response: { data: Message }) => response.data,
+      // Optimistic append so the bubble renders instantly instead of waiting
+      // on the round trip — `invalidatesTags` below still refetches on
+      // success/failure, which reconciles (or rolls back) this temp entry.
+      async onQueryStarted({ conversationId, body }, { dispatch, getState, queryFulfilled }) {
+        const senderId = authApi.endpoints.getSession.select()(getState()).data?.user?.id;
+        if (!senderId) return;
+
+        const patchResult = dispatch(
+          messagesApi.util.updateQueryData("getMessages", conversationId, (draft) => {
+            draft.items.unshift({
+              id: `optimistic-${Date.now()}`,
+              conversationId,
+              senderId,
+              body,
+              attachmentUrl: null,
+              readBy: [senderId],
+              createdAt: new Date().toISOString(),
+            });
+            draft.total += 1;
+          }),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
       invalidatesTags: (_result, _error, { conversationId }) => [
         { type: "Messages", id: conversationId },
         "Conversations",
@@ -40,6 +80,21 @@ export const messagesApi = api.injectEndpoints({
     markConversationRead: builder.mutation<void, string>({
       query: (conversationId) => ({ url: `/conversations/${conversationId}/read`, method: "POST" }),
       invalidatesTags: ["Dashboard"],
+    }),
+    notifyTyping: builder.mutation<void, string>({
+      query: (conversationId) => ({ url: `/conversations/${conversationId}/typing`, method: "POST" }),
+    }),
+    toggleConversationPin: builder.mutation<void, string>({
+      query: (conversationId) => ({ url: `/conversations/${conversationId}/pin`, method: "POST" }),
+      invalidatesTags: ["Conversations"],
+    }),
+    toggleConversationMute: builder.mutation<void, string>({
+      query: (conversationId) => ({ url: `/conversations/${conversationId}/mute`, method: "POST" }),
+      invalidatesTags: ["Conversations"],
+    }),
+    toggleConversationArchive: builder.mutation<void, string>({
+      query: (conversationId) => ({ url: `/conversations/${conversationId}/archive`, method: "POST" }),
+      invalidatesTags: ["Conversations"],
     }),
   }),
 });
@@ -50,4 +105,8 @@ export const {
   useGetMessagesQuery,
   useSendMessageMutation,
   useMarkConversationReadMutation,
+  useNotifyTypingMutation,
+  useToggleConversationPinMutation,
+  useToggleConversationMuteMutation,
+  useToggleConversationArchiveMutation,
 } = messagesApi;

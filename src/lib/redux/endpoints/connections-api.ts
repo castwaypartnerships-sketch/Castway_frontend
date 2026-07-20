@@ -44,6 +44,24 @@ export const connectionsApi = api.injectEndpoints({
       query: (connectionId) => ({ url: `/connections/${connectionId}`, method: "DELETE" }),
       invalidatesTags: ["Connections", "Dashboard"],
     }),
+    getBlockedConnections: builder.query<{ items: ConnectionListItem[] }, void>({
+      query: () => "/connections/blocked",
+      transformResponse: (response: { data: { items: ConnectionListItem[] } }) => response.data,
+      providesTags: ["BlockedConnections"],
+    }),
+    blockUser: builder.mutation<void, string>({
+      query: (userId) => ({ url: "/connections/block", method: "POST", body: { userId } }),
+      invalidatesTags: [
+        "Connections",
+        "PendingConnections",
+        "SuggestedConnections",
+        "BlockedConnections",
+      ],
+    }),
+    unblockUser: builder.mutation<void, string>({
+      query: (connectionId) => ({ url: `/connections/${connectionId}/unblock`, method: "POST" }),
+      invalidatesTags: ["BlockedConnections"],
+    }),
   }),
 });
 
@@ -55,4 +73,7 @@ export const {
   useAcceptConnectionMutation,
   useRejectConnectionMutation,
   useRemoveConnectionMutation,
+  useGetBlockedConnectionsQuery,
+  useBlockUserMutation,
+  useUnblockUserMutation,
 } = connectionsApi;

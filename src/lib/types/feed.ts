@@ -50,6 +50,14 @@ export interface FeedItem {
   createdAt: string;
 }
 
+export interface FeedComment {
+  id: string;
+  postId: string;
+  content: string;
+  createdAt: string;
+  author: { userId: string; username: string; name: string; avatarUrl: string | null };
+}
+
 export interface ProfileCompletionTask {
   id: string;
   label: string;
