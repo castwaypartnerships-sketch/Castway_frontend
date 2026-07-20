@@ -373,10 +373,21 @@ function ThreadView({
   const { data, isLoading } = useGetMessagesQuery(conversationId);
   const [markRead] = useMarkConversationReadMutation();
   const isOtherTyping = useTypingIndicator(conversationId, conversation.otherParticipant.userId);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     markRead(conversationId);
   }, [conversationId, markRead]);
+
+  // Scroll to the newest message (the last item after `.reverse()`) whenever
+  // the list changes — first load, a new send (optimistic or confirmed), or
+  // an incoming message via Pusher. Keyed off the last message's id/count
+  // rather than `data` itself, since `data` is a new object reference on
+  // every refetch even when the visible messages haven't actually changed.
+  const lastMessageId = data?.items[0]?.id;
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ block: "end" });
+  }, [conversationId, lastMessageId, data?.items.length]);
 
   return (
     <div className="flex h-full flex-col">
@@ -426,6 +437,7 @@ function ThreadView({
             );
           })
         )}
+        <div ref={scrollRef} />
       </div>
 
       <MessageComposer conversationId={conversationId} />

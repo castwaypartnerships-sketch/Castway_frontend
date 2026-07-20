@@ -33,6 +33,7 @@ export interface FeedProposalDetails {
   budgetLabel: string;
   deadlineLabel: string;
   opportunityId?: string;
+  viewerHasApplied: boolean;
 }
 
 export interface FeedItem {

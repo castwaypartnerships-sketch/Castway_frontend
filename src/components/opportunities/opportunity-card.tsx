@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<Opportunity["status"], string> = {
 export function OpportunityCard({ opportunity, initiallySaved = false }: { opportunity: Opportunity; initiallySaved?: boolean }) {
   const [toggleSave] = useToggleSaveOpportunityMutation();
   const [saved, setSaved] = useState(initiallySaved);
-  const applyFlow = useApplyFlow(opportunity.id);
+  const applyFlow = useApplyFlow(opportunity.id, opportunity.viewerHasApplied, opportunity.postedByUserId);
   const { canApply, isFreelancer, composing, setComposing, isApplying, hasApplied, handleApply } = applyFlow;
 
   async function handleSave() {

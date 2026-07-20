@@ -26,7 +26,11 @@ export function PostCard({ item }: { item: FeedItem }) {
   // conditionally); the trigger button below only renders when
   // `item.proposal.opportunityId` is actually present, so `handleApply`
   // never fires against the empty-string placeholder.
-  const applyFlow = useApplyFlow(item.proposal?.opportunityId ?? "");
+  const applyFlow = useApplyFlow(
+    item.proposal?.opportunityId ?? "",
+    item.proposal?.viewerHasApplied ?? false,
+    item.author.userId,
+  );
   const { canApply, isFreelancer, composing, setComposing, isApplying, hasApplied, handleApply } = applyFlow;
 
   async function handleToggleLike() {

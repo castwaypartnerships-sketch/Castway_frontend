@@ -110,6 +110,7 @@ export const api = createApi({
     "CampaignShortlist",
     "Verification",
     "PendingVerifications",
+    "Applications",
   ],
   endpoints: () => ({}),
 });

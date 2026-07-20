@@ -16,6 +16,7 @@ export interface Opportunity {
   createdAt: string;
   updatedAt: string;
   poster: { userId: string; username: string; name: string; avatarUrl: string | null };
+  viewerHasApplied: boolean;
 }
 
 export interface OpportunityWriteInput {

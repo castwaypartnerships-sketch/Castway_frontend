@@ -13,11 +13,28 @@ import { canApplyToOpportunity } from "@/lib/rbac";
  * and `PostCard`'s "Apply Proposal" button — both hit the exact same
  * `/opportunities/:id/apply` endpoint and need identical behavior, not a
  * one-off variant per card.
+ *
+ * `initiallyApplied` seeds the "already applied" state from the server
+ * (`viewerHasApplied` on the opportunity/feed-item DTO). Without it, `hasApplied`
+ * came only from this mutation hook's own `isSuccess` — which starts `false`
+ * on every mount, so a page reload (or just landing on the card fresh) showed
+ * "Apply" again for an opportunity the user had already applied to in a prior
+ * session, even though the backend correctly rejected the resulting duplicate
+ * apply with "You have already applied to this opportunity."
+ *
+ * `posterUserId` gates out the poster's own opportunity — the backend has
+ * always rejected a poster applying to their own post with "You cannot apply
+ * to your own opportunity" (see `ApplicationService.apply`), but nothing on
+ * the frontend checked this, so a poster viewing their own proposal in the
+ * Feed or Opportunities list saw a live "Apply" button that only failed
+ * after being clicked.
  */
-export function useApplyFlow(opportunityId: string) {
-  const [apply, { isLoading: isApplying, isSuccess: hasApplied }] = useApplyToOpportunityMutation();
+export function useApplyFlow(opportunityId: string, initiallyApplied = false, posterUserId?: string) {
+  const [apply, { isLoading: isApplying, isSuccess }] = useApplyToOpportunityMutation();
+  const hasApplied = initiallyApplied || isSuccess;
   const { data: session } = useGetSessionQuery();
-  const canApply = canApplyToOpportunity(session?.user?.role);
+  const isOwnOpportunity = Boolean(posterUserId) && session?.user?.id === posterUserId;
+  const canApply = canApplyToOpportunity(session?.user?.role) && !isOwnOpportunity;
   const isFreelancer = session?.user?.role === "FREELANCER";
   const [composing, setComposing] = useState(false);
   const [message, setMessage] = useState("");
