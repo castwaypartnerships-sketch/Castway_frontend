@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useGetSessionQuery, type SessionUser } from "@/lib/redux/endpoints/auth-api";
+import type { NormalizedApiError } from "@/lib/redux/api";
+import { Button } from "@/components/ui/button";
 
 export type RouteGuardZone = "auth" | "onboarding" | "protected";
 
@@ -39,14 +41,35 @@ export function resolveDestination(
 export function RouteGuard({ zone, children }: { zone: RouteGuardZone; children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data, isLoading, isError } = useGetSessionQuery();
+  const { data, isLoading, isError, error, refetch } = useGetSessionQuery();
 
-  const session = isError ? null : (data?.user ?? null);
-  const destination = isLoading ? null : resolveDestination(zone, pathname, session);
+  /**
+   * Only a confirmed 401 means "you're actually logged out." Any other
+   * error — a dropped connection, a proxy timeout, an HTML error page from
+   * the platform in front of the API — is transient and must not bounce
+   * the user to /login; that previously read as a spurious logout (e.g.
+   * QA's "sending a message logs the user out" reports).
+   */
+  const isConfirmedLoggedOut = isError && (error as NormalizedApiError | undefined)?.isAuthError === true;
+  const isUnverifiable = isError && !isConfirmedLoggedOut && !data;
+
+  const session = isConfirmedLoggedOut ? null : (data?.user ?? null);
+  const destination = isLoading || isUnverifiable ? null : resolveDestination(zone, pathname, session);
 
   useEffect(() => {
     if (destination) router.replace(destination);
   }, [destination, router]);
+
+  if (isUnverifiable) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-background px-4 text-center">
+        <p className="text-sm text-muted-foreground">Couldn&apos;t verify your session. Check your connection.</p>
+        <Button variant="outline" onClick={() => refetch()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading || destination) {
     return <div className="flex min-h-dvh items-center justify-center bg-background" />;

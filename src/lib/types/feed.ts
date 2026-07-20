@@ -1,12 +1,15 @@
 /**
  * Domain types for the Feed screen, kept close to (but not 1:1 with) the
- * backend's `Post` Prisma model (`backend/prisma/schema.prisma`). The
- * reference design's feed cards carry proposal-style metadata (budget,
- * application deadline, apply CTA) that today's `Post` model doesn't have —
- * that's closer to `Opportunity`. Modeling `proposal` as optional here lets
- * a plain text update (category `GENERAL`) and a proposal-style post share
- * one card component, and keeps the real Phase-4 API contract (Post +
- * Opportunity join, or a schema extension) an open, non-breaking decision.
+ * backend's `Post` Prisma model (`backend/prisma/schema.prisma`). A proposal-
+ * shaped post (budget/deadline set, authored by a role allowed to post
+ * opportunities) is now backed by a real linked `Opportunity` record —
+ * `proposal.opportunityId`, when present, is what "Apply Proposal" applies
+ * against via the same `/opportunities/:id/apply` endpoint `OpportunityCard`
+ * uses. It's optional because older posts (or ones from a role that can't
+ * post opportunities) can still have `budget`/`deadlineLabel` set for display
+ * with no backing Opportunity — those render the info cards but no Apply
+ * button. `proposal` itself stays optional so a plain text update (category
+ * `GENERAL`) and a proposal-style post can share one card component.
  */
 
 export type PostCategory =
@@ -29,6 +32,7 @@ export interface FeedAuthor {
 export interface FeedProposalDetails {
   budgetLabel: string;
   deadlineLabel: string;
+  opportunityId?: string;
 }
 
 export interface FeedItem {

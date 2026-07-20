@@ -9,6 +9,8 @@ import { useToggleLikeMutation } from "@/lib/redux/endpoints/feed-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/feed/category-badge";
+import { useApplyFlow } from "@/components/opportunities/use-apply-flow";
+import { ApplyComposer } from "@/components/opportunities/apply-composer";
 import { cn } from "@/lib/utils";
 
 export function PostCard({ item }: { item: FeedItem }) {
@@ -16,6 +18,12 @@ export function PostCard({ item }: { item: FeedItem }) {
   const [liked, setLiked] = useState(item.viewerHasLiked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const [saved, setSaved] = useState(item.viewerHasSaved);
+  // Called even when there's no linked Opportunity (hook rules — can't call
+  // conditionally); the trigger button below only renders when
+  // `item.proposal.opportunityId` is actually present, so `handleApply`
+  // never fires against the empty-string placeholder.
+  const applyFlow = useApplyFlow(item.proposal?.opportunityId ?? "");
+  const { canApply, isFreelancer, composing, setComposing, isApplying, hasApplied, handleApply } = applyFlow;
 
   async function handleToggleLike() {
     const nextLiked = !liked;
@@ -91,6 +99,12 @@ export function PostCard({ item }: { item: FeedItem }) {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
+                      // The composer's date picker sends the chosen calendar day as UTC
+                      // midnight (`new Date(deadline).toISOString()` on a date-only
+                      // string) — it represents a day, not an instant, so it must be
+                      // read back in UTC too, or it rolls back a day for any viewer
+                      // west of UTC.
+                      timeZone: "UTC",
                     })}
               </p>
             </div>
@@ -137,8 +151,21 @@ export function PostCard({ item }: { item: FeedItem }) {
             <Bookmark className={cn("size-4", saved && "fill-foreground")} />
           </Button>
         </div>
-        {item.proposal ? <Button size="sm">Apply Proposal</Button> : null}
+        {item.proposal?.opportunityId && canApply && !composing ? (
+          <Button
+            size="sm"
+            disabled={isApplying || hasApplied}
+            onClick={() => {
+              if (isFreelancer) setComposing(true);
+              else void handleApply();
+            }}
+          >
+            {hasApplied ? "Applied" : isApplying ? "Applying…" : "Apply Proposal"}
+          </Button>
+        ) : null}
       </div>
+
+      {composing ? <ApplyComposer flow={applyFlow} /> : null}
     </article>
   );
 }

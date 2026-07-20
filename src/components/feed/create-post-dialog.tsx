@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import type { PostCategory } from "@/lib/types/feed";
 import { categoryLabel } from "@/components/feed/category-badge";
 import { useCreatePostMutation } from "@/lib/redux/endpoints/feed-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
+import { canPostOpportunity } from "@/lib/rbac";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,8 @@ const CATEGORIES: PostCategory[] = ["GENERAL", "HIRING", "COLLABORATION", "BRAND
 
 export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [createPost, { isLoading }] = useCreatePostMutation();
+  const { data: session } = useGetSessionQuery();
+  const canPostProposal = canPostOpportunity(session?.user?.role);
 
   const [content, setContent] = useState("");
   const [category, setCategory] = useState<PostCategory>("GENERAL");
@@ -108,16 +112,18 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="post-budget">Budget (optional)</Label>
-              <Input id="post-budget" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$500 - $1,000" />
+          {canPostProposal ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="post-budget">Budget (optional)</Label>
+                <Input id="post-budget" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$500 - $1,000" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="post-deadline">Applications close (optional)</Label>
+                <Input id="post-deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="post-deadline">Applications close (optional)</Label>
-              <Input id="post-deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-            </div>
-          </div>
+          ) : null}
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
