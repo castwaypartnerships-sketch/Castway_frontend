@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, Search } from "lucide-react";
 
@@ -78,7 +78,31 @@ function NotificationsMenu({ hasUnread }: { hasUnread: boolean }) {
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useGetNotificationsQuery(undefined, { skip: !open });
   const [markRead] = useMarkNotificationReadMutation();
-  const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
+  const [markAllRead] = useMarkAllNotificationsReadMutation();
+
+  // Snapshot which ids were unread the moment the list first loads after
+  // opening, and keep highlighting exactly those for the rest of this
+  // viewing session — `markAllRead` below flips their real `readAt`
+  // straight away, so highlighting off the live field would make the
+  // "new" background vanish the instant the mark-all refetch lands.
+  //
+  // The snapshot itself is captured during render (React's "adjusting state
+  // while rendering" pattern) rather than in a useEffect, since it's a pure
+  // derivation of `data`/`open` — only the actual `markAllRead` network call
+  // below needs an effect, and that effect never calls setState itself.
+  const [unreadSnapshot, setUnreadSnapshot] = useState<Set<string>>(new Set());
+  const [snapshotReady, setSnapshotReady] = useState(false);
+
+  if (!open && snapshotReady) {
+    setSnapshotReady(false);
+  } else if (open && !snapshotReady && data) {
+    setSnapshotReady(true);
+    setUnreadSnapshot(new Set(data.items.filter((n) => !n.readAt).map((n) => n.id)));
+  }
+
+  useEffect(() => {
+    if (snapshotReady && unreadSnapshot.size > 0) markAllRead();
+  }, [snapshotReady, unreadSnapshot, markAllRead]);
 
   function handleSelect(notification: AppNotification) {
     if (!notification.readAt) markRead(notification.id);
@@ -92,24 +116,14 @@ function NotificationsMenu({ hasUnread }: { hasUnread: boolean }) {
           <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
             <Bell className="size-4.5" />
             {hasUnread ? (
-              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-background" />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
             ) : null}
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuGroup>
-          <div className="flex items-center justify-between px-1.5 py-1">
-            <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-            <button
-              type="button"
-              disabled={isMarkingAll}
-              onClick={() => markAllRead()}
-              className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
-            >
-              Mark all as read
-            </button>
-          </div>
+          <DropdownMenuLabel className="px-1.5">Notifications</DropdownMenuLabel>
           {isLoading ? (
             <p className="px-1.5 py-3 text-sm text-muted-foreground">Loading…</p>
           ) : !data || data.items.length === 0 ? (
@@ -119,9 +133,12 @@ function NotificationsMenu({ hasUnread }: { hasUnread: boolean }) {
               <DropdownMenuItem
                 key={notification.id}
                 onClick={() => handleSelect(notification)}
-                className="flex-col items-start gap-0.5 whitespace-normal"
+                className={cn(
+                  "flex-col items-start gap-0.5 whitespace-normal rounded-md",
+                  unreadSnapshot.has(notification.id) && "bg-primary/10",
+                )}
               >
-                <span className={cn("text-sm", !notification.readAt && "font-medium text-foreground")}>
+                <span className={cn("text-sm", unreadSnapshot.has(notification.id) && "font-medium text-foreground")}>
                   {notification.message}
                 </span>
                 <span className="text-xs text-muted-foreground">

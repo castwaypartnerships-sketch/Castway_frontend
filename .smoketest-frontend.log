@@ -581,3 +581,285 @@ Import traces:
   31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
  GET /feed 200 in 297ms (next.js: 6ms, proxy.ts: 5ms, application-code: 286ms)
  GET /feed 200 in 96ms (next.js: 10ms, proxy.ts: 7ms, application-code: 79ms)
+⚠ Fast Refresh had to perform a full reload when ./src/lib/redux/api.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+✓ Compiled in 549ms
+ GET /login 200 in 520ms (next.js: 182ms, proxy.ts: 8ms, application-code: 330ms)
+ GET /feed 200 in 195ms (next.js: 138ms, proxy.ts: 5ms, application-code: 52ms)
+✓ Compiled in 202ms
+ GET /feed 200 in 243ms (next.js: 96ms, proxy.ts: 46ms, application-code: 101ms)
+ GET /feed 200 in 103ms (next.js: 6ms, proxy.ts: 9ms, application-code: 88ms)
+ GET /feed 200 in 59ms (next.js: 8ms, proxy.ts: 9ms, application-code: 42ms)
+✓ Compiled in 738ms
+ GET /feed 200 in 252ms (next.js: 79ms, proxy.ts: 43ms, application-code: 130ms)
+ GET /feed 200 in 269ms (next.js: 8ms, proxy.ts: 8ms, application-code: 253ms)
+ GET /feed 200 in 229ms (next.js: 55ms, proxy.ts: 21ms, application-code: 153ms)
+ GET /feed 200 in 232ms (next.js: 23ms, proxy.ts: 21ms, application-code: 187ms)
+ GET /feed 200 in 231ms (next.js: 93ms, proxy.ts: 21ms, application-code: 117ms)
+ GET /feed 200 in 283ms (next.js: 115ms, proxy.ts: 22ms, application-code: 146ms)
+ GET /feed 200 in 263ms (next.js: 13ms, proxy.ts: 135ms, application-code: 115ms)
+ GET /feed 200 in 108ms (next.js: 13ms, proxy.ts: 9ms, application-code: 86ms)
+ GET /feed 200 in 39ms (next.js: 7ms, proxy.ts: 6ms, application-code: 26ms)
+✓ Compiled in 158ms
+ GET /feed 200 in 284ms (next.js: 119ms, proxy.ts: 64ms, application-code: 101ms)
+ GET /feed 200 in 104ms (next.js: 8ms, proxy.ts: 6ms, application-code: 91ms)
+ GET /feed 200 in 57ms (next.js: 8ms, proxy.ts: 8ms, application-code: 41ms)
+✓ Compiled in 150ms
+ GET /feed 200 in 303ms (next.js: 118ms, proxy.ts: 74ms, application-code: 111ms)
+ GET /feed 200 in 105ms (next.js: 8ms, proxy.ts: 6ms, application-code: 91ms)
+ GET /feed 200 in 53ms (next.js: 8ms, proxy.ts: 9ms, application-code: 37ms)
+[browser] called `injectEndpoints` to override already-existing endpointName getFeed without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName createPost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName toggleLike without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getSavedPosts without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName toggleSavePost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getPost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getComments without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName addComment without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName deleteComment without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getFeed without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName createPost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName toggleLike without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getSavedPosts without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName toggleSavePost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getPost without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getComments without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName getReplies without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName addComment without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+[browser] called `injectEndpoints` to override already-existing endpointName deleteComment without specifying `overrideExisting: true` 
+    at module evaluation (src/lib/redux/endpoints/feed-api.ts:28:28)
+    at module evaluation (src/components/feed/post-card.tsx:103:92)
+  26 | }
+  27 |
+> 28 | export const feedApi = api.injectEndpoints({
+     |                            ^
+  29 |   endpoints: (builder) => ({
+  30 |     getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+  31 |       query: (args) => ({ (src/lib/redux/endpoints/feed-api.ts:28:28)
+ GET /feed 200 in 282ms (next.js: 6ms, proxy.ts: 4ms, application-code: 272ms)
+✓ Compiled in 364ms
+ GET /feed 200 in 208ms (next.js: 106ms, proxy.ts: 60ms, application-code: 42ms)
+ GET /feed 200 in 287ms (next.js: 8ms, proxy.ts: 7ms, application-code: 272ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/feed" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true} className="geist_a715...">
+                          <body
+                            className="min-h-full flex flex-col"
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+✓ Compiled in 219ms
+ GET /feed 200 in 219ms (next.js: 104ms, proxy.ts: 60ms, application-code: 54ms)
+ GET /connections?tab=requests 200 in 135ms (next.js: 103ms, proxy.ts: 6ms, application-code: 26ms)
+ GET /opportunities 200 in 186ms (next.js: 142ms, proxy.ts: 7ms, application-code: 37ms)
+ GET /opportunities 200 in 425ms (next.js: 10ms, proxy.ts: 8ms, application-code: 408ms)
+ GET /login 200 in 161ms (next.js: 41ms, proxy.ts: 18ms, application-code: 102ms)
+ GET /login 200 in 66ms (next.js: 11ms, proxy.ts: 6ms, application-code: 49ms)
+ GET /login 200 in 61ms (next.js: 10ms, proxy.ts: 7ms, application-code: 45ms)
+ GET /login 200 in 52ms (next.js: 8ms, proxy.ts: 5ms, application-code: 39ms)
+ GET /feed 200 in 51ms (next.js: 8ms, proxy.ts: 5ms, application-code: 38ms)
+ GET /feed 200 in 59ms (next.js: 8ms, proxy.ts: 9ms, application-code: 42ms)
+ GET /login 200 in 109ms (next.js: 10ms, proxy.ts: 7ms, application-code: 92ms)
+ GET /login 200 in 76ms (next.js: 11ms, proxy.ts: 7ms, application-code: 58ms)
+ GET /feed 200 in 112ms (next.js: 8ms, proxy.ts: 6ms, application-code: 98ms)
+ GET /feed 200 in 60ms (next.js: 8ms, proxy.ts: 7ms, application-code: 45ms)
+ GET /profile/alex-rivera 200 in 200ms (next.js: 144ms, proxy.ts: 5ms, application-code: 52ms)
+ GET /profile/alex-rivera 200 in 50ms (next.js: 14ms, proxy.ts: 6ms, application-code: 30ms)
+ GET /feed 200 in 45ms (next.js: 10ms, proxy.ts: 5ms, application-code: 30ms)
+ GET /search 200 in 171ms (next.js: 121ms, proxy.ts: 5ms, application-code: 45ms)
+ GET /opportunities 200 in 42ms (next.js: 8ms, proxy.ts: 6ms, application-code: 27ms)
+ GET /connections 200 in 38ms (next.js: 6ms, proxy.ts: 4ms, application-code: 28ms)

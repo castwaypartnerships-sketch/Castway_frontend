@@ -55,6 +55,8 @@ export interface FeedComment {
   id: string;
   postId: string;
   content: string;
+  parentCommentId: string | null;
+  replyCount: number;
   createdAt: string;
   author: { userId: string; username: string; name: string; avatarUrl: string | null };
 }

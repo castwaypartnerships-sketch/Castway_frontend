@@ -90,6 +90,7 @@ export const api = createApi({
     "Feed",
     "SavedFeed",
     "Comments",
+    "Replies",
     "Dashboard",
     "Notifications",
     "Connections",

@@ -76,53 +76,94 @@ export const feedApi = api.injectEndpoints({
       transformResponse: (response: { data: CommentsResponse }) => response.data,
       providesTags: (_result, _error, postId) => [{ type: "Comments", id: postId }],
     }),
-    addComment: builder.mutation<FeedComment, { postId: string; content: string }>({
-      query: ({ postId, content }) => ({ url: `/feed/${postId}/comments`, method: "POST", body: { content } }),
+    // Replies are fetched per-thread on demand ("View N replies"), not
+    // bundled into `getComments` — keyed by the parent (top-level) comment id.
+    getReplies: builder.query<{ items: FeedComment[] }, string>({
+      query: (parentCommentId) => `/feed/comments/${parentCommentId}/replies`,
+      transformResponse: (response: { data: { items: FeedComment[] } }) => response.data,
+      providesTags: (_result, _error, parentCommentId) => [{ type: "Replies", id: parentCommentId }],
+    }),
+    addComment: builder.mutation<FeedComment, { postId: string; content: string; parentCommentId?: string }>({
+      query: ({ postId, content, parentCommentId }) => ({
+        url: `/feed/${postId}/comments`,
+        method: "POST",
+        body: { content, parentCommentId },
+      }),
       transformResponse: (response: { data: FeedComment }) => response.data,
-      // Optimistic append so the comment renders instantly instead of
+      // Optimistic append so the comment/reply renders instantly instead of
       // waiting on the POST round trip plus the invalidation refetch after
       // it — same pattern as `sendMessage` in messages-api.ts.
       // `getOwnProfile` is safe to read here since `AppSidebar` (mounted on
       // every protected page) always has it fetched by the time a comment
       // box is on screen.
-      async onQueryStarted({ postId, content }, { dispatch, getState, queryFulfilled }) {
+      async onQueryStarted({ postId, content, parentCommentId }, { dispatch, getState, queryFulfilled }) {
         const profile = profileApi.endpoints.getOwnProfile.select()(getState()).data?.profile;
         if (!profile) return;
 
-        const patchResult = dispatch(
-          feedApi.util.updateQueryData("getComments", postId, (draft) => {
-            draft.items.push({
-              id: `optimistic-${Date.now()}`,
-              postId,
-              content,
-              createdAt: new Date().toISOString(),
-              author: {
-                userId: profile.userId,
-                username: profile.username,
-                name: profile.name,
-                avatarUrl: profile.avatarUrl,
-              },
-            });
-            draft.total += 1;
-          }),
-        );
+        const optimisticComment: FeedComment = {
+          id: `optimistic-${Date.now()}`,
+          postId,
+          content,
+          parentCommentId: parentCommentId ?? null,
+          replyCount: 0,
+          createdAt: new Date().toISOString(),
+          author: {
+            userId: profile.userId,
+            username: profile.username,
+            name: profile.name,
+            avatarUrl: profile.avatarUrl,
+          },
+        };
+
+        const patches = [
+          parentCommentId
+            ? dispatch(
+                feedApi.util.updateQueryData("getReplies", parentCommentId, (draft) => {
+                  draft.items.push(optimisticComment);
+                }),
+              )
+            : dispatch(
+                feedApi.util.updateQueryData("getComments", postId, (draft) => {
+                  draft.items.push(optimisticComment);
+                  draft.total += 1;
+                }),
+              ),
+        ];
+        // Bump the parent's visible reply count too, if its top-level list
+        // happens to already be cached (e.g. the thread being replied to is
+        // on screen right now).
+        if (parentCommentId) {
+          patches.push(
+            dispatch(
+              feedApi.util.updateQueryData("getComments", postId, (draft) => {
+                const parent = draft.items.find((c) => c.id === parentCommentId);
+                if (parent) parent.replyCount += 1;
+              }),
+            ),
+          );
+        }
 
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
-      invalidatesTags: (_result, _error, { postId }) => [
+      invalidatesTags: (_result, _error, { postId, parentCommentId }) => [
         { type: "Comments", id: postId },
         { type: "Feed", id: postId },
+        ...(parentCommentId ? [{ type: "Replies" as const, id: parentCommentId }] : []),
       ],
     }),
-    deleteComment: builder.mutation<void, { commentId: string; postId: string }>({
+    deleteComment: builder.mutation<void, { commentId: string; postId: string; parentCommentId?: string }>({
       query: ({ commentId }) => ({ url: `/feed/comments/${commentId}`, method: "DELETE" }),
-      invalidatesTags: (_result, _error, { postId }) => [
+      invalidatesTags: (_result, _error, { postId, commentId, parentCommentId }) => [
         { type: "Comments", id: postId },
         { type: "Feed", id: postId },
+        // Invalidate the thread this comment replied into (if any) and, in
+        // case it was itself a top-level comment with replies, its own
+        // now-deleted (cascaded) thread too.
+        { type: "Replies", id: parentCommentId ?? commentId },
       ],
     }),
   }),
@@ -136,6 +177,7 @@ export const {
   useToggleSavePostMutation,
   useGetPostQuery,
   useGetCommentsQuery,
+  useGetRepliesQuery,
   useAddCommentMutation,
   useDeleteCommentMutation,
 } = feedApi;
