@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import type { PresenceChannel } from "pusher-js";
-import { Archive, ArchiveRestore, BellOff, MoreVertical, Pin, Send, SquarePen } from "lucide-react";
+import { Archive, ArchiveRestore, BellOff, Check, CheckCheck, MoreVertical, Pin, Send, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 
 import type { ConversationListItem } from "@/lib/types/messaging";
@@ -391,9 +392,12 @@ function ThreadView({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-border px-6 py-3.5">
+      <Link
+        href={`/profile/${conversation.otherParticipant.username}`}
+        className="group/thread-header flex items-center gap-3 border-b border-border px-6 py-3.5 transition-colors hover:bg-accent/50"
+      >
         <span className="relative shrink-0">
-          <Avatar size="sm">
+          <Avatar size="sm" className="transition-transform group-hover/thread-header:scale-105">
             <AvatarImage src={conversation.otherParticipant.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(conversation.otherParticipant.name)}</AvatarFallback>
           </Avatar>
@@ -402,7 +406,9 @@ function ThreadView({
           ) : null}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">{conversation.otherParticipant.name}</p>
+          <p className="truncate text-sm font-medium text-foreground group-hover/thread-header:underline">
+            {conversation.otherParticipant.name}
+          </p>
           <p className="truncate text-xs text-muted-foreground">
             {isOtherTyping
               ? "Typing…"
@@ -413,7 +419,7 @@ function ThreadView({
                   : "Offline"}
           </p>
         </div>
-      </div>
+      </Link>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-6 py-5">
         {isLoading ? (
@@ -423,6 +429,7 @@ function ThreadView({
         ) : (
           [...data.items].reverse().map((message) => {
             const isOwn = message.senderId === session?.user?.id;
+            const isRead = message.readBy.includes(conversation.otherParticipant.userId);
             return (
               <div key={message.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
                 <div
@@ -432,6 +439,15 @@ function ThreadView({
                   )}
                 >
                   {message.body}
+                  {isOwn ? (
+                    <span className="mt-1 flex justify-end" aria-label={isRead ? "Read" : "Sent"}>
+                      {isRead ? (
+                        <CheckCheck className="size-3.5 text-primary-foreground/80" />
+                      ) : (
+                        <Check className="size-3.5 text-primary-foreground/60" />
+                      )}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             );

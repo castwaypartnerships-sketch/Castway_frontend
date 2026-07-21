@@ -25,6 +25,11 @@ export const verificationApi = api.injectEndpoints({
       transformResponse: (response: { data: PendingVerificationsResponse }) => response.data,
       providesTags: ["PendingVerifications"],
     }),
+    claimVerification: builder.mutation<VerificationRequest, string>({
+      query: (id) => ({ url: `/verification/${id}/claim`, method: "POST" }),
+      transformResponse: (response: { data: VerificationRequest }) => response.data,
+      invalidatesTags: ["PendingVerifications"],
+    }),
     approveVerification: builder.mutation<void, string>({
       query: (id) => ({ url: `/verification/${id}/approve`, method: "POST" }),
       invalidatesTags: ["PendingVerifications"],
@@ -40,6 +45,7 @@ export const {
   useGetOwnVerificationQuery,
   useSubmitVerificationMutation,
   useGetPendingVerificationsQuery,
+  useClaimVerificationMutation,
   useApproveVerificationMutation,
   useRejectVerificationMutation,
 } = verificationApi;

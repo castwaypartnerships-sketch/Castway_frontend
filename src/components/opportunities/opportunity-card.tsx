@@ -45,15 +45,17 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
   }
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <Avatar size="lg">
+        <Link href={`/profile/${opportunity.poster.username}`} className="group/poster flex items-start gap-3">
+          <Avatar size="lg" className="transition-transform group-hover/poster:scale-105">
             <AvatarImage src={opportunity.poster.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(opportunity.poster.name)}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold text-foreground">{opportunity.poster.name}</p>
+            <p className="text-sm font-semibold text-foreground group-hover/poster:underline">
+              {opportunity.poster.name}
+            </p>
             <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
                 {TYPE_LABEL[opportunity.type]}
@@ -65,7 +67,7 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
               ) : null}
             </div>
           </div>
-        </div>
+        </Link>
         <time
           dateTime={opportunity.createdAt}
           className="shrink-0 text-xs whitespace-nowrap text-muted-foreground"

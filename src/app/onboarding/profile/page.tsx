@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AvatarUpload } from "@/components/upload/avatar-upload";
 
 interface ApiErrorBody {
   error?: string;
@@ -28,6 +29,7 @@ export default function OnboardingProfilePage() {
 
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
@@ -43,6 +45,7 @@ export default function OnboardingProfilePage() {
       await completeOnboarding({
         username,
         name,
+        avatarUrl: avatarUrl || undefined,
         bio: bio || undefined,
         creatorCategory: category || undefined,
         location: location || undefined,
@@ -75,6 +78,11 @@ export default function OnboardingProfilePage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col items-center gap-2">
+            <AvatarUpload avatarUrl={avatarUrl} name={name} onUploaded={setAvatarUrl} size="lg" />
+            <p className="text-xs text-muted-foreground">Add a profile photo (optional)</p>
+          </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="username">Username</Label>
             <Input

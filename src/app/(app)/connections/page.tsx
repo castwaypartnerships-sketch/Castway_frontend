@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { BadgeCheck, Check, X } from "lucide-react";
 
 import type { ConnectionListItem } from "@/lib/types/connection";
@@ -68,19 +70,23 @@ function PersonRow({
   person,
   children,
 }: {
-  person: { name: string; avatarUrl: string | null; bio: string | null };
+  person: { username: string; name: string; avatarUrl: string | null; bio: string | null };
   children?: React.ReactNode;
 }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
-      <Avatar size="lg">
-        <AvatarImage src={person.avatarUrl ?? undefined} />
-        <AvatarFallback>{initialsFromName(person.name)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{person.name}</p>
-        <p className="truncate text-xs text-muted-foreground">{person.bio}</p>
-      </div>
+    <li className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
+      <Link href={`/profile/${person.username}`} className="group/person flex min-w-0 flex-1 items-center gap-3">
+        <Avatar size="lg" className="transition-transform group-hover/person:scale-105">
+          <AvatarImage src={person.avatarUrl ?? undefined} />
+          <AvatarFallback>{initialsFromName(person.name)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground group-hover/person:underline">
+            {person.name}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{person.bio}</p>
+        </div>
+      </Link>
       {children}
     </li>
   );
@@ -99,6 +105,25 @@ function MyConnectionsTab() {
   const [remove] = useRemoveConnectionMutation();
   const [blockUser] = useBlockUserMutation();
 
+  async function handleRemove(connection: ConnectionListItem) {
+    try {
+      await remove(connection.id).unwrap();
+      toast.success(`Removed ${connection.counterpart.name} from your connections`);
+    } catch {
+      toast.error("Couldn't remove that connection. Please try again.");
+    }
+  }
+
+  async function handleBlock(connection: ConnectionListItem) {
+    if (!confirm(`Block ${connection.counterpart.name}? They won't be able to contact you.`)) return;
+    try {
+      await blockUser(connection.counterpart.userId).unwrap();
+      toast.success(`Blocked ${connection.counterpart.name}`);
+    } catch {
+      toast.error("Couldn't block that user. Please try again.");
+    }
+  }
+
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
   if (!data || data.items.length === 0) return <EmptyState>No connections yet.</EmptyState>;
 
@@ -108,14 +133,14 @@ function MyConnectionsTab() {
         <PersonRow key={connection.id} person={connection.counterpart}>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => remove(connection.id)}>
+              <Button variant="outline" size="sm" onClick={() => handleRemove(connection)}>
                 Remove
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="text-destructive"
-                onClick={() => blockUser(connection.counterpart.userId)}
+                onClick={() => handleBlock(connection)}
               >
                 Block
               </Button>
@@ -132,6 +157,15 @@ function BlockedTab() {
   const { data, isLoading } = useGetBlockedConnectionsQuery();
   const [unblock] = useUnblockUserMutation();
 
+  async function handleUnblock(connection: ConnectionListItem) {
+    try {
+      await unblock(connection.id).unwrap();
+      toast.success(`Unblocked ${connection.counterpart.name}`);
+    } catch {
+      toast.error("Couldn't unblock that user. Please try again.");
+    }
+  }
+
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
   if (!data || data.items.length === 0) return <EmptyState>No blocked users.</EmptyState>;
 
@@ -139,7 +173,7 @@ function BlockedTab() {
     <ul className="space-y-3">
       {data.items.map((connection: ConnectionListItem) => (
         <PersonRow key={connection.id} person={connection.counterpart}>
-          <Button variant="outline" size="sm" onClick={() => unblock(connection.id)}>
+          <Button variant="outline" size="sm" onClick={() => handleUnblock(connection)}>
             Unblock
           </Button>
         </PersonRow>
@@ -211,6 +245,34 @@ function RequestsTab() {
   const [reject] = useRejectConnectionMutation();
   const [blockUser] = useBlockUserMutation();
 
+  async function handleAccept(connection: ConnectionListItem) {
+    try {
+      await accept(connection.id).unwrap();
+      toast.success(`You're now connected with ${connection.counterpart.name}`);
+    } catch {
+      toast.error("Couldn't accept that request. Please try again.");
+    }
+  }
+
+  async function handleReject(connection: ConnectionListItem) {
+    try {
+      await reject(connection.id).unwrap();
+      toast.success(`Declined ${connection.counterpart.name}'s request`);
+    } catch {
+      toast.error("Couldn't decline that request. Please try again.");
+    }
+  }
+
+  async function handleBlock(connection: ConnectionListItem) {
+    if (!confirm(`Block ${connection.counterpart.name}? They won't be able to contact you.`)) return;
+    try {
+      await blockUser(connection.counterpart.userId).unwrap();
+      toast.success(`Blocked ${connection.counterpart.name}`);
+    } catch {
+      toast.error("Couldn't block that user. Please try again.");
+    }
+  }
+
   if (isLoading) return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
 
   const incoming = data?.incoming ?? [];
@@ -227,13 +289,13 @@ function RequestsTab() {
             {incoming.map((connection) => (
               <PersonRow key={connection.id} person={connection.counterpart}>
                 <div className="flex gap-2">
-                  <Button size="icon-sm" onClick={() => accept(connection.id)} aria-label="Accept">
+                  <Button size="icon-sm" onClick={() => handleAccept(connection)} aria-label="Accept">
                     <Check className="size-4" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon-sm"
-                    onClick={() => reject(connection.id)}
+                    onClick={() => handleReject(connection)}
                     aria-label="Reject"
                   >
                     <X className="size-4" />
@@ -242,7 +304,7 @@ function RequestsTab() {
                     variant="outline"
                     size="sm"
                     className="text-destructive"
-                    onClick={() => blockUser(connection.counterpart.userId)}
+                    onClick={() => handleBlock(connection)}
                   >
                     Block
                   </Button>
@@ -289,23 +351,25 @@ function SuggestedTab() {
 function SuggestedRow({
   suggestion,
 }: {
-  suggestion: { userId: string; name: string; role: string; avatarUrl: string | null; verified: boolean };
+  suggestion: { userId: string; username: string; name: string; role: string; avatarUrl: string | null; verified: boolean };
 }) {
   const [sendRequest, { isLoading, isSuccess }] = useSendConnectionRequestMutation();
 
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
-      <Avatar size="lg">
-        <AvatarImage src={suggestion.avatarUrl ?? undefined} />
-        <AvatarFallback>{initialsFromName(suggestion.name)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1 truncate text-sm font-medium text-foreground">
-          {suggestion.name}
-          {suggestion.verified ? <BadgeCheck className="size-3.5 shrink-0 text-primary" /> : null}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">{suggestion.role}</p>
-      </div>
+    <li className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
+      <Link href={`/profile/${suggestion.username}`} className="group/person flex min-w-0 flex-1 items-center gap-3">
+        <Avatar size="lg" className="transition-transform group-hover/person:scale-105">
+          <AvatarImage src={suggestion.avatarUrl ?? undefined} />
+          <AvatarFallback>{initialsFromName(suggestion.name)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1 truncate text-sm font-medium text-foreground group-hover/person:underline">
+            {suggestion.name}
+            {suggestion.verified ? <BadgeCheck className="size-3.5 shrink-0 text-primary" /> : null}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{suggestion.role}</p>
+        </div>
+      </Link>
       <Button
         size="sm"
         variant={isSuccess ? "outline" : "default"}

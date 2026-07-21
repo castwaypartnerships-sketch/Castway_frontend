@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   useAddPortfolioItemMutation,
@@ -12,17 +13,17 @@ import {
   useUpdateProfileMutation,
 } from "@/lib/redux/endpoints/profile-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Availability, DateRange, PortfolioItem } from "@/lib/types/profile";
-import { initialsFromName } from "@/lib/format";
 import { isHiringRole } from "@/lib/rbac";
 import { TrustBadge } from "@/components/profile/trust-badge";
 import { VerificationStatusAction } from "@/components/profile/verification-status-action";
+import { AvatarUpload } from "@/components/upload/avatar-upload";
+import { CoverUpload } from "@/components/upload/cover-upload";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -85,6 +86,7 @@ function ProfileForm({
     name: string;
     bio: string | null;
     avatarUrl: string | null;
+    coverImageUrl: string | null;
     creatorCategory: string | null;
     location: string | null;
     skills: string[];
@@ -94,6 +96,7 @@ function ProfileForm({
   hiring: boolean;
 }) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const [updatePhoto] = useUpdateProfileMutation();
   const [name, setName] = useState(profile.name);
   const [bio, setBio] = useState(profile.bio ?? "");
   const [category, setCategory] = useState(profile.creatorCategory ?? "");
@@ -108,6 +111,24 @@ function ProfileForm({
     const timeout = setTimeout(() => setSaved(false), 2000);
     return () => clearTimeout(timeout);
   }, [saved]);
+
+  async function handleAvatarUploaded(avatarUrl: string) {
+    try {
+      await updatePhoto({ avatarUrl }).unwrap();
+      toast.success("Profile photo updated");
+    } catch {
+      toast.error("Couldn't save your new profile photo. Please try again.");
+    }
+  }
+
+  async function handleCoverUploaded(coverImageUrl: string) {
+    try {
+      await updatePhoto({ coverImageUrl }).unwrap();
+      toast.success("Cover photo updated");
+    } catch {
+      toast.error("Couldn't save your new cover photo. Please try again.");
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -131,14 +152,11 @@ function ProfileForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6">
+      <CoverUpload coverImageUrl={profile.coverImageUrl} onUploaded={handleCoverUploaded} />
+
       <div className="flex items-center gap-3">
-        <Avatar size="lg">
-          <AvatarImage src={profile.avatarUrl ?? undefined} />
-          <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
-        </Avatar>
-        <p className="text-xs text-muted-foreground">
-          Avatar uploads aren&apos;t wired up yet — set an image URL from Workspace Settings later.
-        </p>
+        <AvatarUpload avatarUrl={profile.avatarUrl} name={profile.name} onUploaded={handleAvatarUploaded} />
+        <p className="text-xs text-muted-foreground">Click your photo or the cover banner to change it.</p>
       </div>
 
       <div className="space-y-1.5">

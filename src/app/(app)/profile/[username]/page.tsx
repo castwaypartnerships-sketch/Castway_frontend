@@ -193,8 +193,12 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
                 rel={item.link ? "noreferrer" : undefined}
                 className="group overflow-hidden rounded-xl border border-border bg-card"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.imageUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                <div
+                  role="img"
+                  aria-label={item.title}
+                  className="aspect-square w-full bg-muted bg-cover bg-center"
+                  style={{ backgroundImage: `url(${item.imageUrl})` }}
+                />
                 <div className="p-2">
                   <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
                   {item.metrics && item.metrics.length > 0 ? (

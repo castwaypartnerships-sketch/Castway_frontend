@@ -8,6 +8,8 @@ interface OpportunitiesResponse {
   total: number;
 }
 
+type LifecycleAction = "publish" | "pause" | "resume" | "close" | "reopen" | "archive";
+
 export const opportunitiesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getOpportunities: builder.query<OpportunitiesResponse, { type?: string } | void>({
@@ -25,6 +27,42 @@ export const opportunitiesApi = api.injectEndpoints({
       query: (opportunityId) => `/opportunities/${opportunityId}`,
       transformResponse: (response: { data: Opportunity }) => response.data,
       providesTags: (_result, _error, opportunityId) => [{ type: "Opportunities", id: opportunityId }],
+    }),
+    getMyOpportunities: builder.query<{ items: Opportunity[] }, void>({
+      query: () => "/opportunities/mine",
+      transformResponse: (response: { data: { items: Opportunity[] } }) => response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map((item) => ({ type: "Opportunities" as const, id: item.id })),
+              { type: "Opportunities" as const, id: "MINE" },
+            ]
+          : [{ type: "Opportunities" as const, id: "MINE" }],
+    }),
+    updateOpportunity: builder.mutation<Opportunity, { id: string; input: Partial<OpportunityWriteInput> }>({
+      query: ({ id, input }) => ({ url: `/opportunities/${id}`, method: "PATCH", body: input }),
+      transformResponse: (response: { data: Opportunity }) => response.data,
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Opportunities", id },
+        { type: "Opportunities", id: "MINE" },
+      ],
+    }),
+    deleteOpportunity: builder.mutation<void, string>({
+      query: (id) => ({ url: `/opportunities/${id}`, method: "DELETE" }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Opportunities", id },
+        { type: "Opportunities", id: "MINE" },
+        { type: "Opportunities", id: "LIST" },
+      ],
+    }),
+    transitionOpportunity: builder.mutation<Opportunity, { id: string; action: LifecycleAction }>({
+      query: ({ id, action }) => ({ url: `/opportunities/${id}/${action}`, method: "POST" }),
+      transformResponse: (response: { data: Opportunity }) => response.data,
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Opportunities", id },
+        { type: "Opportunities", id: "MINE" },
+        { type: "Opportunities", id: "LIST" },
+      ],
     }),
     getSavedOpportunities: builder.query<{ items: Opportunity[] }, void>({
       query: () => "/opportunities/saved",
@@ -64,6 +102,10 @@ export const opportunitiesApi = api.injectEndpoints({
 export const {
   useGetOpportunitiesQuery,
   useGetOpportunityQuery,
+  useGetMyOpportunitiesQuery,
+  useUpdateOpportunityMutation,
+  useDeleteOpportunityMutation,
+  useTransitionOpportunityMutation,
   useGetSavedOpportunitiesQuery,
   useCreateOpportunityMutation,
   useCreateBulkOpportunitiesMutation,

@@ -6,6 +6,7 @@ export interface OnboardingProfileInput {
   username: string;
   name: string;
   bio?: string;
+  avatarUrl?: string;
   creatorCategory?: string;
   location?: string;
   skills?: string[];

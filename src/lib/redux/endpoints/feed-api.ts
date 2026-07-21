@@ -1,5 +1,6 @@
 import { api } from "@/lib/redux/api";
 import type { FeedComment, FeedItem, PostCategory } from "@/lib/types/feed";
+import { profileApi } from "@/lib/redux/endpoints/profile-api";
 
 interface FeedResponse {
   items: FeedItem[];
@@ -78,6 +79,40 @@ export const feedApi = api.injectEndpoints({
     addComment: builder.mutation<FeedComment, { postId: string; content: string }>({
       query: ({ postId, content }) => ({ url: `/feed/${postId}/comments`, method: "POST", body: { content } }),
       transformResponse: (response: { data: FeedComment }) => response.data,
+      // Optimistic append so the comment renders instantly instead of
+      // waiting on the POST round trip plus the invalidation refetch after
+      // it — same pattern as `sendMessage` in messages-api.ts.
+      // `getOwnProfile` is safe to read here since `AppSidebar` (mounted on
+      // every protected page) always has it fetched by the time a comment
+      // box is on screen.
+      async onQueryStarted({ postId, content }, { dispatch, getState, queryFulfilled }) {
+        const profile = profileApi.endpoints.getOwnProfile.select()(getState()).data?.profile;
+        if (!profile) return;
+
+        const patchResult = dispatch(
+          feedApi.util.updateQueryData("getComments", postId, (draft) => {
+            draft.items.push({
+              id: `optimistic-${Date.now()}`,
+              postId,
+              content,
+              createdAt: new Date().toISOString(),
+              author: {
+                userId: profile.userId,
+                username: profile.username,
+                name: profile.name,
+                avatarUrl: profile.avatarUrl,
+              },
+            });
+            draft.total += 1;
+          }),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
       invalidatesTags: (_result, _error, { postId }) => [
         { type: "Comments", id: postId },
         { type: "Feed", id: postId },

@@ -57,6 +57,21 @@ export const connectionsApi = api.injectEndpoints({
         "SuggestedConnections",
         "BlockedConnections",
       ],
+      // Drop the row immediately rather than waiting on the invalidated
+      // refetch — blocking someone is a one-way action, so there's nothing
+      // to reconcile even on rollback beyond letting the refetch correct it.
+      onQueryStarted: async (userId, { dispatch, queryFulfilled }) => {
+        const patchResult = dispatch(
+          connectionsApi.util.updateQueryData("getConnections", undefined, (draft) => {
+            draft.items = draft.items.filter((item) => item.counterpart.userId !== userId);
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
     }),
     unblockUser: builder.mutation<void, string>({
       query: (connectionId) => ({ url: `/connections/${connectionId}/unblock`, method: "POST" }),

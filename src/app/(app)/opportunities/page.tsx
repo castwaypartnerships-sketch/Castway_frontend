@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { ClipboardList, Plus } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
@@ -28,10 +28,19 @@ export default function OpportunitiesPage() {
           </p>
         </div>
         {canPostOpportunity(session?.user?.role) ? (
-          <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
-            <Plus className="size-4" />
-            Post Opportunity
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/opportunities/mine"
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}
+            >
+              <ClipboardList className="size-4" />
+              My Opportunities
+            </Link>
+            <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
+              <Plus className="size-4" />
+              Post Opportunity
+            </Link>
+          </div>
         ) : null}
       </div>
 
