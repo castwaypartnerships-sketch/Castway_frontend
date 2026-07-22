@@ -93,6 +93,19 @@ export function PostEditor({
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       return;
     }
+
+    const { empty } = editor.state.selection;
+    if (empty) {
+      // No text selected — `setLink` has no range to apply the mark to, so
+      // it would otherwise silently do nothing. Insert the URL itself as
+      // linked text instead, same as most editors do in this situation.
+      editor
+        .chain()
+        .focus()
+        .insertContent({ type: "text", text: url, marks: [{ type: "link", attrs: { href: url } }] })
+        .run();
+      return;
+    }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }
 

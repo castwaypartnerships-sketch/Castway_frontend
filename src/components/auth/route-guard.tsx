@@ -67,6 +67,23 @@ export function RouteGuard({ zone, children }: { zone: RouteGuardZone; children:
     if (destination) router.replace(destination);
   }, [destination, router]);
 
+  // Auth-zone pages (login/signup/forgot-password/...) are safe to render
+  // immediately, before the session check even resolves — the default
+  // (logged-out) state is already the right page to show, unlike
+  // `protected`/`onboarding` zones where rendering early risks flashing
+  // content the viewer isn't authorized to see. This is what made the
+  // login page feel slow to open in production: a cold serverless start or
+  // a slow `/auth/session` round trip held the whole page on a blank
+  // screen for no reason, since the login form itself has no dependency on
+  // that response — it only needs it to redirect away an *already*
+  // logged-in visitor, which is fine to do a beat later.
+  if (zone === "auth") {
+    if (destination) {
+      return <div className="flex min-h-dvh items-center justify-center bg-background" />;
+    }
+    return <>{children}</>;
+  }
+
   if (isUnverifiable) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-background px-4 text-center">
