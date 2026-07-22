@@ -154,7 +154,7 @@ function ProfileForm({
     <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-border bg-card p-6">
       <CoverUpload coverImageUrl={profile.coverImageUrl} onUploaded={handleCoverUploaded} />
 
-      <div className="flex items-center gap-3">
+      <div id="avatar-section" className="flex items-center gap-3 scroll-mt-6">
         <AvatarUpload avatarUrl={profile.avatarUrl} name={profile.name} onUploaded={handleAvatarUploaded} />
         <p className="text-xs text-muted-foreground">Click your photo or the cover banner to change it.</p>
       </div>
@@ -164,9 +164,9 @@ function ProfileForm({
         <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 scroll-mt-6">
         <Label htmlFor="bio">{hiring ? "About the company" : "Bio / role"}</Label>
-        <Textarea id="bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+        <Textarea id="bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} className="scroll-mt-6" />
       </div>
 
       {hiring ? (
@@ -199,9 +199,9 @@ function ProfileForm({
             <Label htmlFor="skills">Skills (comma-separated)</Label>
             <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 scroll-mt-6">
             <Label htmlFor="services">Services (comma-separated)</Label>
-            <Input id="services" value={services} onChange={(e) => setServices(e.target.value)} />
+            <Input id="services" value={services} onChange={(e) => setServices(e.target.value)} className="scroll-mt-6" />
           </div>
         </>
       )}
@@ -239,7 +239,7 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-6">
+    <section id="portfolio-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Portfolio items</h2>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>

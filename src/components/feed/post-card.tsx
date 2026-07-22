@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/feed/category-badge";
 import { CommentDialog } from "@/components/feed/comment-dialog";
+import { SharePostMenu } from "@/components/feed/share-post-menu";
 import { useApplyFlow } from "@/components/opportunities/use-apply-flow";
 import { ApplyComposer } from "@/components/opportunities/apply-composer";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function PostCard({ item }: { item: FeedItem }) {
   const [toggleSave] = useToggleSavePostMutation();
   const [liked, setLiked] = useState(item.viewerHasLiked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
+  const [isTogglingLike, setIsTogglingLike] = useState(false);
   const [saved, setSaved] = useState(item.viewerHasSaved);
   const [commentsOpen, setCommentsOpen] = useState(false);
   // Called even when there's no linked Opportunity (hook rules — can't call
@@ -34,6 +36,12 @@ export function PostCard({ item }: { item: FeedItem }) {
   const { canApply, isFreelancer, composing, setComposing, isApplying, hasApplied, handleApply } = applyFlow;
 
   async function handleToggleLike() {
+    // Guards against a rapid double-click firing two overlapping requests —
+    // the backend now tolerates that safely too, but this avoids the
+    // pointless second round trip in the common case.
+    if (isTogglingLike) return;
+    setIsTogglingLike(true);
+
     const nextLiked = !liked;
     setLiked(nextLiked);
     setLikeCount((prev) => (nextLiked ? prev + 1 : prev - 1));
@@ -44,6 +52,8 @@ export function PostCard({ item }: { item: FeedItem }) {
       // Roll back on failure (e.g. not signed in, network error).
       setLiked(!nextLiked);
       setLikeCount((prev) => (nextLiked ? prev - 1 : prev + 1));
+    } finally {
+      setIsTogglingLike(false);
     }
   }
 
@@ -150,6 +160,7 @@ export function PostCard({ item }: { item: FeedItem }) {
             variant="ghost"
             size="sm"
             onClick={handleToggleLike}
+            disabled={isTogglingLike}
             aria-pressed={liked}
             className={cn("gap-1.5", liked && "text-destructive")}
           >
@@ -174,6 +185,7 @@ export function PostCard({ item }: { item: FeedItem }) {
           >
             <Bookmark className={cn("size-4", saved && "fill-foreground")} />
           </Button>
+          <SharePostMenu postId={item.id} title={item.title} />
         </div>
         {item.proposal?.opportunityId && canApply && !composing ? (
           <Button

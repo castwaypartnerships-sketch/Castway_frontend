@@ -1,10 +1,21 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, ChevronRight } from "lucide-react";
 
 import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
 import { CircularProgress } from "@/components/ui/circular-progress";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+// Mirrors the task ids from `buildProfileCompletion` (backend) to the
+// section each one is actually completed in on `/portfolio`.
+const TASK_ANCHORS: Record<string, string> = {
+  avatar: "avatar-section",
+  bio: "bio",
+  portfolio: "portfolio-section",
+  services: "services",
+};
 
 export function ProfileCompletionCard() {
   const { data, isLoading, isError } = useGetOwnProfileQuery();
@@ -32,21 +43,48 @@ export function ProfileCompletionCard() {
       </div>
 
       <ul className="mt-4 space-y-2.5">
-        {completion.tasks.map((task) => (
-          <li key={task.id} className="flex items-center gap-2 text-sm">
-            <CheckCircle2
-              className={cn(
-                "size-4 shrink-0",
-                task.done ? "text-success" : "text-muted-foreground/40",
+        {completion.tasks.map((task) => {
+          const anchor = TASK_ANCHORS[task.id];
+          const content = (
+            <>
+              <CheckCircle2
+                className={cn(
+                  "size-4 shrink-0",
+                  task.done ? "text-success" : "text-muted-foreground/40",
+                )}
+              />
+              <span className={cn("flex-1", task.done && "text-muted-foreground line-through")}>
+                {task.label}
+                {task.bonusLabel ? ` (${task.bonusLabel})` : ""}
+              </span>
+              {!task.done && anchor ? (
+                <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+              ) : null}
+            </>
+          );
+
+          return (
+            <li key={task.id} className="text-sm">
+              {!task.done && anchor ? (
+                <Link
+                  href={`/portfolio#${anchor}`}
+                  className="flex items-center gap-2 rounded-md transition-colors hover:text-primary"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-2">{content}</span>
               )}
-            />
-            <span className={cn(task.done && "text-muted-foreground line-through")}>
-              {task.label}
-              {task.bonusLabel ? ` (${task.bonusLabel})` : ""}
-            </span>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
+
+      {!isComplete ? (
+        <Link href="/portfolio" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 w-full")}>
+          Complete your profile
+        </Link>
+      ) : null}
     </section>
   );
 }

@@ -87,9 +87,16 @@ export default function LoginPage() {
 
         <GoogleSignInButton />
 
+        {process.env.NODE_ENV !== "production" ? (
+          <p className="text-center text-xs text-muted-foreground">
+            Demo login: <span className="font-medium">demo@castway.dev</span> /{" "}
+            <span className="font-medium">Password123!</span>
+          </p>
+        ) : null}
         <p className="text-center text-xs text-muted-foreground">
-          Demo login: <span className="font-medium">demo@castway.dev</span> /{" "}
-          <span className="font-medium">Password123!</span>
+          <Link href="/forgot-password" className="font-medium text-primary hover:underline">
+            Forgot password?
+          </Link>
         </p>
         <p className="text-center text-xs text-muted-foreground">
           New here?{" "}

@@ -19,7 +19,14 @@ export function resolveDestination(
   session: SessionUser | null,
 ): string | null {
   if (!session) {
-    if (zone === "auth" && (pathname === "/login" || pathname === "/signup")) return null;
+    if (
+      zone === "auth" &&
+      (pathname === "/login" ||
+        pathname === "/signup" ||
+        pathname === "/forgot-password" ||
+        pathname === "/reset-password")
+    )
+      return null;
     return "/login";
   }
   if (!session.isEmailVerified) {

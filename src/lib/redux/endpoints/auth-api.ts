@@ -49,6 +49,12 @@ export const authApi = api.injectEndpoints({
     resendOtp: builder.mutation<void, void>({
       query: () => ({ url: "/auth/resend-otp", method: "POST" }),
     }),
+    forgotPassword: builder.mutation<void, { email: string }>({
+      query: (body) => ({ url: "/auth/forgot-password", method: "POST", body }),
+    }),
+    resetPassword: builder.mutation<void, { email: string; code: string; newPassword: string }>({
+      query: (body) => ({ url: "/auth/reset-password", method: "POST", body }),
+    }),
   }),
 });
 
@@ -59,4 +65,6 @@ export const {
   useLogoutMutation,
   useVerifyEmailMutation,
   useResendOtpMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;

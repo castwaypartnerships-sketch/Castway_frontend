@@ -3,6 +3,9 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 
 export interface ApiErrorBody {
   error: string;
+  /** Present only for Zod validation failures (422) — per-field messages,
+   * e.g. `{ password: ["Password must be at least 8 characters"] }`. */
+  errors?: Record<string, string[]>;
 }
 
 /**
@@ -49,7 +52,7 @@ function normalizeError(error: FetchBaseQueryError): NormalizedApiError {
       const body = error.data as Partial<ApiErrorBody> | undefined;
       return {
         status: error.status,
-        data: { error: body?.error ?? GENERIC_ERROR_MESSAGE },
+        data: { error: body?.error ?? GENERIC_ERROR_MESSAGE, ...(body?.errors && { errors: body.errors }) },
         isAuthError: error.status === 401,
       };
     }

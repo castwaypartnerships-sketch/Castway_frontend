@@ -1,25 +1,27 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
-import { useSignupMutation } from "@/lib/redux/endpoints/auth-api";
+import { useResetPasswordMutation } from "@/lib/redux/endpoints/auth-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GoogleSignInButton } from "@/components/auth/google-button";
 
 interface ApiErrorBody {
   error?: string;
   errors?: Record<string, string[]>;
 }
 
-export default function SignupPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [signup, { isLoading }] = useSignupMutation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const searchParams = useSearchParams();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -27,13 +29,13 @@ export default function SignupPage() {
     setFormError(null);
 
     try {
-      await signup({ email, password }).unwrap();
-      router.push("/verify-email");
-      router.refresh();
+      await resetPassword({ email, code, newPassword }).unwrap();
+      toast.success("Password updated — sign in with your new password.");
+      router.push("/login");
     } catch (err) {
       const body = (err as { data?: ApiErrorBody } | undefined)?.data;
-      const fieldError = body?.errors?.password?.[0] ?? body?.errors?.email?.[0];
-      setFormError(fieldError ?? body?.error ?? "Something went wrong. Please try again.");
+      const fieldError = body?.errors?.newPassword?.[0] ?? body?.errors?.code?.[0];
+      setFormError(fieldError ?? body?.error ?? "Invalid or expired code. Please try again.");
     }
   }
 
@@ -44,8 +46,10 @@ export default function SignupPage() {
           <div className="mx-auto flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
             C
           </div>
-          <h1 className="text-lg font-semibold text-foreground">Create your Castway account</h1>
-          <p className="text-sm text-muted-foreground">Takes about two minutes to set up.</p>
+          <h1 className="text-lg font-semibold text-foreground">Enter your reset code</h1>
+          <p className="text-sm text-muted-foreground">
+            Check your inbox for the 6-digit code we sent you.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,39 +65,48 @@ export default function SignupPage() {
               placeholder="you@example.com"
             />
           </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="code">Reset code</Label>
             <Input
-              id="password"
+              id="code"
+              type="text"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              autoComplete="one-time-code"
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+              className="text-center text-lg tracking-[0.5em]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="newPassword">New password</Label>
+            <Input
+              id="newPassword"
               type="password"
               autoComplete="new-password"
               required
               minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               placeholder="At least 8 characters"
             />
           </div>
 
           {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating account…" : "Create account"}
+          <Button type="submit" className="w-full" disabled={isLoading || code.length !== 6}>
+            {isLoading ? "Resetting…" : "Reset password"}
           </Button>
         </form>
 
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-
-        <GoogleSignInButton />
-
         <p className="text-center text-xs text-muted-foreground">
-          Already have an account?{" "}
           <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign in
+            Back to sign in
           </Link>
         </p>
       </div>
