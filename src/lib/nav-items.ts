@@ -5,12 +5,12 @@ import {
   LayoutGrid,
   Megaphone,
   MessageSquare,
+  Rss,
   Search,
   Settings,
   UserCircle,
   UserPlus,
   Users,
-  BarChart3,
   Briefcase,
 } from "lucide-react";
 import type { Role } from "@/lib/rbac";
@@ -23,12 +23,12 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
-const FEED: NavItem = { label: "Feed", breadcrumbLabel: "Announcements Feed", href: "/feed", icon: Home };
+const HOME: NavItem = { label: "Home", href: "/home", icon: Home };
+const FEED: NavItem = { label: "Feed", breadcrumbLabel: "Announcements Feed", href: "/feed", icon: Rss };
 const SEARCH: NavItem = { label: "Search", breadcrumbLabel: "Search Professionals", href: "/search", icon: Search };
 const OPPORTUNITIES: NavItem = { label: "Opportunities", href: "/opportunities", icon: Briefcase };
 const CONNECTIONS: NavItem = { label: "Connections", href: "/connections", icon: Users };
 const MESSAGES: NavItem = { label: "Messages", href: "/messages", icon: MessageSquare };
-const DASHBOARD: NavItem = { label: "Dashboard & Stats", href: "/dashboard", icon: BarChart3 };
 const SAVED: NavItem = { label: "Saved Board", href: "/saved", icon: Bookmark };
 const PORTFOLIO: NavItem = { label: "My Portfolio", href: "/portfolio", icon: UserCircle };
 const COMPANY_PROFILE: NavItem = { label: "Company Profile", href: "/portfolio", icon: UserCircle };
@@ -39,12 +39,12 @@ const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megap
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
  * every route that appears in any role's sidebar needs exactly one entry here. */
 export const NAV_ITEMS: NavItem[] = [
+  HOME,
   FEED,
   SEARCH,
   OPPORTUNITIES,
   CONNECTIONS,
   MESSAGES,
-  DASHBOARD,
   SAVED,
   PORTFOLIO,
   SETTINGS,
@@ -55,7 +55,9 @@ export const NAV_ITEMS: NavItem[] = [
 /**
  * Per-role sidebar nav, scoped to what each role can actually do (see PHASES.md
  * role functionality matrix) rather than a shared default:
- * - Dashboard & Stats: Creator only (the spec's "Analytics widget" is Creator-only).
+ * - Home: every role — an activity hub (profile completion, notifications,
+ *   messages, opportunities preview) plus the per-role stats that used to be
+ *   a Creator-only "Dashboard & Stats" page.
  * - Saved Board: kept for every role — not in the feature spec, but bookmark
  *   buttons on Feed/Opportunities cards write to it for all roles, so it needs
  *   a nav entry regardless of the spec.
@@ -68,10 +70,10 @@ export const NAV_ITEMS: NavItem[] = [
  *   Opportunities for Brand rather than sitting alongside it.
  */
 export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
-  CREATOR: [FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, DASHBOARD, SAVED, PORTFOLIO, SETTINGS],
-  FREELANCER: [FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SETTINGS],
-  AGENCY: [FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, ROSTER, COMPANY_PROFILE, SETTINGS],
-  BRAND: [FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, COMPANY_PROFILE, SETTINGS],
+  CREATOR: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SETTINGS],
+  FREELANCER: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SETTINGS],
+  AGENCY: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, ROSTER, COMPANY_PROFILE, SETTINGS],
+  BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, COMPANY_PROFILE, SETTINGS],
 };
 
 export function getNavItemsForRole(role: string | null | undefined): NavItem[] {

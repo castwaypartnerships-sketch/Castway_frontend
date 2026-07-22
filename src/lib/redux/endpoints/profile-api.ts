@@ -2,10 +2,13 @@ import { api } from "@/lib/redux/api";
 import type { ProfileCompletion } from "@/lib/types/feed";
 import type {
   Availability,
+  EducationInput,
   EndorsementCounts,
+  ExperienceInput,
   PortfolioItemInput,
   Profile,
   ProfileUpdateInput,
+  SocialLinks,
   UnavailableRangeInput,
 } from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
@@ -64,6 +67,49 @@ export const profileApi = api.injectEndpoints({
       transformResponse: (response: { data: { profile: Profile } }) => response.data,
       invalidatesTags: ["Dashboard"],
     }),
+    updateSocialLinks: builder.mutation<Profile, SocialLinks>({
+      query: (body) => ({ url: "/profile/me/social-links", method: "PATCH", body }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    addExperience: builder.mutation<Profile, ExperienceInput>({
+      query: (body) => ({ url: "/profile/me/experience", method: "POST", body }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    updateExperience: builder.mutation<Profile, { entryId: string; patch: Partial<ExperienceInput> }>({
+      query: ({ entryId, patch }) => ({
+        url: `/profile/me/experience/${entryId}`,
+        method: "PATCH",
+        body: patch,
+      }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    removeExperience: builder.mutation<Profile, string>({
+      query: (entryId) => ({ url: `/profile/me/experience/${entryId}`, method: "DELETE" }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    addEducation: builder.mutation<Profile, EducationInput>({
+      query: (body) => ({ url: "/profile/me/education", method: "POST", body }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    updateEducation: builder.mutation<Profile, { entryId: string; patch: Partial<EducationInput> }>({
+      query: ({ entryId, patch }) => ({
+        url: `/profile/me/education/${entryId}`,
+        method: "PATCH",
+        body: patch,
+      }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
+    removeEducation: builder.mutation<Profile, string>({
+      query: (entryId) => ({ url: `/profile/me/education/${entryId}`, method: "DELETE" }),
+      transformResponse: (response: { data: Profile }) => response.data,
+      invalidatesTags: ["Dashboard"],
+    }),
   }),
 });
 
@@ -75,4 +121,11 @@ export const {
   useRemovePortfolioItemMutation,
   useAddUnavailableRangeMutation,
   useRemoveUnavailableRangeMutation,
+  useUpdateSocialLinksMutation,
+  useAddExperienceMutation,
+  useUpdateExperienceMutation,
+  useRemoveExperienceMutation,
+  useAddEducationMutation,
+  useUpdateEducationMutation,
+  useRemoveEducationMutation,
 } = profileApi;

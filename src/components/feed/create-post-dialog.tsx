@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import type { PostCategory } from "@/lib/types/feed";
+import type { PostCategory, PostVisibility } from "@/lib/types/feed";
 import { categoryLabel } from "@/components/feed/category-badge";
 import { useCreatePostMutation } from "@/lib/redux/endpoints/feed-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
@@ -18,10 +18,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CATEGORIES: PostCategory[] = ["GENERAL", "HIRING", "COLLABORATION", "BRAND_DEAL", "PARTNERSHIP", "PROJECT"];
+
+const VISIBILITY_LABELS: Record<PostVisibility, string> = {
+  PUBLIC: "Public — anyone can see this",
+  CONNECTIONS_ONLY: "Connections only",
+};
 
 export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [createPost, { isLoading }] = useCreatePostMutation();
@@ -30,6 +36,8 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
 
   const [content, setContent] = useState("");
   const [category, setCategory] = useState<PostCategory>("GENERAL");
+  const [visibility, setVisibility] = useState<PostVisibility>("PUBLIC");
+  const [saveAsDraft, setSaveAsDraft] = useState(false);
   const [title, setTitle] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -38,6 +46,8 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
   function reset() {
     setContent("");
     setCategory("GENERAL");
+    setVisibility("PUBLIC");
+    setSaveAsDraft(false);
     setTitle("");
     setBudget("");
     setDeadline("");
@@ -53,11 +63,13 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
       await createPost({
         content,
         category,
+        visibility,
+        saveAsDraft,
         title: title || undefined,
         budget: budget || undefined,
         applicationDeadline: deadline ? new Date(deadline).toISOString() : undefined,
       }).unwrap();
-      toast.success("Post published");
+      toast.success(saveAsDraft ? "Saved as draft" : "Post published");
       reset();
       onOpenChange(false);
     } catch {
@@ -96,6 +108,22 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           </div>
 
           <div className="space-y-1.5">
+            <Label htmlFor="post-visibility">Who can see this</Label>
+            <Select value={visibility} onValueChange={(value) => setVisibility(value as PostVisibility)}>
+              <SelectTrigger id="post-visibility" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(VISIBILITY_LABELS) as PostVisibility[]).map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {VISIBILITY_LABELS[option]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="post-title">Title (optional)</Label>
             <Input id="post-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Headline for your post" />
           </div>
@@ -125,11 +153,16 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
             </div>
           ) : null}
 
+          <div className="flex items-center gap-2.5">
+            <Switch id="post-draft" checked={saveAsDraft} onCheckedChange={setSaveAsDraft} />
+            <Label htmlFor="post-draft">Save as draft instead of publishing</Label>
+          </div>
+
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <DialogFooter>
             <Button type="submit" disabled={isLoading || !content.trim()}>
-              {isLoading ? "Publishing…" : "Publish"}
+              {isLoading ? "Saving…" : saveAsDraft ? "Save draft" : "Publish"}
             </Button>
           </DialogFooter>
         </form>

@@ -5,25 +5,39 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  useAddEducationMutation,
+  useAddExperienceMutation,
   useAddPortfolioItemMutation,
   useAddUnavailableRangeMutation,
   useGetOwnProfileQuery,
+  useRemoveEducationMutation,
+  useRemoveExperienceMutation,
   useRemovePortfolioItemMutation,
   useRemoveUnavailableRangeMutation,
   useUpdateProfileMutation,
+  useUpdateSocialLinksMutation,
 } from "@/lib/redux/endpoints/profile-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { Availability, DateRange, PortfolioItem } from "@/lib/types/profile";
+import type {
+  Availability,
+  DateRange,
+  Education,
+  Experience,
+  PortfolioItem,
+  SocialLinks,
+} from "@/lib/types/profile";
 import { isHiringRole } from "@/lib/rbac";
 import { TrustBadge } from "@/components/profile/trust-badge";
 import { VerificationStatusAction } from "@/components/profile/verification-status-action";
 import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
+import { PortfolioItemImageUpload } from "@/components/upload/portfolio-item-image-upload";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -68,10 +82,13 @@ export default function PortfolioPage() {
       </div>
 
       <ProfileForm profile={data.profile} hiring={hiring} />
+      <SocialLinksSection socialLinks={data.profile.socialLinks} />
       {hiring ? null : (
         <>
           <AvailabilitySection ranges={data.profile.unavailableRanges} availability={data.availability} />
           <PortfolioItems items={data.profile.portfolioItems} />
+          <ExperienceSection entries={data.profile.experience} />
+          <EducationSection entries={data.profile.education} />
         </>
       )}
     </div>
@@ -84,26 +101,32 @@ function ProfileForm({
 }: {
   profile: {
     name: string;
+    headline: string | null;
     bio: string | null;
     avatarUrl: string | null;
     coverImageUrl: string | null;
     creatorCategory: string | null;
     location: string | null;
+    languages: string[];
     skills: string[];
     services: string[];
     businessEmail: string | null;
+    contactNumber: string | null;
   };
   hiring: boolean;
 }) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const [updatePhoto] = useUpdateProfileMutation();
   const [name, setName] = useState(profile.name);
+  const [headline, setHeadline] = useState(profile.headline ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
   const [category, setCategory] = useState(profile.creatorCategory ?? "");
   const [location, setLocation] = useState(profile.location ?? "");
+  const [languages, setLanguages] = useState(profile.languages.join(", "));
   const [skills, setSkills] = useState(profile.skills.join(", "));
   const [services, setServices] = useState(profile.services.join(", "));
   const [businessEmail, setBusinessEmail] = useState(profile.businessEmail ?? "");
+  const [contactNumber, setContactNumber] = useState(profile.contactNumber ?? "");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -134,9 +157,15 @@ function ProfileForm({
     event.preventDefault();
     await updateProfile({
       name,
+      headline,
       bio,
       creatorCategory: category,
       location,
+      contactNumber,
+      languages: languages
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       skills: skills
         .split(",")
         .map((s) => s.trim())
@@ -164,6 +193,16 @@ function ProfileForm({
         <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
+      <div className="space-y-1.5">
+        <Label htmlFor="headline">Headline</Label>
+        <Input
+          id="headline"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          placeholder={hiring ? "e.g. Award-winning creative agency" : "e.g. Senior Product Designer"}
+        />
+      </div>
+
       <div className="space-y-1.5 scroll-mt-6">
         <Label htmlFor="bio">{hiring ? "About the company" : "Bio / role"}</Label>
         <Textarea id="bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} className="scroll-mt-6" />
@@ -187,9 +226,23 @@ function ProfileForm({
           <Label htmlFor="category">{hiring ? "Industry" : "Category"}</Label>
           <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 scroll-mt-6">
           <Label htmlFor="location">Location</Label>
-          <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="scroll-mt-6"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="contactNumber">Contact number</Label>
+          <Input
+            id="contactNumber"
+            type="tel"
+            value={contactNumber}
+            onChange={(e) => setContactNumber(e.target.value)}
+          />
         </div>
       </div>
 
@@ -197,11 +250,20 @@ function ProfileForm({
         <>
           <div className="space-y-1.5">
             <Label htmlFor="skills">Skills (comma-separated)</Label>
-            <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} className="scroll-mt-6" />
           </div>
-          <div className="space-y-1.5 scroll-mt-6">
+          <div className="space-y-1.5">
             <Label htmlFor="services">Services (comma-separated)</Label>
             <Input id="services" value={services} onChange={(e) => setServices(e.target.value)} className="scroll-mt-6" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="languages">Languages (comma-separated)</Label>
+            <Input
+              id="languages"
+              value={languages}
+              onChange={(e) => setLanguages(e.target.value)}
+              placeholder="e.g. English, Hindi"
+            />
           </div>
         </>
       )}
@@ -213,6 +275,288 @@ function ProfileForm({
         {saved ? <span className="text-sm text-success">Saved</span> : null}
       </div>
     </form>
+  );
+}
+
+function SocialLinksSection({ socialLinks }: { socialLinks: SocialLinks | null }) {
+  const [updateSocialLinks, { isLoading }] = useUpdateSocialLinksMutation();
+  const [instagram, setInstagram] = useState(socialLinks?.instagram ?? "");
+  const [youtube, setYoutube] = useState(socialLinks?.youtube ?? "");
+  const [linkedin, setLinkedin] = useState(socialLinks?.linkedin ?? "");
+  const [website, setWebsite] = useState(socialLinks?.website ?? "");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!saved) return;
+    const timeout = setTimeout(() => setSaved(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [saved]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await updateSocialLinks({
+      instagram: instagram || undefined,
+      youtube: youtube || undefined,
+      linkedin: linkedin || undefined,
+      website: website || undefined,
+    }).unwrap();
+    setSaved(true);
+  }
+
+  return (
+    <form
+      id="social-links-section"
+      onSubmit={handleSubmit}
+      className="scroll-mt-6 space-y-4 rounded-2xl border border-border bg-card p-6"
+    >
+      <h2 className="text-sm font-semibold text-foreground">Social links</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="social-instagram">Instagram</Label>
+          <Input id="social-instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="social-youtube">YouTube</Label>
+          <Input id="social-youtube" value={youtube} onChange={(e) => setYoutube(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="social-linkedin">LinkedIn</Label>
+          <Input id="social-linkedin" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="social-website">Website</Label>
+          <Input
+            id="social-website"
+            type="url"
+            placeholder="https://…"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving…" : "Save links"}
+        </Button>
+        {saved ? <span className="text-sm text-success">Saved</span> : null}
+      </div>
+    </form>
+  );
+}
+
+function ExperienceSection({ entries }: { entries: Experience[] }) {
+  const [addEntry, { isLoading: isAdding }] = useAddExperienceMutation();
+  const [removeEntry] = useRemoveExperienceMutation();
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [current, setCurrent] = useState(false);
+  const [description, setDescription] = useState("");
+
+  async function handleAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await addEntry({
+      title,
+      company,
+      startDate,
+      endDate: current ? undefined : endDate || undefined,
+      current,
+      description: description || undefined,
+    }).unwrap();
+    setTitle("");
+    setCompany("");
+    setStartDate("");
+    setEndDate("");
+    setCurrent(false);
+    setDescription("");
+    setShowForm(false);
+  }
+
+  return (
+    <section id="experience-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Experience</h2>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
+          <Plus className="size-4" />
+          Add
+        </Button>
+      </div>
+
+      {showForm ? (
+        <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="exp-title">Title</Label>
+              <Input id="exp-title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="exp-company">Company</Label>
+              <Input id="exp-company" required value={company} onChange={(e) => setCompany(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="exp-start">Start date</Label>
+              <Input
+                id="exp-start"
+                type="date"
+                required
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="exp-end">End date</Label>
+              <Input
+                id="exp-end"
+                type="date"
+                disabled={current}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Switch id="exp-current" checked={current} onCheckedChange={setCurrent} />
+            <Label htmlFor="exp-current">I currently work here</Label>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="exp-description">Description (optional)</Label>
+            <Textarea id="exp-description" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <Button type="submit" size="sm" disabled={isAdding}>
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        </form>
+      ) : null}
+
+      {entries.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No experience added yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {entries.map((entry) => (
+            <li key={entry.id} className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  {entry.title} · {entry.company}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(entry.startDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                  {" – "}
+                  {entry.current
+                    ? "Present"
+                    : entry.endDate
+                      ? new Date(entry.endDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                      : "Present"}
+                </p>
+                {entry.description ? (
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{entry.description}</p>
+                ) : null}
+              </div>
+              <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeEntry(entry.id)}>
+                <Trash2 className="size-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function EducationSection({ entries }: { entries: Education[] }) {
+  const [addEntry, { isLoading: isAdding }] = useAddEducationMutation();
+  const [removeEntry] = useRemoveEducationMutation();
+  const [showForm, setShowForm] = useState(false);
+  const [school, setSchool] = useState("");
+  const [degree, setDegree] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  async function handleAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await addEntry({
+      school,
+      degree: degree || undefined,
+      fieldOfStudy: fieldOfStudy || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    }).unwrap();
+    setSchool("");
+    setDegree("");
+    setFieldOfStudy("");
+    setStartDate("");
+    setEndDate("");
+    setShowForm(false);
+  }
+
+  return (
+    <section id="education-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Education</h2>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
+          <Plus className="size-4" />
+          Add
+        </Button>
+      </div>
+
+      {showForm ? (
+        <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="edu-school">School</Label>
+            <Input id="edu-school" required value={school} onChange={(e) => setSchool(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edu-degree">Degree (optional)</Label>
+              <Input id="edu-degree" value={degree} onChange={(e) => setDegree(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edu-field">Field of study (optional)</Label>
+              <Input id="edu-field" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="edu-start">Start date (optional)</Label>
+              <Input id="edu-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edu-end">End date (optional)</Label>
+              <Input id="edu-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+          <Button type="submit" size="sm" disabled={isAdding}>
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        </form>
+      ) : null}
+
+      {entries.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No education added yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {entries.map((entry) => (
+            <li key={entry.id} className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">{entry.school}</p>
+                {entry.degree || entry.fieldOfStudy ? (
+                  <p className="text-xs text-muted-foreground">
+                    {[entry.degree, entry.fieldOfStudy].filter(Boolean).join(", ")}
+                  </p>
+                ) : null}
+              </div>
+              <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeEntry(entry.id)}>
+                <Trash2 className="size-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -255,14 +599,8 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
             <Input id="item-title" required value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="item-image">Image URL</Label>
-            <Input
-              id="item-image"
-              type="url"
-              required
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-            />
+            <Label>Cover image</Label>
+            <PortfolioItemImageUpload imageUrl={imageUrl} onUploaded={setImageUrl} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="item-description">Description</Label>
@@ -275,20 +613,35 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
           </div>
           <div className="space-y-1.5">
             <Label>Result metric (optional)</Label>
+            <p className="text-xs text-muted-foreground">
+              A number worth highlighting, e.g. a 40% CTR lift from a campaign.
+            </p>
             <div className="grid grid-cols-2 gap-3">
-              <Input
-                placeholder="Value, e.g. 40%"
-                value={metricValue}
-                onChange={(e) => setMetricValue(e.target.value)}
-              />
-              <Input
-                placeholder="Label, e.g. CTR lift"
-                value={metricLabel}
-                onChange={(e) => setMetricLabel(e.target.value)}
-              />
+              <div className="space-y-1">
+                <Label htmlFor="item-metric-value" className="text-xs font-normal text-muted-foreground">
+                  Result
+                </Label>
+                <Input
+                  id="item-metric-value"
+                  placeholder="e.g. 40%"
+                  value={metricValue}
+                  onChange={(e) => setMetricValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="item-metric-label" className="text-xs font-normal text-muted-foreground">
+                  What it measures
+                </Label>
+                <Input
+                  id="item-metric-label"
+                  placeholder="e.g. CTR lift"
+                  value={metricLabel}
+                  onChange={(e) => setMetricLabel(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-          <Button type="submit" size="sm" disabled={isAdding}>
+          <Button type="submit" size="sm" disabled={isAdding || !imageUrl}>
             {isAdding ? "Adding…" : "Add"}
           </Button>
         </form>
@@ -354,7 +707,7 @@ function AvailabilitySection({
   }
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-6">
+    <section id="availability-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Availability</h2>

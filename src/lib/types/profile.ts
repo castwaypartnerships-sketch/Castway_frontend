@@ -27,6 +27,25 @@ export interface DateRange {
   note?: string | null;
 }
 
+export interface Experience {
+  id: string;
+  title: string;
+  company: string;
+  startDate: string;
+  endDate?: string | null;
+  current: boolean;
+  description?: string | null;
+}
+
+export interface Education {
+  id: string;
+  school: string;
+  degree?: string | null;
+  fieldOfStudy?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
 export interface Availability {
   isAvailableNow: boolean;
   nextAvailableDate: string | null;
@@ -37,6 +56,7 @@ export interface Profile {
   userId: string;
   username: string;
   name: string;
+  headline: string | null;
   bio: string | null;
   avatarUrl: string | null;
   coverImageUrl: string | null;
@@ -52,6 +72,8 @@ export interface Profile {
   availableForWork: boolean;
   socialLinks: SocialLinks | null;
   portfolioItems: PortfolioItem[];
+  experience: Experience[];
+  education: Education[];
   unavailableRanges: DateRange[];
   createdAt: string;
   updatedAt: string;
@@ -60,6 +82,7 @@ export interface Profile {
 export interface ProfileUpdateInput {
   username?: string;
   name?: string;
+  headline?: string;
   bio?: string;
   avatarUrl?: string;
   coverImageUrl?: string;
@@ -73,6 +96,23 @@ export interface ProfileUpdateInput {
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
   availableForWork?: boolean;
+}
+
+export interface ExperienceInput {
+  title: string;
+  company: string;
+  startDate: string;
+  endDate?: string;
+  current?: boolean;
+  description?: string;
+}
+
+export interface EducationInput {
+  school: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface PortfolioItemInput {
@@ -100,4 +140,5 @@ export interface ProfileSearchFilters {
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
   availableForWork?: boolean;
+  verifiedOnly?: boolean;
 }

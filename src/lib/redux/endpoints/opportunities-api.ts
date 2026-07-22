@@ -10,10 +10,27 @@ interface OpportunitiesResponse {
 
 type LifecycleAction = "publish" | "pause" | "resume" | "close" | "reopen" | "archive";
 
+export interface OpportunityFilters {
+  type?: string;
+  query?: string;
+  category?: string;
+  skills?: string[];
+  isRemote?: boolean;
+}
+
 export const opportunitiesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getOpportunities: builder.query<OpportunitiesResponse, { type?: string } | void>({
-      query: (args) => ({ url: "/opportunities", params: args?.type ? { type: args.type } : undefined }),
+    getOpportunities: builder.query<OpportunitiesResponse, OpportunityFilters | void>({
+      query: (args) => ({
+        url: "/opportunities",
+        params: {
+          type: args?.type,
+          query: args?.query,
+          category: args?.category,
+          skills: args?.skills?.length ? args.skills.join(",") : undefined,
+          isRemote: args?.isRemote,
+        },
+      }),
       transformResponse: (response: { data: OpportunitiesResponse }) => response.data,
       providesTags: (result) =>
         result

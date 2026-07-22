@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Plus } from "lucide-react";
+import { ClipboardList, Plus, SearchIcon } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
@@ -9,6 +10,9 @@ import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { ApplicationStatusBadge } from "@/components/dashboard/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -65,39 +69,80 @@ export default function OpportunitiesPage() {
 }
 
 function BrowseTab() {
-  const { data, isLoading, isError } = useGetOpportunitiesQuery();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [skills, setSkills] = useState("");
+  const [isRemote, setIsRemote] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-muted" />
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <p className="rounded-2xl border border-dashed border-destructive/40 py-16 text-center text-sm text-destructive">
-        Couldn&apos;t load opportunities.
-      </p>
-    );
-  }
-
-  if (!data || data.items.length === 0) {
-    return (
-      <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-        No open opportunities yet. Be the first to post one.
-      </p>
-    );
-  }
+  const { data, isFetching, isError } = useGetOpportunitiesQuery({
+    query: query.trim() || undefined,
+    category: category.trim() || undefined,
+    skills: skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    isRemote: isRemote || undefined,
+  });
 
   return (
     <div className="space-y-5">
-      {data.items.map((opportunity) => (
-        <OpportunityCard key={opportunity.id} opportunity={opportunity} />
-      ))}
+      <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title or description…"
+            className="pl-9"
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="opp-category">Category</Label>
+            <Input
+              id="opp-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Fashion, Tech, Fitness"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="opp-skills">Skills (comma-separated)</Label>
+            <Input
+              id="opp-skills"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              placeholder="e.g. Video Editing, Copywriting"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Switch id="opp-remote" checked={isRemote} onCheckedChange={setIsRemote} />
+          <Label htmlFor="opp-remote">Remote only</Label>
+        </div>
+      </div>
+
+      {isFetching ? (
+        <div className="space-y-5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-muted" />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="rounded-2xl border border-dashed border-destructive/40 py-16 text-center text-sm text-destructive">
+          Couldn&apos;t load opportunities.
+        </p>
+      ) : !data || data.items.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+          No open opportunities match those filters yet.
+        </p>
+      ) : (
+        <div className="space-y-5">
+          {data.items.map((opportunity) => (
+            <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

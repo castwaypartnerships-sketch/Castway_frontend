@@ -19,6 +19,8 @@ interface CommentsResponse {
 export interface CreatePostInput {
   content: string;
   category?: PostCategory;
+  visibility?: "PUBLIC" | "CONNECTIONS_ONLY";
+  saveAsDraft?: boolean;
   title?: string;
   tags?: string[];
   budget?: string;
@@ -47,7 +49,50 @@ export const feedApi = api.injectEndpoints({
     // through the DTO that adds that enrichment.
     createPost: builder.mutation<void, CreatePostInput>({
       query: (body) => ({ url: "/feed", method: "POST", body }),
-      invalidatesTags: [{ type: "Feed", id: "LIST" }],
+      invalidatesTags: [{ type: "Feed", id: "LIST" }, { type: "Feed", id: "MINE" }],
+    }),
+    getMyPosts: builder.query<FeedResponse, void>({
+      query: () => "/feed/mine",
+      transformResponse: (response: { data: FeedResponse }) => response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map((item) => ({ type: "Feed" as const, id: item.id })),
+              { type: "Feed" as const, id: "MINE" },
+            ]
+          : [{ type: "Feed" as const, id: "MINE" }],
+    }),
+    publishPost: builder.mutation<void, string>({
+      query: (postId) => ({ url: `/feed/${postId}/publish`, method: "POST" }),
+      invalidatesTags: (_result, _error, postId) => [
+        { type: "Feed", id: postId },
+        { type: "Feed", id: "MINE" },
+        { type: "Feed", id: "LIST" },
+      ],
+    }),
+    archivePost: builder.mutation<void, string>({
+      query: (postId) => ({ url: `/feed/${postId}/archive`, method: "POST" }),
+      invalidatesTags: (_result, _error, postId) => [
+        { type: "Feed", id: postId },
+        { type: "Feed", id: "MINE" },
+        { type: "Feed", id: "LIST" },
+      ],
+    }),
+    unarchivePost: builder.mutation<void, string>({
+      query: (postId) => ({ url: `/feed/${postId}/unarchive`, method: "POST" }),
+      invalidatesTags: (_result, _error, postId) => [
+        { type: "Feed", id: postId },
+        { type: "Feed", id: "MINE" },
+        { type: "Feed", id: "LIST" },
+      ],
+    }),
+    deletePost: builder.mutation<void, string>({
+      query: (postId) => ({ url: `/feed/${postId}`, method: "DELETE" }),
+      invalidatesTags: (_result, _error, postId) => [
+        { type: "Feed", id: postId },
+        { type: "Feed", id: "MINE" },
+        { type: "Feed", id: "LIST" },
+      ],
     }),
     // No `invalidatesTags` here on purpose: a like toggle is reflected via
     // optimistic local UI state in `PostCard` (rolled back on failure)
@@ -172,6 +217,11 @@ export const feedApi = api.injectEndpoints({
 export const {
   useGetFeedQuery,
   useCreatePostMutation,
+  useGetMyPostsQuery,
+  usePublishPostMutation,
+  useArchivePostMutation,
+  useUnarchivePostMutation,
+  useDeletePostMutation,
   useToggleLikeMutation,
   useGetSavedPostsQuery,
   useToggleSavePostMutation,

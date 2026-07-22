@@ -1,15 +1,21 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { Moon, Monitor, Plus, Sun, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   useChangePasswordMutation,
+  useConfirmEmailChangeMutation,
+  useDeleteAccountMutation,
   useGetNotificationPreferencesQuery,
+  useRequestEmailChangeMutation,
   useUpdateNotificationPreferencesMutation,
   type NotificationPreferences,
 } from "@/lib/redux/endpoints/account-api";
-import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
+import { useGetSessionQuery, useLogoutMutation } from "@/lib/redux/endpoints/auth-api";
 import {
   useCreateProposalTemplateMutation,
   useGetProposalTemplatesQuery,
@@ -41,11 +47,164 @@ export default function SettingsPage() {
         <p className="text-sm text-muted-foreground">Manage your account security and notifications.</p>
       </div>
 
+      <AccountCard email={session?.user?.email} />
       <ChangePasswordCard />
+      <AppearanceCard />
       <NotificationPreferencesCard />
       {isTalent ? <RosterInvitesCard /> : null}
       {isFreelancer ? <ProposalTemplatesCard /> : null}
     </div>
+  );
+}
+
+function AccountCard({ email }: { email: string | undefined }) {
+  const router = useRouter();
+  const [requestEmailChange, { isLoading: isRequesting }] = useRequestEmailChangeMutation();
+  const [confirmEmailChange, { isLoading: isConfirming }] = useConfirmEmailChangeMutation();
+  const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
+  const [logout] = useLogoutMutation();
+  const [newEmail, setNewEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [pendingChange, setPendingChange] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleRequestChange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    try {
+      await requestEmailChange({ newEmail }).unwrap();
+      setPendingChange(true);
+      toast.success("Check your new email for a confirmation code.");
+    } catch {
+      setError("Couldn't start that email change. Please try again.");
+    }
+  }
+
+  async function handleConfirmChange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    try {
+      await confirmEmailChange({ code }).unwrap();
+      toast.success("Email address updated.");
+      setPendingChange(false);
+      setNewEmail("");
+      setCode("");
+    } catch {
+      setError("Invalid or expired code. Please try again.");
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (
+      !confirm(
+        "Delete your account? This permanently removes your profile, posts, applications, and connections. This can't be undone.",
+      )
+    ) {
+      return;
+    }
+    await deleteAccount().unwrap();
+    await logout();
+    router.push("/login");
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-sm font-semibold text-foreground">Account</h2>
+
+      <div className="mt-4 space-y-1.5">
+        <Label htmlFor="current-email">Email address</Label>
+        <p id="current-email" className="text-sm text-foreground">
+          {email}
+        </p>
+      </div>
+
+      {!pendingChange ? (
+        <form onSubmit={handleRequestChange} className="mt-4 flex items-end gap-2">
+          <div className="flex-1 space-y-1.5">
+            <Label htmlFor="new-email">Change email</Label>
+            <Input
+              id="new-email"
+              type="email"
+              required
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="new@example.com"
+            />
+          </div>
+          <Button type="submit" variant="outline" disabled={isRequesting}>
+            {isRequesting ? "Sending…" : "Send code"}
+          </Button>
+        </form>
+      ) : (
+        <form onSubmit={handleConfirmChange} className="mt-4 flex items-end gap-2">
+          <div className="flex-1 space-y-1.5">
+            <Label htmlFor="email-change-code">Confirmation code</Label>
+            <Input
+              id="email-change-code"
+              inputMode="numeric"
+              maxLength={6}
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+            />
+          </div>
+          <Button type="submit" disabled={isConfirming || code.length !== 6}>
+            {isConfirming ? "Confirming…" : "Confirm"}
+          </Button>
+        </form>
+      )}
+
+      {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+
+      <div className="mt-6 border-t border-border pt-4">
+        <p className="text-sm font-medium text-destructive">Danger zone</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Permanently delete your account and all associated data.
+        </p>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="mt-3"
+          disabled={isDeleting}
+          onClick={() => void handleDeleteAccount()}
+        >
+          {isDeleting ? "Deleting…" : "Delete account"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+] as const;
+
+function AppearanceCard() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-sm font-semibold text-foreground">Appearance</h2>
+      <p className="text-xs text-muted-foreground">Choose how Castway looks on this device.</p>
+      <div className="mt-4 flex gap-2">
+        {THEME_OPTIONS.map((option) => (
+          <Button
+            key={option.value}
+            type="button"
+            variant={theme === option.value ? "default" : "outline"}
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setTheme(option.value)}
+          >
+            <option.icon className="size-4" />
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -243,6 +402,8 @@ const PREFERENCE_LABELS: { key: keyof NotificationPreferences; label: string }[]
   { key: "connectionRequests", label: "Connection requests" },
   { key: "messages", label: "New messages" },
   { key: "applicationUpdates", label: "Application status updates" },
+  { key: "postActivity", label: "Likes and comments on your posts" },
+  { key: "reviewsAndEndorsements", label: "Reviews and skill endorsements" },
 ];
 
 function NotificationPreferencesCard() {

@@ -15,6 +15,10 @@ const TASK_ANCHORS: Record<string, string> = {
   bio: "bio",
   portfolio: "portfolio-section",
   services: "services",
+  skills: "skills",
+  location: "location",
+  socialLinks: "social-links-section",
+  availability: "availability-section",
 };
 
 export function ProfileCompletionCard() {
@@ -55,7 +59,6 @@ export function ProfileCompletionCard() {
               />
               <span className={cn("flex-1", task.done && "text-muted-foreground line-through")}>
                 {task.label}
-                {task.bonusLabel ? ` (${task.bonusLabel})` : ""}
               </span>
               {!task.done && anchor ? (
                 <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />

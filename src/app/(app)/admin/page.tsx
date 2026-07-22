@@ -23,7 +23,7 @@ export default function AdminPage() {
   const isAdmin = session?.user?.isAdmin ?? false;
 
   useEffect(() => {
-    if (!isSessionLoading && !isAdmin) router.replace("/dashboard");
+    if (!isSessionLoading && !isAdmin) router.replace("/home");
   }, [isSessionLoading, isAdmin, router]);
 
   if (isSessionLoading || !isAdmin) {

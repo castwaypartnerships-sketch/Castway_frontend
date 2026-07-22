@@ -36,10 +36,15 @@ export interface FeedProposalDetails {
   viewerHasApplied: boolean;
 }
 
+export type PostVisibility = "PUBLIC" | "CONNECTIONS_ONLY";
+export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DELETED";
+
 export interface FeedItem {
   id: string;
   author: FeedAuthor;
   category: PostCategory;
+  visibility: PostVisibility;
+  status: PostStatus;
   title: string;
   description: string;
   tags: string[];
@@ -65,7 +70,7 @@ export interface ProfileCompletionTask {
   id: string;
   label: string;
   done: boolean;
-  bonusLabel?: string;
+  weight: number;
 }
 
 export interface ProfileCompletion {

@@ -18,17 +18,24 @@ export default function SearchPage() {
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
+  const [skills, setSkills] = useState("");
   const [openForCollaboration, setOpenForCollaboration] = useState(false);
   const [lookingToHire, setLookingToHire] = useState(false);
   const [availableForWork, setAvailableForWork] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   const { data, isFetching, isError } = useSearchProfilesQuery({
     query: query.trim() || undefined,
     category: category.trim() || undefined,
     location: location.trim() || undefined,
+    skills: skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
     openForCollaboration: openForCollaboration || undefined,
     lookingToHire: lookingToHire || undefined,
     availableForWork: availableForWork || undefined,
+    verifiedOnly: verifiedOnly || undefined,
   });
 
   return (
@@ -70,6 +77,15 @@ export default function SearchPage() {
               placeholder="e.g. Mumbai, Remote"
             />
           </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="skills">Skills (comma-separated)</Label>
+            <Input
+              id="skills"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              placeholder="e.g. Video Editing, Copywriting"
+            />
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-x-6 gap-y-3">
@@ -92,6 +108,10 @@ export default function SearchPage() {
               onCheckedChange={setAvailableForWork}
             />
             <Label htmlFor="availableForWork">Available for work</Label>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Switch id="verifiedOnly" checked={verifiedOnly} onCheckedChange={setVerifiedOnly} />
+            <Label htmlFor="verifiedOnly">Verified only</Label>
           </div>
         </div>
       </div>

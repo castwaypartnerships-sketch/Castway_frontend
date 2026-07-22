@@ -4,6 +4,8 @@ export interface NotificationPreferences {
   connectionRequests: boolean;
   messages: boolean;
   applicationUpdates: boolean;
+  postActivity: boolean;
+  reviewsAndEndorsements: boolean;
 }
 
 export const accountApi = api.injectEndpoints({
@@ -20,6 +22,17 @@ export const accountApi = api.injectEndpoints({
     changePassword: builder.mutation<void, { currentPassword?: string; newPassword: string }>({
       query: (body) => ({ url: "/account/change-password", method: "POST", body }),
     }),
+    requestEmailChange: builder.mutation<void, { newEmail: string }>({
+      query: (body) => ({ url: "/account/request-email-change", method: "POST", body }),
+    }),
+    confirmEmailChange: builder.mutation<void, { code: string }>({
+      query: (body) => ({ url: "/account/confirm-email-change", method: "POST", body }),
+      invalidatesTags: ["Session"],
+    }),
+    deleteAccount: builder.mutation<void, void>({
+      query: () => ({ url: "/account", method: "DELETE" }),
+      invalidatesTags: ["Session"],
+    }),
   }),
 });
 
@@ -27,4 +40,7 @@ export const {
   useGetNotificationPreferencesQuery,
   useUpdateNotificationPreferencesMutation,
   useChangePasswordMutation,
+  useRequestEmailChangeMutation,
+  useConfirmEmailChangeMutation,
+  useDeleteAccountMutation,
 } = accountApi;

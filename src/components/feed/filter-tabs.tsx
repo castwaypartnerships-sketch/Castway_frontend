@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { ClipboardList, Plus } from "lucide-react";
 
 export type FeedFilter = "ALL" | "PARTNERSHIP" | "PROJECT" | "HIRING" | "COLLABORATION";
 
@@ -30,10 +32,16 @@ export function FeedFilterTabs({ value, onValueChange, onNewProposal }: FeedFilt
           ))}
         </TabsList>
       </Tabs>
-      <Button size="sm" className="gap-1.5" onClick={onNewProposal}>
-        <Plus className="size-4" />
-        Create Post
-      </Button>
+      <div className="flex items-center gap-2">
+        <Link href="/feed/mine" className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}>
+          <ClipboardList className="size-4" />
+          My Posts
+        </Link>
+        <Button size="sm" className="gap-1.5" onClick={onNewProposal}>
+          <Plus className="size-4" />
+          Create Post
+        </Button>
+      </div>
     </div>
   );
 }
