@@ -16,6 +16,16 @@ interface ConversationsResponse {
   total: number;
 }
 
+function toggleCachedFlag(
+  conversationId: string,
+  field: "isPinned" | "isMuted" | "isArchived",
+) {
+  return messagesApi.util.updateQueryData("getConversations", undefined, (draft) => {
+    const conversation = draft.items.find((c) => c.id === conversationId);
+    if (conversation) conversation[field] = !conversation[field];
+  });
+}
+
 export const messagesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // Bounded to a sane default page size — the list previously fetched every
@@ -84,16 +94,46 @@ export const messagesApi = api.injectEndpoints({
     notifyTyping: builder.mutation<void, string>({
       query: (conversationId) => ({ url: `/conversations/${conversationId}/typing`, method: "POST" }),
     }),
+    // These three toggles previously waited on the mutation's round trip and
+    // then a full 50-item `getConversations` refetch before the row visibly
+    // changed — two sequential network trips for what should read as an
+    // instant checkbox flip. Flipping the flag in the cache immediately
+    // fixes the perceived lag; `invalidatesTags` still reconciles with the
+    // server afterward (and `patchResult.undo()` rolls back on failure).
     toggleConversationPin: builder.mutation<void, string>({
       query: (conversationId) => ({ url: `/conversations/${conversationId}/pin`, method: "POST" }),
+      async onQueryStarted(conversationId, { dispatch, queryFulfilled }) {
+        const patch = dispatch(toggleCachedFlag(conversationId, "isPinned"));
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: ["Conversations"],
     }),
     toggleConversationMute: builder.mutation<void, string>({
       query: (conversationId) => ({ url: `/conversations/${conversationId}/mute`, method: "POST" }),
+      async onQueryStarted(conversationId, { dispatch, queryFulfilled }) {
+        const patch = dispatch(toggleCachedFlag(conversationId, "isMuted"));
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: ["Conversations"],
     }),
     toggleConversationArchive: builder.mutation<void, string>({
       query: (conversationId) => ({ url: `/conversations/${conversationId}/archive`, method: "POST" }),
+      async onQueryStarted(conversationId, { dispatch, queryFulfilled }) {
+        const patch = dispatch(toggleCachedFlag(conversationId, "isArchived"));
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
       invalidatesTags: ["Conversations"],
     }),
   }),
