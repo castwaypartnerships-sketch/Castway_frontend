@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -15,7 +15,18 @@ interface ApiErrorBody {
   errors?: Record<string, string[]>;
 }
 
+// `useSearchParams()` opts the page out of static prerendering unless it's
+// wrapped in Suspense — without this, `next build` fails outright rather
+// than just warning (see the reset-password build error this fixes).
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-dvh items-center justify-center bg-muted/30" />}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
