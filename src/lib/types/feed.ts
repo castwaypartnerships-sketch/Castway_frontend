@@ -46,7 +46,10 @@ export interface FeedItem {
   visibility: PostVisibility;
   status: PostStatus;
   title: string;
+  /** Sanitized rich-text HTML (bold/italic/lists/links) — safe to render via
+   * `dangerouslySetInnerHTML`, see `backend/src/lib/sanitize-post-content.ts`. */
   description: string;
+  imageUrl: string | null;
   tags: string[];
   proposal?: FeedProposalDetails;
   likeCount: number;

@@ -37,7 +37,7 @@ import { TrustBadge } from "@/components/profile/trust-badge";
 import { VerificationStatusAction } from "@/components/profile/verification-status-action";
 import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
-import { PortfolioItemImageUpload } from "@/components/upload/portfolio-item-image-upload";
+import { InlineImageUpload } from "@/components/upload/inline-image-upload";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -600,7 +600,7 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
           </div>
           <div className="space-y-1.5">
             <Label>Cover image</Label>
-            <PortfolioItemImageUpload imageUrl={imageUrl} onUploaded={setImageUrl} />
+            <InlineImageUpload kind="portfolio" imageUrl={imageUrl} onUploaded={setImageUrl} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="item-description">Description</Label>

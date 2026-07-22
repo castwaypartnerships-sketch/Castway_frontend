@@ -18,6 +18,7 @@ interface CommentsResponse {
 
 export interface CreatePostInput {
   content: string;
+  imageUrl?: string;
   category?: PostCategory;
   visibility?: "PUBLIC" | "CONNECTIONS_ONLY";
   saveAsDraft?: boolean;

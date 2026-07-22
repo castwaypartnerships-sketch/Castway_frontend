@@ -98,7 +98,20 @@ export function PostCard({ item }: { item: FeedItem }) {
       <h3 className="mt-4 text-lg font-semibold text-primary hover:underline">
         <Link href={`/feed/${item.id}`}>{item.title}</Link>
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+      <div
+        // `item.description` is sanitized server-side before persisting (see
+        // `backend/src/lib/sanitize-post-content.ts`) — only ever the fixed
+        // set of rich-text tags the post editor can produce.
+        className="prose-post mt-2 text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+        dangerouslySetInnerHTML={{ __html: item.description }}
+      />
+
+      {item.imageUrl ? (
+        <div
+          className="mt-4 aspect-video w-full rounded-xl bg-muted bg-cover bg-center"
+          style={{ backgroundImage: `url(${item.imageUrl})` }}
+        />
+      ) : null}
 
       {item.proposal ? (
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -1,6 +1,6 @@
 import { api } from "@/lib/redux/api";
 
-export type UploadKind = "avatars" | "covers" | "portfolio";
+export type UploadKind = "avatars" | "covers" | "portfolio" | "posts";
 
 export interface UploadSignature {
   folder: string;

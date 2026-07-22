@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import type { PostCategory, PostVisibility } from "@/lib/types/feed";
 import { categoryLabel } from "@/components/feed/category-badge";
+import { PostEditor } from "@/components/feed/post-editor";
+import { InlineImageUpload } from "@/components/upload/inline-image-upload";
 import { useCreatePostMutation } from "@/lib/redux/endpoints/feed-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { canPostOpportunity } from "@/lib/rbac";
@@ -19,8 +21,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+function isContentEmpty(html: string): boolean {
+  return html.replace(/<[^>]*>/g, "").trim().length === 0;
+}
 
 const CATEGORIES: PostCategory[] = ["GENERAL", "HIRING", "COLLABORATION", "BRAND_DEAL", "PARTNERSHIP", "PROJECT"];
 
@@ -35,6 +40,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
   const canPostProposal = canPostOpportunity(session?.user?.role);
 
   const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [category, setCategory] = useState<PostCategory>("GENERAL");
   const [visibility, setVisibility] = useState<PostVisibility>("PUBLIC");
   const [saveAsDraft, setSaveAsDraft] = useState(false);
@@ -45,6 +51,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
 
   function reset() {
     setContent("");
+    setImageUrl("");
     setCategory("GENERAL");
     setVisibility("PUBLIC");
     setSaveAsDraft(false);
@@ -56,12 +63,13 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!content.trim()) return;
+    if (isContentEmpty(content)) return;
     setError(null);
 
     try {
       await createPost({
         content,
+        imageUrl: imageUrl || undefined,
         category,
         visibility,
         saveAsDraft,
@@ -129,14 +137,21 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="post-content">What do you want to share?</Label>
-            <Textarea
-              id="post-content"
-              required
-              rows={5}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+            <Label>What do you want to share?</Label>
+            <PostEditor
+              content={content}
+              onChange={setContent}
               placeholder="Share an update, opportunity, or proposal…"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Image (optional)</Label>
+            <InlineImageUpload
+              kind="posts"
+              imageUrl={imageUrl}
+              onUploaded={setImageUrl}
+              onRemove={() => setImageUrl("")}
             />
           </div>
 
@@ -161,7 +176,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading || !content.trim()}>
+            <Button type="submit" disabled={isLoading || isContentEmpty(content)}>
               {isLoading ? "Saving…" : saveAsDraft ? "Save draft" : "Publish"}
             </Button>
           </DialogFooter>
