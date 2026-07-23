@@ -42,7 +42,31 @@ export const connectionsApi = api.injectEndpoints({
     }),
     removeConnection: builder.mutation<void, string>({
       query: (connectionId) => ({ url: `/connections/${connectionId}`, method: "DELETE" }),
-      invalidatesTags: ["Connections", "Dashboard"],
+      // Also removes a still-PENDING row (withdrawing an outgoing request
+      // reuses this same endpoint), so PendingConnections needs invalidating too.
+      invalidatesTags: ["Connections", "PendingConnections", "Dashboard"],
+      // Drop the row from whichever cache it's actually in (an accepted
+      // connection or a pending outgoing request) immediately, rather than
+      // waiting on the invalidated refetch — same reasoning as blockUser above.
+      onQueryStarted: async (connectionId, { dispatch, queryFulfilled }) => {
+        const patches = [
+          dispatch(
+            connectionsApi.util.updateQueryData("getConnections", undefined, (draft) => {
+              draft.items = draft.items.filter((item) => item.id !== connectionId);
+            }),
+          ),
+          dispatch(
+            connectionsApi.util.updateQueryData("getPendingConnections", undefined, (draft) => {
+              draft.outgoing = draft.outgoing.filter((item) => item.id !== connectionId);
+            }),
+          ),
+        ];
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach((patch) => patch.undo());
+        }
+      },
     }),
     getBlockedConnections: builder.query<{ items: ConnectionListItem[] }, void>({
       query: () => "/connections/blocked",

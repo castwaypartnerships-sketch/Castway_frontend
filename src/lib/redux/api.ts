@@ -105,6 +105,7 @@ export const api = createApi({
     "Conversations",
     "Messages",
     "NotificationPreferences",
+    "PrivacySettings",
     "Reviews",
     "Endorsements",
     "AdminUsers",

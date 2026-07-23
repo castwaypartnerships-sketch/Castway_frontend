@@ -30,9 +30,9 @@ const OPPORTUNITIES: NavItem = { label: "Opportunities", href: "/opportunities",
 const CONNECTIONS: NavItem = { label: "Connections", href: "/connections", icon: Users };
 const MESSAGES: NavItem = { label: "Messages", href: "/messages", icon: MessageSquare };
 const SAVED: NavItem = { label: "Saved Board", href: "/saved", icon: Bookmark };
-const PORTFOLIO: NavItem = { label: "My Portfolio", href: "/portfolio", icon: UserCircle };
+const PORTFOLIO: NavItem = { label: "My Profile", href: "/portfolio", icon: UserCircle };
 const COMPANY_PROFILE: NavItem = { label: "Company Profile", href: "/portfolio", icon: UserCircle };
-const SETTINGS: NavItem = { label: "Workspace Settings", href: "/settings", icon: Settings };
+const SETTINGS: NavItem = { label: "Settings", href: "/settings", icon: Settings };
 const ROSTER: NavItem = { label: "Roster", href: "/roster", icon: UserPlus };
 const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megaphone };
 

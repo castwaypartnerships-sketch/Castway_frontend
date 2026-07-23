@@ -244,6 +244,7 @@ function RequestsTab() {
   const [accept] = useAcceptConnectionMutation();
   const [reject] = useRejectConnectionMutation();
   const [blockUser] = useBlockUserMutation();
+  const [remove] = useRemoveConnectionMutation();
 
   async function handleAccept(connection: ConnectionListItem) {
     try {
@@ -270,6 +271,15 @@ function RequestsTab() {
       toast.success(`Blocked ${connection.counterpart.name}`);
     } catch {
       toast.error("Couldn't block that user. Please try again.");
+    }
+  }
+
+  async function handleWithdraw(connection: ConnectionListItem) {
+    try {
+      await remove(connection.id).unwrap();
+      toast.success(`Withdrew your request to ${connection.counterpart.name}`);
+    } catch {
+      toast.error("Couldn't withdraw that request. Please try again.");
     }
   }
 
@@ -323,7 +333,12 @@ function RequestsTab() {
           <ul className="mt-3 space-y-3">
             {outgoing.map((connection) => (
               <PersonRow key={connection.id} person={connection.counterpart}>
-                <span className="text-xs text-muted-foreground">Pending</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Pending</span>
+                  <Button variant="outline" size="sm" onClick={() => handleWithdraw(connection)}>
+                    Withdraw
+                  </Button>
+                </div>
               </PersonRow>
             ))}
           </ul>

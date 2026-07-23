@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Moon, Monitor, Plus, Sun, Trash2 } from "lucide-react";
+import { Moon, Monitor, Plus, ShieldAlert, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -11,9 +12,14 @@ import {
   useConfirmEmailChangeMutation,
   useDeleteAccountMutation,
   useGetNotificationPreferencesQuery,
+  useGetPrivacySettingsQuery,
+  useLogoutEverywhereMutation,
   useRequestEmailChangeMutation,
   useUpdateNotificationPreferencesMutation,
+  useUpdatePrivacySettingsMutation,
   type NotificationPreferences,
+  type PrivacySettings,
+  type Visibility,
 } from "@/lib/redux/endpoints/account-api";
 import { useGetSessionQuery, useLogoutMutation } from "@/lib/redux/endpoints/auth-api";
 import {
@@ -30,6 +36,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { isTalentRole } from "@/lib/rbac";
@@ -43,12 +50,14 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div>
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Workspace Settings</h1>
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your account security and notifications.</p>
       </div>
 
       <AccountCard email={session?.user?.email} />
       <ChangePasswordCard />
+      <SecurityCard />
+      <PrivacyCard />
       <AppearanceCard />
       <NotificationPreferencesCard />
       {isTalent ? <RosterInvitesCard /> : null}
@@ -102,9 +111,13 @@ function AccountCard({ email }: { email: string | undefined }) {
     ) {
       return;
     }
-    await deleteAccount().unwrap();
-    await logout();
-    router.push("/login");
+    try {
+      await deleteAccount().unwrap();
+      await logout();
+      router.push("/login");
+    } catch {
+      toast.error("Couldn't delete your account. Please try again.");
+    }
   }
 
   return (
@@ -394,6 +407,152 @@ function ChangePasswordCard() {
           {isLoading ? "Saving…" : "Update password"}
         </Button>
       </form>
+    </section>
+  );
+}
+
+function SecurityCard() {
+  const [logoutEverywhere, { isLoading }] = useLogoutEverywhereMutation();
+
+  async function handleLogoutEverywhere() {
+    if (
+      !confirm(
+        "Log out of every other device? This device stays signed in; all others will need to sign in again.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await logoutEverywhere().unwrap();
+      toast.success("Logged out everywhere else.");
+    } catch {
+      toast.error("Couldn't log out other sessions. Please try again.");
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-sm font-semibold text-foreground">Security</h2>
+      <div className="mt-4 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">Log out everywhere</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sign out of Castway on every other device and browser. This device stays signed in.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+          disabled={isLoading}
+          onClick={() => void handleLogoutEverywhere()}
+        >
+          <ShieldAlert className="size-4" />
+          {isLoading ? "Logging out…" : "Log out everywhere"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+const VISIBILITY_OPTIONS: { value: Visibility; label: string }[] = [
+  { value: "PUBLIC", label: "Everyone" },
+  { value: "CONNECTIONS_ONLY", label: "Connections only" },
+];
+
+function PrivacyCard() {
+  const { data, isLoading } = useGetPrivacySettingsQuery();
+  const [updatePrivacySettings] = useUpdatePrivacySettingsMutation();
+  const [override, setOverride] = useState<PrivacySettings | null>(null);
+  const settings = override ?? data ?? null;
+
+  async function handleChange(next: PrivacySettings) {
+    setOverride(next);
+    try {
+      await updatePrivacySettings(next).unwrap();
+    } catch {
+      toast.error("Couldn't save that privacy setting. Please try again.");
+      setOverride(data ?? null);
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-sm font-semibold text-foreground">Privacy</h2>
+
+      {isLoading || !settings ? (
+        <div className="mt-4 h-32 animate-pulse rounded-xl bg-muted" />
+      ) : (
+        <div className="mt-4 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label htmlFor="profile-visibility">Who can view your profile</Label>
+              <p className="text-xs text-muted-foreground">
+                Connections-only hides your profile page from everyone else.
+              </p>
+            </div>
+            <Select
+              value={settings.profileVisibility}
+              onValueChange={(value) => handleChange({ ...settings, profileVisibility: value as Visibility })}
+            >
+              <SelectTrigger id="profile-visibility" className="w-44 shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VISIBILITY_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label htmlFor="message-permission">Who can message you</Label>
+              <p className="text-xs text-muted-foreground">
+                Connections-only blocks a first message from anyone you&apos;re not connected with.
+              </p>
+            </div>
+            <Select
+              value={settings.messagePermission}
+              onValueChange={(value) => handleChange({ ...settings, messagePermission: value as Visibility })}
+            >
+              <SelectTrigger id="message-permission" className="w-44 shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VISIBILITY_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label htmlFor="accepting-connection-requests">Accepting connection requests</Label>
+              <p className="text-xs text-muted-foreground">
+                Turn off to stop new connection requests from reaching you.
+              </p>
+            </div>
+            <Switch
+              id="accepting-connection-requests"
+              checked={settings.acceptingConnectionRequests}
+              onCheckedChange={(checked) => handleChange({ ...settings, acceptingConnectionRequests: checked })}
+            />
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <Link href="/connections?tab=blocked" className="text-sm font-medium text-primary hover:underline">
+              Manage blocked users →
+            </Link>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

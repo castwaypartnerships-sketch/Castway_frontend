@@ -17,6 +17,22 @@ export const applicationsApi = api.injectEndpoints({
     withdrawApplication: builder.mutation<void, string>({
       query: (applicationId) => ({ url: `/applications/${applicationId}/withdraw`, method: "POST" }),
       invalidatesTags: (_result, _error, applicationId) => [{ type: "Applications", id: applicationId }],
+      // Flip the status locally right away — otherwise the badge sits on
+      // "Pending" until the POST resolves and the invalidated query refetches,
+      // which reads as "nothing happened" for a beat.
+      onQueryStarted: async (applicationId, { dispatch, queryFulfilled }) => {
+        const patchResult = dispatch(
+          applicationsApi.util.updateQueryData("getMyApplications", undefined, (draft) => {
+            const item = draft.items.find((application) => application.id === applicationId);
+            if (item) item.status = "WITHDRAWN";
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
     }),
     getApplicationsForOpportunity: builder.query<{ items: Application[] }, string>({
       query: (opportunityId) => `/opportunities/${opportunityId}/applications`,

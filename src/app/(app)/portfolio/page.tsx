@@ -66,7 +66,7 @@ export default function PortfolioPage() {
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div className="space-y-3">
         <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
-          {hiring ? "Company Profile" : "My Portfolio"}
+          My Profile
         </h1>
         <p className="text-sm text-muted-foreground">
           {hiring

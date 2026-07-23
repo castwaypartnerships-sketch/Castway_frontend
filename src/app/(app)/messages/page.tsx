@@ -297,7 +297,11 @@ function ConversationRow({
           active && "bg-muted",
         )}
       >
-        <button type="button" onClick={onSelect} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+        >
           <span className="relative shrink-0">
             <Avatar>
               <AvatarImage src={conversation.otherParticipant.avatarUrl ?? undefined} />
