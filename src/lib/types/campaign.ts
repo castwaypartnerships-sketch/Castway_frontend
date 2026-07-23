@@ -21,6 +21,7 @@ export interface CampaignWriteInput {
   budget?: string;
   deliverables?: string[];
   status?: CampaignStatus;
+  opportunityId?: string;
 }
 
 export interface CampaignShortlistItem {
@@ -30,6 +31,16 @@ export interface CampaignShortlistItem {
     name: string;
     avatarUrl: string | null;
   } | null;
+}
+
+export interface CampaignShortlistSummary {
+  campaign: Campaign;
+  brand: {
+    username: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+  shortlistedAt: string;
 }
 
 export interface CampaignAnalytics {

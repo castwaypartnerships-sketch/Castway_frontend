@@ -3,6 +3,7 @@ import {
   Bookmark,
   Home,
   LayoutGrid,
+  ListChecks,
   Megaphone,
   MessageSquare,
   Rss,
@@ -35,6 +36,7 @@ const COMPANY_PROFILE: NavItem = { label: "Company Profile", href: "/portfolio",
 const SETTINGS: NavItem = { label: "Settings", href: "/settings", icon: Settings };
 const ROSTER: NavItem = { label: "Roster", href: "/roster", icon: UserPlus };
 const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megaphone };
+const SHORTLISTS: NavItem = { label: "Shortlists", href: "/shortlists", icon: ListChecks };
 
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
  * every route that appears in any role's sidebar needs exactly one entry here. */
@@ -50,6 +52,7 @@ export const NAV_ITEMS: NavItem[] = [
   SETTINGS,
   ROSTER,
   CAMPAIGNS,
+  SHORTLISTS,
 ];
 
 /**
@@ -68,10 +71,13 @@ export const NAV_ITEMS: NavItem[] = [
  *   with creators implies a way to talk to them afterward.
  * - Brand posts campaigns, not generic opportunities, so Campaigns replaces
  *   Opportunities for Brand rather than sitting alongside it.
+ * - Shortlists: Creator/Freelancer only — where a Brand's campaign shortlist
+ *   (`campaigns/[id]`'s "Add creator by username") becomes visible to the
+ *   person who was shortlisted.
  */
 export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
-  CREATOR: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SETTINGS],
-  FREELANCER: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SETTINGS],
+  CREATOR: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SHORTLISTS, SETTINGS],
+  FREELANCER: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SHORTLISTS, SETTINGS],
   AGENCY: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, ROSTER, COMPANY_PROFILE, SETTINGS],
   BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, COMPANY_PROFILE, SETTINGS],
 };

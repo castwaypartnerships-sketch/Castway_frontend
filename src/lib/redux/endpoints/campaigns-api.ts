@@ -3,6 +3,7 @@ import type {
   Campaign,
   CampaignAnalytics,
   CampaignShortlistItem,
+  CampaignShortlistSummary,
   CampaignWriteInput,
 } from "@/lib/types/campaign";
 
@@ -12,6 +13,11 @@ export const campaignsApi = api.injectEndpoints({
       query: () => "/campaigns",
       transformResponse: (response: { data: { items: Campaign[] } }) => response.data,
       providesTags: ["Campaigns"],
+    }),
+    getMyShortlists: builder.query<{ items: CampaignShortlistSummary[] }, void>({
+      query: () => "/campaigns/shortlisted/me",
+      transformResponse: (response: { data: { items: CampaignShortlistSummary[] } }) => response.data,
+      providesTags: ["CampaignShortlist"],
     }),
     getCampaign: builder.query<Campaign, string>({
       query: (id) => `/campaigns/${id}`,
@@ -62,6 +68,7 @@ export const campaignsApi = api.injectEndpoints({
 
 export const {
   useGetCampaignsQuery,
+  useGetMyShortlistsQuery,
   useGetCampaignQuery,
   useCreateCampaignMutation,
   useUpdateCampaignMutation,
