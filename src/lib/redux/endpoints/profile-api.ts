@@ -2,12 +2,16 @@ import { api } from "@/lib/redux/api";
 import type { ProfileCompletion } from "@/lib/types/feed";
 import type {
   Availability,
+  CaseStudyInput,
   EducationInput,
   EndorsementCounts,
   ExperienceInput,
   PortfolioItemInput,
   Profile,
+  ProfileOpenOpportunity,
   ProfileUpdateInput,
+  RateCardItemInput,
+  ResponseTimeSignal,
   SocialLinks,
   UnavailableRangeInput,
 } from "@/lib/types/profile";
@@ -19,6 +23,8 @@ interface ProfileMeResponse {
   isVerified: boolean;
   trustScore: number;
   reviewSummary: ReviewSummary;
+  responseTime: ResponseTimeSignal | null;
+  openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
 }
@@ -54,6 +60,60 @@ export const profileApi = api.injectEndpoints({
     }),
     removePortfolioItem: builder.mutation<{ profile: Profile }, string>({
       query: (itemId) => ({ url: `/profile/portfolio/${itemId}`, method: "DELETE" }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    addRateCardItem: builder.mutation<{ profile: Profile }, RateCardItemInput>({
+      query: (body) => ({ url: "/profile/rate-card", method: "POST", body }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    updateRateCardItem: builder.mutation<
+      { profile: Profile },
+      { itemId: string; patch: Partial<RateCardItemInput> }
+    >({
+      query: ({ itemId, patch }) => ({
+        url: `/profile/rate-card/${itemId}`,
+        method: "PATCH",
+        body: patch,
+      }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    removeRateCardItem: builder.mutation<{ profile: Profile }, string>({
+      query: (itemId) => ({ url: `/profile/rate-card/${itemId}`, method: "DELETE" }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    setRateCardVisibility: builder.mutation<{ profile: Profile }, boolean>({
+      query: (visible) => ({ url: "/profile/rate-card/visibility", method: "PATCH", body: { visible } }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    addCaseStudy: builder.mutation<{ profile: Profile }, CaseStudyInput>({
+      query: (body) => ({ url: "/profile/case-studies", method: "POST", body }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    updateCaseStudy: builder.mutation<
+      { profile: Profile },
+      { itemId: string; patch: Partial<CaseStudyInput> }
+    >({
+      query: ({ itemId, patch }) => ({
+        url: `/profile/case-studies/${itemId}`,
+        method: "PATCH",
+        body: patch,
+      }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    removeCaseStudy: builder.mutation<{ profile: Profile }, string>({
+      query: (itemId) => ({ url: `/profile/case-studies/${itemId}`, method: "DELETE" }),
+      transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
+      invalidatesTags: ["Dashboard"],
+    }),
+    updateSubSpecializations: builder.mutation<{ profile: Profile }, string[]>({
+      query: (tags) => ({ url: "/profile/sub-specializations", method: "PATCH", body: { tags } }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
       invalidatesTags: ["Dashboard"],
     }),
@@ -119,6 +179,14 @@ export const {
   useAddPortfolioItemMutation,
   useUpdatePortfolioItemMutation,
   useRemovePortfolioItemMutation,
+  useAddRateCardItemMutation,
+  useUpdateRateCardItemMutation,
+  useRemoveRateCardItemMutation,
+  useSetRateCardVisibilityMutation,
+  useAddCaseStudyMutation,
+  useUpdateCaseStudyMutation,
+  useRemoveCaseStudyMutation,
+  useUpdateSubSpecializationsMutation,
   useAddUnavailableRangeMutation,
   useRemoveUnavailableRangeMutation,
   useUpdateSocialLinksMutation,

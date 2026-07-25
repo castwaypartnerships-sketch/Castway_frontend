@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 
 import { useGetOpportunityQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
+import { ApplyOnBehalf } from "@/components/opportunities/apply-on-behalf";
+import { NotifyRoster } from "@/components/opportunities/notify-roster";
 
 export default function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -28,7 +30,11 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
           Opportunity not found.
         </p>
       ) : (
-        <OpportunityCard opportunity={opportunity} />
+        <>
+          <OpportunityCard opportunity={opportunity} />
+          <ApplyOnBehalf opportunityId={opportunity.id} />
+          <NotifyRoster opportunityId={opportunity.id} posterUserId={opportunity.poster.userId} />
+        </>
       )}
     </div>
   );

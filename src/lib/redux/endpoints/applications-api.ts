@@ -39,6 +39,11 @@ export const applicationsApi = api.injectEndpoints({
       transformResponse: (response: { data: { items: Application[] } }) => response.data,
       providesTags: (_result, _error, opportunityId) => [{ type: "Applications", id: opportunityId }],
     }),
+    getRosterApplications: builder.query<{ items: Application[] }, void>({
+      query: () => "/applications/roster",
+      transformResponse: (response: { data: { items: Application[] } }) => response.data,
+      providesTags: [{ type: "Applications", id: "ROSTER" }],
+    }),
     setApplicationStatus: builder.mutation<void, { applicationId: string; opportunityId: string; status: ApplicationStatus }>({
       query: ({ applicationId, status }) => ({
         url: `/applications/${applicationId}/status`,
@@ -54,5 +59,6 @@ export const {
   useGetMyApplicationsQuery,
   useWithdrawApplicationMutation,
   useGetApplicationsForOpportunityQuery,
+  useGetRosterApplicationsQuery,
   useSetApplicationStatusMutation,
 } = applicationsApi;

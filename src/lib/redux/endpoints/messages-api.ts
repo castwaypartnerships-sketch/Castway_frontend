@@ -1,6 +1,6 @@
 import { api } from "@/lib/redux/api";
 import { authApi } from "@/lib/redux/endpoints/auth-api";
-import type { ConversationListItem, Message } from "@/lib/types/messaging";
+import type { ConversationListItem, DealInquiryStatus, Message } from "@/lib/types/messaging";
 
 interface MessagesResponse {
   items: Message[];
@@ -70,6 +70,7 @@ export const messagesApi = api.injectEndpoints({
               body,
               attachmentUrl: null,
               readBy: [senderId],
+              actingAgencyUserId: null,
               createdAt: new Date().toISOString(),
             });
             draft.total += 1;
@@ -136,6 +137,62 @@ export const messagesApi = api.injectEndpoints({
       },
       invalidatesTags: ["Conversations"],
     }),
+    // Act-on-behalf-of read/write pair — an Agency browsing/replying to one
+    // of its roster members' own conversations. Kept separate from the
+    // owner-facing `getConversations`/`getMessages`/`sendMessage` above
+    // rather than overloading them with an optional param, since the
+    // authorization path (`requireCanActFor`) and whose inbox it is are both
+    // meaningfully different.
+    getConversationsOnBehalf: builder.query<ConversationsResponse, string>({
+      query: (memberUserId) => ({
+        url: `/conversations/on-behalf/${memberUserId}`,
+        params: { page: 1, pageSize: 50 },
+      }),
+      transformResponse: (response: { data: ConversationsResponse }) => response.data,
+      providesTags: ["Conversations"],
+    }),
+    getMessagesOnBehalf: builder.query<MessagesResponse, { conversationId: string; memberUserId: string }>({
+      query: ({ conversationId, memberUserId }) =>
+        `/conversations/${conversationId}/messages/on-behalf/${memberUserId}`,
+      transformResponse: (response: { data: MessagesResponse }) => response.data,
+      providesTags: (_result, _error, { conversationId }) => [{ type: "Messages", id: conversationId }],
+    }),
+    sendMessageOnBehalf: builder.mutation<
+      Message,
+      { conversationId: string; memberUserId: string; body: string }
+    >({
+      query: ({ conversationId, memberUserId, body }) => ({
+        url: `/conversations/${conversationId}/messages/on-behalf/${memberUserId}`,
+        method: "POST",
+        body: { body },
+      }),
+      transformResponse: (response: { data: Message }) => response.data,
+      invalidatesTags: (_result, _error, { conversationId }) => [
+        { type: "Messages", id: conversationId },
+        "Conversations",
+      ],
+    }),
+    updateDealStatus: builder.mutation<void, { conversationId: string; status: DealInquiryStatus }>({
+      query: ({ conversationId, status }) => ({
+        url: `/conversations/${conversationId}/deal-status`,
+        method: "POST",
+        body: { status },
+      }),
+      async onQueryStarted({ conversationId, status }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          messagesApi.util.updateQueryData("getConversations", undefined, (draft) => {
+            const conversation = draft.items.find((c) => c.id === conversationId);
+            if (conversation) conversation.dealStatus = status;
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+      invalidatesTags: ["Conversations"],
+    }),
   }),
 });
 
@@ -149,4 +206,8 @@ export const {
   useToggleConversationPinMutation,
   useToggleConversationMuteMutation,
   useToggleConversationArchiveMutation,
+  useUpdateDealStatusMutation,
+  useGetConversationsOnBehalfQuery,
+  useGetMessagesOnBehalfQuery,
+  useSendMessageOnBehalfMutation,
 } = messagesApi;

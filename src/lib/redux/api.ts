@@ -116,6 +116,11 @@ export const api = createApi({
     "Verification",
     "PendingVerifications",
     "Applications",
+    "BrandRelationships",
+    "RosterDeals",
+    "BrandAgencyLinks",
+    "RevenueSplits",
+    "RosterManagers",
   ],
   endpoints: () => ({}),
 });

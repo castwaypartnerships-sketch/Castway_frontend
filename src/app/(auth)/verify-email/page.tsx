@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   useGetSessionQuery,
+  useLogoutMutation,
   useResendOtpMutation,
   useVerifyEmailMutation,
 } from "@/lib/redux/endpoints/auth-api";
@@ -18,9 +20,11 @@ interface ApiErrorBody {
 const RESEND_COOLDOWN_SECONDS = 45;
 
 export default function VerifyEmailPage() {
+  const router = useRouter();
   const { data } = useGetSessionQuery();
   const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
   const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
+  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
@@ -41,6 +45,14 @@ export default function VerifyEmailPage() {
     } catch (err) {
       const body = (err as { data?: ApiErrorBody } | undefined)?.data;
       setError(body?.error ?? "Invalid or expired code. Please try again.");
+    }
+  }
+
+  async function handleWrongEmail() {
+    try {
+      await logout().unwrap();
+    } finally {
+      router.push("/login");
     }
   }
 
@@ -109,6 +121,18 @@ export default function VerifyEmailPage() {
             className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
           >
             {cooldown > 0 ? `Resend in ${cooldown}s` : isResending ? "Sending…" : "Resend code"}
+          </button>
+        </p>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Wrong email?{" "}
+          <button
+            type="button"
+            onClick={handleWrongEmail}
+            disabled={isLoggingOut}
+            className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
+          >
+            {isLoggingOut ? "Signing out…" : "Start over"}
           </button>
         </p>
       </div>

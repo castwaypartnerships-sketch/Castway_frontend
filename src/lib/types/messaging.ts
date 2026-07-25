@@ -1,5 +1,7 @@
 export type ConversationContext = "GENERAL" | "BRAND_DEAL";
 
+export type DealInquiryStatus = "NEW" | "RESPONDED" | "ACCEPTED" | "DECLINED";
+
 export interface ConversationListItem {
   id: string;
   lastMessageAt: string | null;
@@ -8,6 +10,10 @@ export interface ConversationListItem {
   isPinned: boolean;
   isMuted: boolean;
   isArchived: boolean;
+  opportunityId: string | null;
+  opportunityTitle: string | null;
+  dealBudget: string | null;
+  dealStatus: DealInquiryStatus | null;
   otherParticipant: {
     userId: string;
     username: string;
@@ -24,5 +30,7 @@ export interface Message {
   body: string;
   attachmentUrl: string | null;
   readBy: string[];
+  /** Set only when an Agency sent this on the sender's behalf. */
+  actingAgencyUserId: string | null;
   createdAt: string;
 }

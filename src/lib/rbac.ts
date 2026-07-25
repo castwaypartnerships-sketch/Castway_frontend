@@ -1,6 +1,15 @@
-export type Role = "CREATOR" | "FREELANCER" | "BRAND" | "AGENCY";
+/** `AGENCY_MANAGER` is a talent-manager sub-account — never self-selected
+ * during onboarding (that picker is a hardcoded list in
+ * `app/onboarding/role/page.tsx`, not derived from `ALL_ROLES`, and only
+ * ever creates CREATOR/FREELANCER/BRAND/AGENCY accounts), only ever
+ * agency-provisioned. It's included here (unlike the backend's
+ * `ALL_ROLES` in `lib/rbac/roles.ts`, which the onboarding role-picker's
+ * Zod schema *is* derived from and deliberately excludes it) so `isRole`/
+ * `getNavItemsForRole` route it correctly instead of falling back to
+ * CREATOR's nav. */
+export type Role = "CREATOR" | "FREELANCER" | "BRAND" | "AGENCY" | "AGENCY_MANAGER";
 
-export const ALL_ROLES: readonly Role[] = ["CREATOR", "FREELANCER", "BRAND", "AGENCY"];
+export const ALL_ROLES: readonly Role[] = ["CREATOR", "FREELANCER", "BRAND", "AGENCY", "AGENCY_MANAGER"];
 export const TALENT_ROLES = ["CREATOR", "FREELANCER"] as const;
 export const HIRING_ROLES = ["BRAND", "AGENCY"] as const;
 

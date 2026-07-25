@@ -108,6 +108,29 @@ export const opportunitiesApi = api.injectEndpoints({
         body: { message },
       }),
     }),
+    applyOnBehalfOfRosterMember: builder.mutation<
+      void,
+      { opportunityId: string; memberUserId: string; message?: string }
+    >({
+      query: ({ opportunityId, memberUserId, message }) => ({
+        url: `/opportunities/${opportunityId}/apply-on-behalf/${memberUserId}`,
+        method: "POST",
+        body: { message },
+      }),
+    }),
+    notifyRoster: builder.mutation<
+      { notified: string[]; applied: string[]; errors: { memberUserId: string; error: string }[] },
+      { opportunityId: string; memberUserIds: string[]; autoApply: boolean }
+    >({
+      query: ({ opportunityId, memberUserIds, autoApply }) => ({
+        url: `/opportunities/${opportunityId}/notify-roster`,
+        method: "POST",
+        body: { memberUserIds, autoApply },
+      }),
+      transformResponse: (response: {
+        data: { notified: string[]; applied: string[]; errors: { memberUserId: string; error: string }[] };
+      }) => response.data,
+    }),
     toggleSaveOpportunity: builder.mutation<{ saved: boolean }, string>({
       query: (opportunityId) => ({ url: `/opportunities/${opportunityId}/save`, method: "POST" }),
       transformResponse: (response: { data: { saved: boolean } }) => response.data,
@@ -127,5 +150,7 @@ export const {
   useCreateOpportunityMutation,
   useCreateBulkOpportunitiesMutation,
   useApplyToOpportunityMutation,
+  useApplyOnBehalfOfRosterMemberMutation,
+  useNotifyRosterMutation,
   useToggleSaveOpportunityMutation,
 } = opportunitiesApi;

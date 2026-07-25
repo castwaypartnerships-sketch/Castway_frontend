@@ -63,6 +63,22 @@ export const campaignsApi = api.injectEndpoints({
       transformResponse: (response: { data: CampaignAnalytics }) => response.data,
       providesTags: (_r, _e, id) => [{ type: "CampaignShortlist", id }],
     }),
+    // Co-Management for Brand Clients — an Agency's view of one linked
+    // brand's campaigns, and creating a campaign attributed to that brand.
+    getClientCampaigns: builder.query<{ items: Campaign[] }, string>({
+      query: (brandUserId) => `/campaigns/clients/${brandUserId}`,
+      transformResponse: (response: { data: { items: Campaign[] } }) => response.data,
+      providesTags: ["Campaigns"],
+    }),
+    createCampaignOnBehalf: builder.mutation<Campaign, { brandUserId: string; input: CampaignWriteInput }>({
+      query: ({ brandUserId, input }) => ({
+        url: `/campaigns/on-behalf/${brandUserId}`,
+        method: "POST",
+        body: input,
+      }),
+      transformResponse: (response: { data: Campaign }) => response.data,
+      invalidatesTags: ["Campaigns"],
+    }),
   }),
 });
 
@@ -77,4 +93,6 @@ export const {
   useAddToShortlistMutation,
   useRemoveFromShortlistMutation,
   useGetCampaignAnalyticsQuery,
+  useGetClientCampaignsQuery,
+  useCreateCampaignOnBehalfMutation,
 } = campaignsApi;

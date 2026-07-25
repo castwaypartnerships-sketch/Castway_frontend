@@ -32,10 +32,18 @@ export default function CampaignsPage() {
             Brief creators, shortlist candidates, and generate contracts.
           </p>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
-          <Plus className="size-4" />
-          New campaign
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/campaigns/agencies"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            Co-managing agencies
+          </Link>
+          <Button size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
+            <Plus className="size-4" />
+            New campaign
+          </Button>
+        </div>
       </div>
 
       {showForm ? (

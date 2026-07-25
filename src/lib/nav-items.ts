@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Bookmark,
+  Handshake,
   Home,
   LayoutGrid,
   ListChecks,
@@ -37,6 +38,10 @@ const SETTINGS: NavItem = { label: "Settings", href: "/settings", icon: Settings
 const ROSTER: NavItem = { label: "Roster", href: "/roster", icon: UserPlus };
 const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megaphone };
 const SHORTLISTS: NavItem = { label: "Shortlists", href: "/shortlists", icon: ListChecks };
+const CRM: NavItem = { label: "Brand CRM", href: "/crm", icon: Handshake };
+const CLIENT_CAMPAIGNS: NavItem = { label: "Client Campaigns", href: "/campaigns/clients", icon: Megaphone };
+const ASSIGNED_ROSTER: NavItem = { label: "My Assigned Roster", href: "/roster/assigned", icon: UserPlus };
+const TEAM: NavItem = { label: "Team", href: "/roster/team", icon: Users };
 
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
  * every route that appears in any role's sidebar needs exactly one entry here. */
@@ -53,6 +58,10 @@ export const NAV_ITEMS: NavItem[] = [
   ROSTER,
   CAMPAIGNS,
   SHORTLISTS,
+  CRM,
+  CLIENT_CAMPAIGNS,
+  ASSIGNED_ROSTER,
+  TEAM,
 ];
 
 /**
@@ -76,10 +85,41 @@ export const NAV_ITEMS: NavItem[] = [
  *   person who was shortlisted.
  */
 export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
-  CREATOR: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SHORTLISTS, SETTINGS],
+  CREATOR: [
+    HOME,
+    FEED,
+    SEARCH,
+    OPPORTUNITIES,
+    CONNECTIONS,
+    MESSAGES,
+    SAVED,
+    PORTFOLIO,
+    SHORTLISTS,
+    CRM,
+    SETTINGS,
+  ],
   FREELANCER: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SHORTLISTS, SETTINGS],
-  AGENCY: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, ROSTER, COMPANY_PROFILE, SETTINGS],
+  AGENCY: [
+    HOME,
+    FEED,
+    SEARCH,
+    OPPORTUNITIES,
+    CONNECTIONS,
+    MESSAGES,
+    SAVED,
+    ROSTER,
+    TEAM,
+    CLIENT_CAMPAIGNS,
+    COMPANY_PROFILE,
+    SETTINGS,
+  ],
   BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, COMPANY_PROFILE, SETTINGS],
+  // Talent manager sub-account — deliberately narrow: only the roster
+  // subset assigned to them (with the act-on-behalf-of apply/message
+  // actions that go with it), messaging, and settings. No Company Profile
+  // or Search — those are the owning agency's own account surface, not the
+  // manager's.
+  AGENCY_MANAGER: [HOME, OPPORTUNITIES, MESSAGES, ASSIGNED_ROSTER, SETTINGS],
 };
 
 export function getNavItemsForRole(role: string | null | undefined): NavItem[] {

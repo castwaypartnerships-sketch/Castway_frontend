@@ -19,6 +19,7 @@ export default function SearchPage() {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
+  const [subSpecializations, setSubSpecializations] = useState("");
   const [openForCollaboration, setOpenForCollaboration] = useState(false);
   const [lookingToHire, setLookingToHire] = useState(false);
   const [availableForWork, setAvailableForWork] = useState(false);
@@ -29,6 +30,10 @@ export default function SearchPage() {
     category: category.trim() || undefined,
     location: location.trim() || undefined,
     skills: skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    subSpecializations: subSpecializations
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
@@ -84,6 +89,15 @@ export default function SearchPage() {
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
               placeholder="e.g. Video Editing, Copywriting"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="subSpecializations">Sub-specialization (comma-separated)</Label>
+            <Input
+              id="subSpecializations"
+              value={subSpecializations}
+              onChange={(e) => setSubSpecializations(e.target.value)}
+              placeholder="e.g. B2B SaaS onboarding, Fintech dashboards"
             />
           </div>
         </div>

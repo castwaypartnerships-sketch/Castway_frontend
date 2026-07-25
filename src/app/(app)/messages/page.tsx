@@ -7,7 +7,7 @@ import type { PresenceChannel } from "pusher-js";
 import { Archive, ArchiveRestore, BellOff, Check, CheckCheck, MoreVertical, Pin, Send, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 
-import type { ConversationListItem } from "@/lib/types/messaging";
+import type { ConversationListItem, DealInquiryStatus } from "@/lib/types/messaging";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
 import {
   messagesApi,
@@ -20,6 +20,7 @@ import {
   useToggleConversationArchiveMutation,
   useToggleConversationMuteMutation,
   useToggleConversationPinMutation,
+  useUpdateDealStatusMutation,
 } from "@/lib/redux/endpoints/messages-api";
 import { useGetConnectionsQuery } from "@/lib/redux/endpoints/connections-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
@@ -126,6 +127,7 @@ export default function MessagesPage() {
                 conversation={conversation}
                 active={conversation.id === selectedId}
                 online={onlineUserIds.has(conversation.otherParticipant.userId)}
+                isCreator={isCreator}
                 onSelect={() => setManuallySelectedId(conversation.id)}
               />
             ))}
@@ -274,20 +276,30 @@ function NewChatMenu({ onStarted }: { onStarted: (conversationId: string) => voi
   );
 }
 
+const DEAL_STATUS_LABELS: Record<DealInquiryStatus, string> = {
+  NEW: "New",
+  RESPONDED: "Responded",
+  ACCEPTED: "Accepted",
+  DECLINED: "Declined",
+};
+
 function ConversationRow({
   conversation,
   active,
   online,
+  isCreator,
   onSelect,
 }: {
   conversation: ConversationListItem;
   active: boolean;
   online: boolean;
+  isCreator: boolean;
   onSelect: () => void;
 }) {
   const [togglePin] = useToggleConversationPinMutation();
   const [toggleMute] = useToggleConversationMuteMutation();
   const [toggleArchive] = useToggleConversationArchiveMutation();
+  const [updateDealStatus] = useUpdateDealStatusMutation();
 
   return (
     <li>
@@ -332,8 +344,33 @@ function ConversationRow({
                   ? formatRelativeTime(conversation.lastMessageAt)
                   : "No messages yet"}
             </p>
+            {conversation.context === "BRAND_DEAL" && conversation.dealBudget ? (
+              <p className="truncate text-xs font-medium text-primary">{conversation.dealBudget}</p>
+            ) : null}
           </div>
         </button>
+
+        {conversation.context === "BRAND_DEAL" && isCreator && conversation.dealStatus ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="outline" size="sm" className="shrink-0 text-[10px]">
+                  {DEAL_STATUS_LABELS[conversation.dealStatus]}
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              {(Object.keys(DEAL_STATUS_LABELS) as DealInquiryStatus[]).map((status) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => updateDealStatus({ conversationId: conversation.id, status })}
+                >
+                  {DEAL_STATUS_LABELS[status]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
 
         <DropdownMenu>
           <DropdownMenuTrigger

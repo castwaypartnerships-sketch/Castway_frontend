@@ -10,7 +10,10 @@ export type NotificationType =
   | "SKILL_ENDORSED"
   | "ROSTER_INVITE"
   | "ROSTER_INVITE_ACCEPTED"
-  | "CAMPAIGN_SHORTLISTED";
+  | "CAMPAIGN_SHORTLISTED"
+  | "OPPORTUNITY_ROSTER_NOTIFY"
+  | "BRAND_AGENCY_LINK_INVITE"
+  | "BRAND_AGENCY_LINK_ACCEPTED";
 
 export interface AppNotification {
   id: string;

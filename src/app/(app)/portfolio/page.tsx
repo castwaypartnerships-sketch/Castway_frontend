@@ -5,17 +5,23 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  useAddCaseStudyMutation,
   useAddEducationMutation,
   useAddExperienceMutation,
   useAddPortfolioItemMutation,
+  useAddRateCardItemMutation,
   useAddUnavailableRangeMutation,
   useGetOwnProfileQuery,
+  useRemoveCaseStudyMutation,
   useRemoveEducationMutation,
   useRemoveExperienceMutation,
   useRemovePortfolioItemMutation,
+  useRemoveRateCardItemMutation,
   useRemoveUnavailableRangeMutation,
+  useSetRateCardVisibilityMutation,
   useUpdateProfileMutation,
   useUpdateSocialLinksMutation,
+  useUpdateSubSpecializationsMutation,
 } from "@/lib/redux/endpoints/profile-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Badge } from "@/components/ui/badge";
@@ -26,14 +32,17 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   Availability,
+  CaseStudy,
   DateRange,
   Education,
   Experience,
   PortfolioItem,
+  RateCardItem,
   SocialLinks,
 } from "@/lib/types/profile";
 import { isHiringRole } from "@/lib/rbac";
 import { TrustBadge } from "@/components/profile/trust-badge";
+import { ResponseTimeBadge } from "@/components/profile/response-time-badge";
 import { VerificationStatusAction } from "@/components/profile/verification-status-action";
 import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
@@ -43,6 +52,12 @@ export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
   const { data: session } = useGetSessionQuery();
   const hiring = isHiringRole(session?.user?.role);
+  // Rate Card Transparency is CREATOR-only — deliberately narrower than the
+  // `!hiring` split below, which also covers FREELANCER.
+  const isCreator = session?.user?.role === "CREATOR";
+  // Case-Study Portfolio / Sub-Specialization Tagging are FREELANCER-only,
+  // same narrowing rationale as `isCreator` above.
+  const isFreelancer = session?.user?.role === "FREELANCER";
 
   if (isLoading) {
     return (
@@ -73,11 +88,14 @@ export default function PortfolioPage() {
             ? "This is what creators see when you post an opportunity or reach out."
             : "This is what other creators and brands see on your public profile."}
         </p>
-        <TrustBadge
-          isVerified={data.isVerified}
-          trustScore={data.trustScore}
-          reviewSummary={data.reviewSummary}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <TrustBadge
+            isVerified={data.isVerified}
+            trustScore={data.trustScore}
+            reviewSummary={data.reviewSummary}
+          />
+          <ResponseTimeBadge responseTime={data.responseTime} />
+        </div>
         <VerificationStatusAction isVerified={data.isVerified} />
       </div>
 
@@ -87,6 +105,15 @@ export default function PortfolioPage() {
         <>
           <AvailabilitySection ranges={data.profile.unavailableRanges} availability={data.availability} />
           <PortfolioItems items={data.profile.portfolioItems} />
+          {isCreator ? (
+            <RateCardSection items={data.profile.rateCardItems} visible={data.profile.rateCardVisible} />
+          ) : null}
+          {isFreelancer ? (
+            <>
+              <CaseStudySection items={data.profile.caseStudies} />
+              <SubSpecializationsSection tags={data.profile.subSpecializations} />
+            </>
+          ) : null}
           <ExperienceSection entries={data.profile.experience} />
           <EducationSection entries={data.profile.education} />
         </>
@@ -680,6 +707,292 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
         </ul>
       )}
     </section>
+  );
+}
+
+function RateCardSection({ items, visible }: { items: RateCardItem[]; visible: boolean }) {
+  const [addItem, { isLoading: isAdding }] = useAddRateCardItemMutation();
+  const [removeItem] = useRemoveRateCardItemMutation();
+  const [setVisibility, { isLoading: isTogglingVisibility }] = useSetRateCardVisibilityMutation();
+  const [showForm, setShowForm] = useState(false);
+  const [deliverableType, setDeliverableType] = useState("");
+  const [price, setPrice] = useState("");
+
+  async function handleAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await addItem({ deliverableType, price }).unwrap();
+    setDeliverableType("");
+    setPrice("");
+    setShowForm(false);
+  }
+
+  return (
+    <section id="rate-card-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Rate card</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Indicative pricing by deliverable, shown on your public profile when public.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
+          <Plus className="size-4" />
+          Add rate
+        </Button>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2.5">
+        <Switch
+          id="rate-card-visible"
+          checked={visible}
+          disabled={isTogglingVisibility}
+          onCheckedChange={(checked) => setVisibility(checked)}
+        />
+        <Label htmlFor="rate-card-visible">
+          {visible ? "Public — visible on your profile" : "Private — only visible to you"}
+        </Label>
+      </div>
+
+      {showForm ? (
+        <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="rate-deliverable">Deliverable</Label>
+              <Input
+                id="rate-deliverable"
+                required
+                placeholder="e.g. Instagram Reel"
+                value={deliverableType}
+                onChange={(e) => setDeliverableType(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="rate-price">Price</Label>
+              <Input
+                id="rate-price"
+                required
+                placeholder="e.g. $500"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button type="submit" size="sm" disabled={isAdding}>
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        </form>
+      ) : null}
+
+      {items.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No rates added yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border p-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{item.deliverableType}</p>
+                <p className="text-xs text-muted-foreground">{item.price}</p>
+              </div>
+              <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeItem(item.id)}>
+                <Trash2 className="size-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function CaseStudySection({ items }: { items: CaseStudy[] }) {
+  const [addItem, { isLoading: isAdding }] = useAddCaseStudyMutation();
+  const [removeItem] = useRemoveCaseStudyMutation();
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState("");
+  const [brief, setBrief] = useState("");
+  const [action, setAction] = useState("");
+  const [result, setResult] = useState("");
+  const [metricLabel, setMetricLabel] = useState("");
+  const [metricValue, setMetricValue] = useState("");
+
+  async function handleAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const metrics = metricLabel.trim() && metricValue.trim() ? [{ label: metricLabel, value: metricValue }] : undefined;
+    await addItem({ title, brief, action, result, metrics }).unwrap();
+    setTitle("");
+    setBrief("");
+    setAction("");
+    setResult("");
+    setMetricLabel("");
+    setMetricValue("");
+    setShowForm(false);
+  }
+
+  return (
+    <section id="case-studies-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Case studies</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Structured brief / action / result write-ups, shown on your public profile.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
+          <Plus className="size-4" />
+          Add case study
+        </Button>
+      </div>
+
+      {showForm ? (
+        <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="case-title">Title</Label>
+            <Input id="case-title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="case-brief">Brief</Label>
+            <Textarea
+              id="case-brief"
+              required
+              rows={2}
+              placeholder="The situation or problem"
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="case-action">Action</Label>
+            <Textarea
+              id="case-action"
+              required
+              rows={2}
+              placeholder="What you did"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="case-result">Result</Label>
+            <Textarea
+              id="case-result"
+              required
+              rows={2}
+              placeholder="The outcome"
+              value={result}
+              onChange={(e) => setResult(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Result metric (optional)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="case-metric-value" className="text-xs font-normal text-muted-foreground">
+                  Result
+                </Label>
+                <Input
+                  id="case-metric-value"
+                  placeholder="e.g. 3x"
+                  value={metricValue}
+                  onChange={(e) => setMetricValue(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="case-metric-label" className="text-xs font-normal text-muted-foreground">
+                  What it measures
+                </Label>
+                <Input
+                  id="case-metric-label"
+                  placeholder="e.g. Signup lift"
+                  value={metricLabel}
+                  onChange={(e) => setMetricLabel(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <Button type="submit" size="sm" disabled={isAdding}>
+            {isAdding ? "Adding…" : "Add"}
+          </Button>
+        </form>
+      ) : null}
+
+      {items.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No case studies added yet.</p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-xl border border-border p-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeItem(item.id)}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+              {item.metrics.length > 0 ? (
+                <p className="mt-1 text-xs font-medium text-primary">
+                  {item.metrics.map((m) => `${m.value} ${m.label}`).join(" · ")}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function SubSpecializationsSection({ tags }: { tags: string[] }) {
+  const [updateTags, { isLoading }] = useUpdateSubSpecializationsMutation();
+  const [value, setValue] = useState(tags.join(", "));
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!saved) return;
+    const timeout = setTimeout(() => setSaved(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [saved]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await updateTags(
+      value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ).unwrap();
+    setSaved(true);
+  }
+
+  return (
+    <form
+      id="sub-specializations-section"
+      onSubmit={handleSubmit}
+      className="scroll-mt-6 space-y-3 rounded-2xl border border-border bg-card p-6"
+    >
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">Sub-specializations</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Granular niche tags beyond your broad category — searchable and filterable.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="sub-specializations">Tags (comma-separated)</Label>
+        <Input
+          id="sub-specializations"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="e.g. B2B SaaS onboarding, Fintech dashboards"
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <Button type="submit" size="sm" disabled={isLoading}>
+          {isLoading ? "Saving…" : "Save tags"}
+        </Button>
+        {saved ? <span className="text-sm text-success">Saved</span> : null}
+      </div>
+    </form>
   );
 }
 

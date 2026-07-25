@@ -6,6 +6,7 @@ export interface Application {
   applicantUserId: string;
   message: string | null;
   status: ApplicationStatus;
+  actingAgencyUserId: string | null;
   createdAt: string;
   updatedAt: string;
   opportunity: { id: string; title: string; type: string; budget: string | null };

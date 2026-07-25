@@ -117,7 +117,18 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           <ArrowLeft className="size-4" />
           Back to Campaigns
         </Link>
-        <StatusControls campaign={campaign} />
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/campaigns/${campaign.id}/report`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <FileText className="size-4" />
+            Client report
+          </a>
+          <StatusControls campaign={campaign} />
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-4 rounded-2xl border border-border bg-card p-6">

@@ -54,6 +54,11 @@ export interface BrandDashboardSummary extends HiringDashboardFields {
 }
 export interface AgencyDashboardSummary extends HiringDashboardFields {
   kind: "AGENCY";
+  /** Roster-Level Analytics — aggregated across every ACCEPTED roster
+   * member's own account, not the agency's own. */
+  rosterProfileViews: number;
+  rosterConnectionsGrowthLast30Days: number;
+  rosterApplicationsSentCount: number;
 }
 
 export type DashboardSummary =

@@ -1,5 +1,12 @@
 import { api } from "@/lib/redux/api";
-import type { Availability, EndorsementCounts, ProfileSearchFilters, Profile } from "@/lib/types/profile";
+import type {
+  Availability,
+  EndorsementCounts,
+  ProfileOpenOpportunity,
+  ProfileSearchFilters,
+  Profile,
+  ResponseTimeSignal,
+} from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
 interface SearchProfilesResponse {
@@ -14,6 +21,8 @@ export interface PublicProfileResponse {
   isVerified: boolean;
   trustScore: number;
   reviewSummary: ReviewSummary;
+  responseTime: ResponseTimeSignal | null;
+  openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
 }
@@ -30,6 +39,9 @@ export const searchApi = api.injectEndpoints({
         params: {
           ...filters,
           skills: filters.skills?.length ? filters.skills.join(",") : undefined,
+          subSpecializations: filters.subSpecializations?.length
+            ? filters.subSpecializations.join(",")
+            : undefined,
         },
       }),
       transformResponse: (response: { data: SearchProfilesResponse }) => response.data,

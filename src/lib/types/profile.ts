@@ -27,6 +27,44 @@ export interface DateRange {
   note?: string | null;
 }
 
+export interface RateCardItem {
+  id: string;
+  deliverableType: string;
+  price: string;
+  order: number;
+}
+
+export interface CaseStudy {
+  id: string;
+  title: string;
+  brief: string;
+  action: string;
+  result: string;
+  metrics: PortfolioMetric[];
+  order: number;
+}
+
+export interface ResponseTimeSignal {
+  averageMinutes: number | null;
+  label: string;
+}
+
+/** "Live opportunities display on profile" — raw `Opportunity` fields only
+ * (no `poster`/`viewerHasApplied` DTO enrichment, since the backend returns
+ * this straight off `OpportunityService.listOpenByPoster` rather than
+ * through `toOpportunityDtos` — the viewer already knows whose profile this
+ * is, and application status isn't relevant here). */
+export interface ProfileOpenOpportunity {
+  id: string;
+  title: string;
+  description: string;
+  type: "HIRING" | "COLLABORATION" | "BRAND_DEAL" | "FREELANCE_GIG";
+  category: string | null;
+  location: string | null;
+  isRemote: boolean;
+  budget: string | null;
+}
+
 export interface Experience {
   id: string;
   title: string;
@@ -75,6 +113,10 @@ export interface Profile {
   experience: Experience[];
   education: Education[];
   unavailableRanges: DateRange[];
+  rateCardVisible: boolean;
+  rateCardItems: RateCardItem[];
+  caseStudies: CaseStudy[];
+  subSpecializations: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -124,6 +166,21 @@ export interface PortfolioItemInput {
   metrics?: PortfolioMetric[];
 }
 
+export interface RateCardItemInput {
+  deliverableType: string;
+  price: string;
+  order?: number;
+}
+
+export interface CaseStudyInput {
+  title: string;
+  brief: string;
+  action: string;
+  result: string;
+  metrics?: PortfolioMetric[];
+  order?: number;
+}
+
 export type EndorsementCounts = Record<string, number>;
 
 export interface UnavailableRangeInput {
@@ -136,6 +193,7 @@ export interface ProfileSearchFilters {
   query?: string;
   category?: string;
   skills?: string[];
+  subSpecializations?: string[];
   location?: string;
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
