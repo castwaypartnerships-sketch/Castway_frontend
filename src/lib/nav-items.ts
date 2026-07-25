@@ -42,6 +42,7 @@ const CRM: NavItem = { label: "Brand CRM", href: "/crm", icon: Handshake };
 const CLIENT_CAMPAIGNS: NavItem = { label: "Client Campaigns", href: "/campaigns/clients", icon: Megaphone };
 const ASSIGNED_ROSTER: NavItem = { label: "My Assigned Roster", href: "/roster/assigned", icon: UserPlus };
 const TEAM: NavItem = { label: "Team", href: "/roster/team", icon: Users };
+const BRAND_TEAM: NavItem = { label: "Team", href: "/brand-team", icon: Users };
 
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
  * every route that appears in any role's sidebar needs exactly one entry here. */
@@ -62,6 +63,7 @@ export const NAV_ITEMS: NavItem[] = [
   CLIENT_CAMPAIGNS,
   ASSIGNED_ROSTER,
   TEAM,
+  BRAND_TEAM,
 ];
 
 /**
@@ -113,13 +115,28 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     COMPANY_PROFILE,
     SETTINGS,
   ],
-  BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, COMPANY_PROFILE, SETTINGS],
+  BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, BRAND_TEAM, COMPANY_PROFILE, SETTINGS],
   // Talent manager sub-account — deliberately narrow: only the roster
   // subset assigned to them (with the act-on-behalf-of apply/message
   // actions that go with it), messaging, and settings. No Company Profile
   // or Search — those are the owning agency's own account surface, not the
   // manager's.
   AGENCY_MANAGER: [HOME, OPPORTUNITIES, MESSAGES, ASSIGNED_ROSTER, SETTINGS],
+  // Full parity with BRAND (unlike AGENCY_MANAGER above) — teammates share
+  // the whole owning Brand account (see `Actor.resourceOwnerId`), so they
+  // get the exact same nav.
+  BRAND_TEAM_MEMBER: [
+    HOME,
+    FEED,
+    SEARCH,
+    CAMPAIGNS,
+    CONNECTIONS,
+    MESSAGES,
+    SAVED,
+    BRAND_TEAM,
+    COMPANY_PROFILE,
+    SETTINGS,
+  ],
 };
 
 export function getNavItemsForRole(role: string | null | undefined): NavItem[] {

@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
  * were tampered with. */
 export default function AssignedRosterPage() {
   const { entries: assignedMembers, isLoading: isLoadingRoster } = useActableRosterEntries();
-  const [memberUserId, setMemberUserId] = useState<string | undefined>(undefined);
+  const [memberUserId, setMemberUserId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   const { data: conversations, isLoading: isLoadingConversations } = useGetConversationsOnBehalfQuery(
@@ -55,7 +55,7 @@ export default function AssignedRosterPage() {
           <Select
             value={memberUserId}
             onValueChange={(value) => {
-              setMemberUserId(value ?? undefined);
+              setMemberUserId(value);
               setConversationId(undefined);
             }}
           >

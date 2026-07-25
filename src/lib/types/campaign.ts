@@ -48,3 +48,17 @@ export interface CampaignAnalytics {
   applicantCount: number;
   applicantsByStatus: Record<string, number>;
 }
+
+export interface ShortlistComment {
+  id: string;
+  campaignId: string;
+  creatorUserId: string;
+  content: string;
+  createdAt: string;
+  author: {
+    userId: string;
+    username: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+}

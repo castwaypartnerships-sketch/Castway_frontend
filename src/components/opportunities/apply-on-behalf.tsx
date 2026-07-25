@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 export function ApplyOnBehalf({ opportunityId }: { opportunityId: string }) {
   const { entries: acceptedMembers, canAct } = useActableRosterEntries();
   const [applyOnBehalf, { isLoading }] = useApplyOnBehalfOfRosterMemberMutation();
-  const [memberUserId, setMemberUserId] = useState<string | undefined>(undefined);
+  const [memberUserId, setMemberUserId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [sent, setSent] = useState(false);
@@ -42,7 +42,7 @@ export function ApplyOnBehalf({ opportunityId }: { opportunityId: string }) {
     <div className="mt-4 rounded-xl border border-dashed border-border p-4">
       {showForm ? (
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Select value={memberUserId} onValueChange={(value) => setMemberUserId(value ?? undefined)}>
+          <Select value={memberUserId} onValueChange={(value) => setMemberUserId(value)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Apply on behalf of…" />
             </SelectTrigger>

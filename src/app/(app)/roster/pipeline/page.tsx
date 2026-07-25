@@ -43,7 +43,7 @@ export default function RosterPipelinePage() {
   const { data: roster } = useGetMyRosterQuery();
   const [createDeal, { isLoading: isCreating }] = useCreateRosterDealMutation();
   const [showForm, setShowForm] = useState(false);
-  const [memberUserId, setMemberUserId] = useState<string | undefined>(undefined);
+  const [memberUserId, setMemberUserId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
 
   const acceptedMembers = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
@@ -54,7 +54,7 @@ export default function RosterPipelinePage() {
     try {
       await createDeal({ memberUserId, title }).unwrap();
       setTitle("");
-      setMemberUserId(undefined);
+      setMemberUserId(null);
       setShowForm(false);
     } catch {
       toast.error("Couldn't create that deal. Please try again.");
@@ -77,7 +77,7 @@ export default function RosterPipelinePage() {
 
       {showForm ? (
         <form onSubmit={handleCreate} className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-4">
-          <Select value={memberUserId} onValueChange={(v) => setMemberUserId(v ?? undefined)}>
+          <Select value={memberUserId} onValueChange={(v) => setMemberUserId(v)}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Roster member" />
             </SelectTrigger>

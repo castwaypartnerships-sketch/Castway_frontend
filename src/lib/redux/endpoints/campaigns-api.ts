@@ -5,6 +5,7 @@ import type {
   CampaignShortlistItem,
   CampaignShortlistSummary,
   CampaignWriteInput,
+  ShortlistComment,
 } from "@/lib/types/campaign";
 
 export const campaignsApi = api.injectEndpoints({
@@ -58,6 +59,31 @@ export const campaignsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_r, _e, { campaignId }) => [{ type: "CampaignShortlist", id: campaignId }],
     }),
+    // Shortlist Team Collaboration — internal review thread on one
+    // shortlisted creator, shared by the Brand owner and every teammate.
+    getShortlistComments: builder.query<{ items: ShortlistComment[] }, { campaignId: string; creatorUserId: string }>(
+      {
+        query: ({ campaignId, creatorUserId }) => `/campaigns/${campaignId}/shortlist/${creatorUserId}/comments`,
+        transformResponse: (response: { data: { items: ShortlistComment[] } }) => response.data,
+        providesTags: (_r, _e, { campaignId, creatorUserId }) => [
+          { type: "ShortlistComments", id: `${campaignId}:${creatorUserId}` },
+        ],
+      },
+    ),
+    addShortlistComment: builder.mutation<
+      ShortlistComment,
+      { campaignId: string; creatorUserId: string; content: string }
+    >({
+      query: ({ campaignId, creatorUserId, content }) => ({
+        url: `/campaigns/${campaignId}/shortlist/${creatorUserId}/comments`,
+        method: "POST",
+        body: { content },
+      }),
+      transformResponse: (response: { data: ShortlistComment }) => response.data,
+      invalidatesTags: (_r, _e, { campaignId, creatorUserId }) => [
+        { type: "ShortlistComments", id: `${campaignId}:${creatorUserId}` },
+      ],
+    }),
     getCampaignAnalytics: builder.query<CampaignAnalytics, string>({
       query: (id) => `/campaigns/${id}/analytics`,
       transformResponse: (response: { data: CampaignAnalytics }) => response.data,
@@ -92,6 +118,8 @@ export const {
   useGetCampaignShortlistQuery,
   useAddToShortlistMutation,
   useRemoveFromShortlistMutation,
+  useGetShortlistCommentsQuery,
+  useAddShortlistCommentMutation,
   useGetCampaignAnalyticsQuery,
   useGetClientCampaignsQuery,
   useCreateCampaignOnBehalfMutation,

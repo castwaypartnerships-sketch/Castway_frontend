@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 export default function RosterInboxPage() {
   const { data: roster, isLoading: isLoadingRoster } = useGetMyRosterQuery();
   const acceptedMembers = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
-  const [memberUserId, setMemberUserId] = useState<string | undefined>(undefined);
+  const [memberUserId, setMemberUserId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   const { data: conversations, isLoading: isLoadingConversations } = useGetConversationsOnBehalfQuery(
@@ -55,7 +55,7 @@ export default function RosterInboxPage() {
           <Select
             value={memberUserId}
             onValueChange={(value) => {
-              setMemberUserId(value ?? undefined);
+              setMemberUserId(value);
               setConversationId(undefined);
             }}
           >

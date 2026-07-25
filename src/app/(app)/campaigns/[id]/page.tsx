@@ -3,7 +3,8 @@
 import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Link2, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, FileText, Link2, MessageSquare, Trash2, UserPlus } from "lucide-react";
+import { ShortlistCommentThread } from "@/components/campaigns/shortlist-comment-thread";
 
 import {
   useAddToShortlistMutation,
@@ -330,6 +331,16 @@ function ShortlistSection({ campaignId }: { campaignId: string }) {
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [contractFor, setContractFor] = useState<string | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+
+  function toggleComments(creatorUserId: string) {
+    setExpandedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(creatorUserId)) next.delete(creatorUserId);
+      else next.add(creatorUserId);
+      return next;
+    });
+  }
 
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -390,36 +401,47 @@ function ShortlistSection({ campaignId }: { campaignId: string }) {
       ) : (
         <ul className="space-y-2">
           {data.items.map((entry) => (
-            <li
-              key={entry.creatorUserId}
-              className="flex items-center gap-3 rounded-xl border border-border p-3"
-            >
-              <Avatar>
-                <AvatarImage src={entry.profile?.avatarUrl ?? undefined} />
-                <AvatarFallback>{initialsFromName(entry.profile?.name ?? "?")}</AvatarFallback>
-              </Avatar>
-              <Link href={`/profile/${entry.profile?.username}`} className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{entry.profile?.name}</p>
-                <p className="truncate text-xs text-muted-foreground">@{entry.profile?.username}</p>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="shrink-0 gap-1.5"
-                disabled={contractFor === entry.creatorUserId}
-                onClick={() => handleDownloadContract(entry.creatorUserId)}
-              >
-                <FileText className="size-3.5" />
-                {contractFor === entry.creatorUserId ? "Generating…" : "Generate contract"}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Remove from shortlist"
-                onClick={() => removeFromShortlist({ campaignId, creatorUserId: entry.creatorUserId })}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
+            <li key={entry.creatorUserId} className="space-y-3 rounded-xl border border-border p-3">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={entry.profile?.avatarUrl ?? undefined} />
+                  <AvatarFallback>{initialsFromName(entry.profile?.name ?? "?")}</AvatarFallback>
+                </Avatar>
+                <Link href={`/profile/${entry.profile?.username}`} className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{entry.profile?.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">@{entry.profile?.username}</p>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 gap-1.5"
+                  onClick={() => toggleComments(entry.creatorUserId)}
+                >
+                  <MessageSquare className="size-3.5" />
+                  {expandedComments.has(entry.creatorUserId) ? "Hide notes" : "Team notes"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5"
+                  disabled={contractFor === entry.creatorUserId}
+                  onClick={() => handleDownloadContract(entry.creatorUserId)}
+                >
+                  <FileText className="size-3.5" />
+                  {contractFor === entry.creatorUserId ? "Generating…" : "Generate contract"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Remove from shortlist"
+                  onClick={() => removeFromShortlist({ campaignId, creatorUserId: entry.creatorUserId })}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+              {expandedComments.has(entry.creatorUserId) ? (
+                <ShortlistCommentThread campaignId={campaignId} creatorUserId={entry.creatorUserId} />
+              ) : null}
             </li>
           ))}
         </ul>

@@ -121,6 +121,8 @@ export const api = createApi({
     "BrandAgencyLinks",
     "RevenueSplits",
     "RosterManagers",
+    "BrandTeam",
+    "ShortlistComments",
   ],
   endpoints: () => ({}),
 });
