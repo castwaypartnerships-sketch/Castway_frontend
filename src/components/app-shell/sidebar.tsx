@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { getNavItemsForRole } from "@/lib/nav-items";
 import { initialsFromName } from "@/lib/format";
@@ -71,25 +71,6 @@ export function AppSidebar() {
             </Link>
           );
         })}
-
-        {session?.user?.isAdmin ? (
-          <Link
-            href="/admin"
-            className={cn(
-              "flex items-center justify-between rounded-md border-l-2 px-2.5 py-2 text-sm font-medium transition-colors",
-              pathname.startsWith("/admin")
-                ? "border-sidebar-primary bg-sidebar-accent text-sidebar-foreground"
-                : "border-transparent text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-            )}
-          >
-            <span className="flex items-center gap-2.5">
-              <ShieldCheck
-                className={cn("size-4", pathname.startsWith("/admin") && "text-sidebar-primary")}
-              />
-              Admin
-            </span>
-          </Link>
-        ) : null}
       </nav>
 
       <div className="space-y-2 px-3 pb-4">

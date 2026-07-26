@@ -1,13 +1,9 @@
 import { api } from "@/lib/redux/api";
 import type { VerificationRequest } from "@/lib/types/verification";
 
-interface PendingVerificationsResponse {
-  items: VerificationRequest[];
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
+// Admin-only review (list pending/claim/approve/reject) lives in the
+// standalone `admin/` app, not here — this file only covers what a
+// regular user needs for their own verification status.
 export const verificationApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getOwnVerification: builder.query<VerificationRequest | null, void>({
@@ -20,32 +16,7 @@ export const verificationApi = api.injectEndpoints({
       transformResponse: (response: { data: VerificationRequest }) => response.data,
       invalidatesTags: ["Verification"],
     }),
-    getPendingVerifications: builder.query<PendingVerificationsResponse, void>({
-      query: () => ({ url: "/verification/pending", params: { page: 1, pageSize: 50 } }),
-      transformResponse: (response: { data: PendingVerificationsResponse }) => response.data,
-      providesTags: ["PendingVerifications"],
-    }),
-    claimVerification: builder.mutation<VerificationRequest, string>({
-      query: (id) => ({ url: `/verification/${id}/claim`, method: "POST" }),
-      transformResponse: (response: { data: VerificationRequest }) => response.data,
-      invalidatesTags: ["PendingVerifications"],
-    }),
-    approveVerification: builder.mutation<void, string>({
-      query: (id) => ({ url: `/verification/${id}/approve`, method: "POST" }),
-      invalidatesTags: ["PendingVerifications"],
-    }),
-    rejectVerification: builder.mutation<void, string>({
-      query: (id) => ({ url: `/verification/${id}/reject`, method: "POST" }),
-      invalidatesTags: ["PendingVerifications"],
-    }),
   }),
 });
 
-export const {
-  useGetOwnVerificationQuery,
-  useSubmitVerificationMutation,
-  useGetPendingVerificationsQuery,
-  useClaimVerificationMutation,
-  useApproveVerificationMutation,
-  useRejectVerificationMutation,
-} = verificationApi;
+export const { useGetOwnVerificationQuery, useSubmitVerificationMutation } = verificationApi;
