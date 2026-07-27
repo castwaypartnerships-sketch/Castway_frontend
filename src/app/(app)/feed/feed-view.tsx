@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useGetFeedQuery } from "@/lib/redux/endpoints/feed-api";
 import { FeedFilterTabs, type FeedFilter } from "@/components/feed/filter-tabs";
@@ -10,14 +10,43 @@ import { PostCard } from "@/components/feed/post-card";
 export function FeedView() {
   const [filter, setFilter] = useState<FeedFilter>("ALL");
   const [composerOpen, setComposerOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError } = useGetFeedQuery(
-    filter === "ALL" ? undefined : { category: filter },
-  );
+  const { data, isLoading, isFetching, isError } = useGetFeedQuery({
+    category: filter === "ALL" ? undefined : filter,
+    page,
+  });
+
+  const hasMore = data ? data.items.length < data.total : false;
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  function handleFilterChange(next: FeedFilter) {
+    setFilter(next);
+    setPage(1);
+  }
+
+  // Advances `page` once the sentinel at the bottom of the list scrolls into
+  // view. Re-created whenever `hasMore`/`isFetching` change so it never
+  // fires while a page is already in flight or after the last page loads.
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasMore || isFetching) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setPage((p) => p + 1);
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, isFetching]);
 
   return (
     <div className="space-y-5">
-      <FeedFilterTabs value={filter} onValueChange={setFilter} onNewProposal={() => setComposerOpen(true)} />
+      <FeedFilterTabs value={filter} onValueChange={handleFilterChange} onNewProposal={() => setComposerOpen(true)} />
       <CreatePostDialog open={composerOpen} onOpenChange={setComposerOpen} />
 
       {isLoading ? (
@@ -39,6 +68,13 @@ export function FeedView() {
           {data.items.map((item) => (
             <PostCard key={item.id} item={item} />
           ))}
+          {hasMore ? (
+            <div ref={sentinelRef}>
+              {isFetching ? (
+                <div className="h-24 animate-pulse rounded-2xl border border-border bg-muted" />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

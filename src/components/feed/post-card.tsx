@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { BadgeCheck, Bookmark, CalendarDays, DollarSign, Heart, MessageCircle } from "lucide-react";
 
@@ -69,7 +70,7 @@ export function PostCard({ item }: { item: FeedItem }) {
   }
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
       <div className="flex items-start justify-between gap-4">
         <Link href={`/profile/${item.author.username}`} className="flex items-start gap-3">
           <Avatar size="lg">
@@ -107,10 +108,15 @@ export function PostCard({ item }: { item: FeedItem }) {
       />
 
       {item.imageUrl ? (
-        <div
-          className="mt-4 aspect-video w-full rounded-xl bg-muted bg-cover bg-center"
-          style={{ backgroundImage: `url(${item.imageUrl})` }}
-        />
+        <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-xl bg-muted">
+          <Image
+            src={item.imageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 640px, 100vw"
+          />
+        </div>
       ) : null}
 
       {item.proposal ? (

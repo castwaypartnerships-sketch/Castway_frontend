@@ -30,12 +30,32 @@ export interface CreatePostInput {
 
 export const feedApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getFeed: builder.query<FeedResponse, { category?: PostCategory } | void>({
+    // Infinite-scroll pagination: the cache key ignores `page` (see
+    // `serializeQueryArgs`) so every page for a given category lands in the
+    // same cache entry, and `merge` appends each new page's items onto it
+    // instead of replacing it — the standard RTK Query pagination recipe.
+    getFeed: builder.query<FeedResponse, { category?: PostCategory; page?: number } | void>({
       query: (args) => ({
         url: "/feed",
-        params: args?.category ? { category: args.category } : undefined,
+        params: {
+          ...(args?.category ? { category: args.category } : {}),
+          page: args?.page ?? 1,
+        },
       }),
       transformResponse: (response: { data: FeedResponse }) => response.data,
+      serializeQueryArgs: ({ queryArgs }) => ({ category: queryArgs?.category }),
+      // De-duped append: a mutation elsewhere (e.g. creating a post)
+      // invalidates the "LIST" tag, which re-fetches whatever page the
+      // component is currently subscribed to (not just page 1) — without
+      // the id check that re-fetch would re-append a page already in cache.
+      merge: (currentCache, newPage) => {
+        const seenIds = new Set(currentCache.items.map((item) => item.id));
+        currentCache.items.push(...newPage.items.filter((item) => !seenIds.has(item.id)));
+        currentCache.page = newPage.page;
+        currentCache.pageSize = newPage.pageSize;
+        currentCache.total = newPage.total;
+      },
+      forceRefetch: ({ currentArg, previousArg }) => currentArg?.page !== previousArg?.page,
       providesTags: (result) =>
         result
           ? [
@@ -117,10 +137,23 @@ export const feedApi = api.injectEndpoints({
       transformResponse: (response: { data: FeedItem }) => response.data,
       providesTags: (_result, _error, postId) => [{ type: "Feed", id: postId }],
     }),
-    getComments: builder.query<CommentsResponse, string>({
-      query: (postId) => `/feed/${postId}/comments`,
+    // Same merge-by-page pagination recipe as `getFeed` above, keyed by
+    // `postId` so every page for a given post lands in one cache entry.
+    getComments: builder.query<CommentsResponse, { postId: string; page?: number }>({
+      query: ({ postId, page }) => ({ url: `/feed/${postId}/comments`, params: { page: page ?? 1 } }),
       transformResponse: (response: { data: CommentsResponse }) => response.data,
-      providesTags: (_result, _error, postId) => [{ type: "Comments", id: postId }],
+      serializeQueryArgs: ({ queryArgs }) => ({ postId: queryArgs.postId }),
+      // Same de-duped append as `getFeed` — `addComment`'s invalidation can
+      // re-fetch a page already present in this cache entry.
+      merge: (currentCache, newPage) => {
+        const seenIds = new Set(currentCache.items.map((item) => item.id));
+        currentCache.items.push(...newPage.items.filter((item) => !seenIds.has(item.id)));
+        currentCache.page = newPage.page;
+        currentCache.pageSize = newPage.pageSize;
+        currentCache.total = newPage.total;
+      },
+      forceRefetch: ({ currentArg, previousArg }) => currentArg?.page !== previousArg?.page,
+      providesTags: (_result, _error, { postId }) => [{ type: "Comments", id: postId }],
     }),
     // Replies are fetched per-thread on demand ("View N replies"), not
     // bundled into `getComments` — keyed by the parent (top-level) comment id.
@@ -169,7 +202,7 @@ export const feedApi = api.injectEndpoints({
                 }),
               )
             : dispatch(
-                feedApi.util.updateQueryData("getComments", postId, (draft) => {
+                feedApi.util.updateQueryData("getComments", { postId }, (draft) => {
                   draft.items.push(optimisticComment);
                   draft.total += 1;
                 }),
@@ -181,7 +214,7 @@ export const feedApi = api.injectEndpoints({
         if (parentCommentId) {
           patches.push(
             dispatch(
-              feedApi.util.updateQueryData("getComments", postId, (draft) => {
+              feedApi.util.updateQueryData("getComments", { postId }, (draft) => {
                 const parent = draft.items.find((c) => c.id === parentCommentId);
                 if (parent) parent.replyCount += 1;
               }),

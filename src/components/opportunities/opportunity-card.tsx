@@ -45,7 +45,7 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
   }
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md">
+    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md [content-visibility:auto] [contain-intrinsic-size:auto_320px]">
       <div className="flex items-start justify-between gap-4">
         <Link href={`/profile/${opportunity.poster.username}`} className="group/poster flex items-start gap-3">
           <Avatar size="lg" className="transition-transform group-hover/poster:scale-105">
