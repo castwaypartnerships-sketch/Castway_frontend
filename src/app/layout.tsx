@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk, Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReduxProvider } from "@/lib/redux/provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { CustomCursor } from "@/components/marketing/custom-cursor";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,6 +26,12 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Castway — Creator OS",
@@ -43,7 +50,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider
@@ -55,6 +62,7 @@ export default function RootLayout({
           <ReduxProvider>
             <TooltipProvider delay={200}>
               {children}
+              <CustomCursor />
               <Toaster />
             </TooltipProvider>
           </ReduxProvider>
