@@ -1,23 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { Check, CheckCircle2, TrendingUp, Sparkles, Plus, ArrowRight, UserCheck, Code } from "lucide-react";
+import { motion } from "framer-motion";
+import { CheckCircle2, TrendingUp, Sparkles, Plus, ArrowRight, UserCheck } from "lucide-react";
+import { TiltCard } from "@/components/marketing/tilt-card";
+import { staggerContainer, revealItem } from "@/components/marketing/reveal-variants";
 
 export function WhyChoose() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24 md:py-32 border-t border-border/30">
-      <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-3 py-1.5 rounded-full mb-4">
+    <section className="mx-auto max-w-7xl px-6 md:px-8 py-24 md:py-32 border-t border-border/30">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={staggerContainer}
+        className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16"
+      >
+        <motion.span
+          variants={revealItem}
+          className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-3 py-1.5 rounded-full mb-4"
+        >
           WHY CHOOSE CASTWAY
-        </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-serif">
+        </motion.span>
+        <motion.h2
+          variants={revealItem}
+          className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-serif"
+        >
           Built for the next wave of collaboration.
-        </h2>
-        <p className="mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-xl">
-          More than a portfolio, it&apos;s a fully integrated workspace that simplifies compliance, 
+        </motion.h2>
+        <motion.p
+          variants={revealItem}
+          className="mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-xl"
+        >
+          More than a portfolio, it&apos;s a fully integrated workspace that simplifies compliance,
           speeds up payments, and protects your work.
-        </p>
-        <div className="mt-6">
+        </motion.p>
+        <motion.div variants={revealItem} className="mt-6">
           <Link
             href="/login"
             className="rounded-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 px-6 py-3 text-xs font-semibold tracking-wide shadow-sm hover:shadow transition-all inline-flex items-center gap-1.5"
@@ -25,14 +43,14 @@ export function WhyChoose() {
             Get Started
             <ArrowRight className="size-3.5" />
           </Link>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Asymmetric 12-Column Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         
         {/* Card 1: Verified Profiles (col-span-4) */}
-        <div className="md:col-span-4 rounded-3xl p-6 bg-[#e6efe7] border border-[#d2e3d4] dark:bg-[#111f14] dark:border-[#1d3322] flex flex-col justify-between min-h-[260px] text-left transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-4 rounded-3xl p-6 bg-[#e6efe7] border border-[#d2e3d4] dark:bg-[#111f14] dark:border-[#1d3322] flex flex-col justify-between min-h-[260px] text-left">
           <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
             <div className="flex items-center gap-2">
               <span className="relative flex size-8">
@@ -52,10 +70,10 @@ export function WhyChoose() {
               Build immediate trust with clients. Every profile syncs live metrics, platform verifications, and actual transaction histories.
             </p>
           </div>
-        </div>
+        </TiltCard>
 
         {/* Card 2: Growth (col-span-8) */}
-        <div className="md:col-span-8 rounded-3xl p-6 bg-[#132c1c] border border-[#193724] dark:bg-[#07130b] text-white flex flex-col justify-between min-h-[260px] text-left transition-all hover:scale-[1.01] relative overflow-hidden">
+        <TiltCard className="md:col-span-8 rounded-3xl p-6 bg-[#132c1c] border border-[#193724] dark:bg-[#07130b] text-white flex flex-col justify-between min-h-[260px] text-left relative">
           <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-40">
             <TrendingUp className="size-16 text-emerald-500" />
           </div>
@@ -82,10 +100,10 @@ export function WhyChoose() {
               Live API integrations with your channels keep your profile synced and show clients your metrics at all times.
             </p>
           </div>
-        </div>
+        </TiltCard>
 
         {/* Card 3: Bold typography text card (col-span-5) */}
-        <div className="md:col-span-5 rounded-3xl p-6 bg-[#eaf1ec] border border-[#d2dfd6] dark:bg-[#15271a] dark:border-[#243f2d] flex flex-col justify-between min-h-[240px] text-left transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-5 rounded-3xl p-6 bg-[#eaf1ec] border border-[#d2dfd6] dark:bg-[#15271a] dark:border-[#243f2d] flex flex-col justify-between min-h-[240px] text-left">
           <span className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <Sparkles className="size-4" />
           </span>
@@ -97,19 +115,19 @@ export function WhyChoose() {
           <p className="text-xs leading-relaxed text-emerald-800/80 dark:text-emerald-400/80">
             A single premium URL to host your portfolios, rates, connections, and payouts without juggling multiple web tools.
           </p>
-        </div>
+        </TiltCard>
 
         {/* Card 4: Stat callout (col-span-3) */}
-        <div className="md:col-span-3 rounded-3xl p-6 bg-[#f3f7f4] border border-[#e2eae4] dark:bg-[#0e1b12] dark:border-[#1c3322] flex flex-col justify-center items-center text-center min-h-[240px] transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-3 rounded-3xl p-6 bg-[#f3f7f4] border border-[#e2eae4] dark:bg-[#0e1b12] dark:border-[#1c3322] flex flex-col justify-center items-center text-center min-h-[240px]">
           <p className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground font-mono">24k+</p>
           <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2 uppercase tracking-wide">CREATORS</p>
           <p className="text-[10px] text-muted-foreground mt-3 leading-relaxed max-w-[150px]">
             Building their digital businesses on Castway daily.
           </p>
-        </div>
+        </TiltCard>
 
         {/* Card 5: "Join us now" illustrated card (col-span-4) */}
-        <div className="md:col-span-4 rounded-3xl p-6 bg-[#1c3322] border border-[#25422d] text-white flex flex-col justify-between min-h-[240px] text-left transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-4 rounded-3xl p-6 bg-[#1c3322] border border-[#25422d] text-white flex flex-col justify-between min-h-[240px] text-left">
           <div className="flex -space-x-2.5 overflow-hidden">
             {["AR", "MS", "JD", "KC"].map((initial, i) => (
               <span 
@@ -135,10 +153,10 @@ export function WhyChoose() {
           >
             Apply for access <ArrowRight className="size-3" />
           </Link>
-        </div>
+        </TiltCard>
 
         {/* Card 6: Everything in one workspace (col-span-7) */}
-        <div className="md:col-span-7 rounded-3xl p-6 bg-[#f8faf8] border border-[#e2e8e3] dark:bg-[#09110b] dark:border-[#15261a] flex flex-col justify-between min-h-[260px] text-left transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-7 rounded-3xl p-6 bg-[#f8faf8] border border-[#e2e8e3] dark:bg-[#09110b] dark:border-[#15261a] flex flex-col justify-between min-h-[260px] text-left">
           <div>
             <span className="inline-flex rounded-full bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-4">
               Integrated Workspace
@@ -162,10 +180,10 @@ export function WhyChoose() {
               </div>
             ))}
           </div>
-        </div>
+        </TiltCard>
 
         {/* Card 7: Skills-first discovery (col-span-5) */}
-        <div className="md:col-span-5 rounded-3xl p-6 bg-[#d2ded4] border border-[#b8ccbc] dark:bg-[#16271c] dark:border-[#223d2b] text-emerald-950 dark:text-emerald-100 flex flex-col justify-between min-h-[260px] text-left transition-all hover:scale-[1.01]">
+        <TiltCard className="md:col-span-5 rounded-3xl p-6 bg-[#d2ded4] border border-[#b8ccbc] dark:bg-[#16271c] dark:border-[#223d2b] text-emerald-950 dark:text-emerald-100 flex flex-col justify-between min-h-[260px] text-left">
           <div>
             <span className="inline-flex rounded-full bg-white dark:bg-neutral-800 px-2.5 py-1 text-[9px] font-bold text-emerald-800 dark:text-emerald-400 uppercase mb-4 border border-emerald-950/5">
               Discovery Engine
@@ -194,7 +212,7 @@ export function WhyChoose() {
               </span>
             ))}
           </div>
-        </div>
+        </TiltCard>
 
       </div>
     </section>

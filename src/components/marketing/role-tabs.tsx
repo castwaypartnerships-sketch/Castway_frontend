@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from "framer-motion";
 import { Check, ArrowRight } from "lucide-react";
+import { staggerContainer, revealItem } from "@/components/marketing/reveal-variants";
 
 interface TabItem {
   id: string;
@@ -110,13 +111,13 @@ export function RoleTabs() {
   // 1:1 direct scroll-progress transforms mapped linearly for stacking
   // Card 0 (Creators) starts fully in view (translateY: 0)
   const y0 = 0;
-  
+
   // Card 1 (Agencies) slides from 100% to 0% as scroll progress goes 0.25 -> 0.50
   const y1 = useTransform(smoothProgress, [0, 0.25, 0.50, 1], ["100%", "100%", "0%", "0%"]);
-  
+
   // Card 2 (Brands) slides from 100% to 0% as scroll progress goes 0.50 -> 0.75
   const y2 = useTransform(smoothProgress, [0, 0.50, 0.75, 1], ["100%", "100%", "0%", "0%"]);
-  
+
   // Card 3 (Freelancers) slides from 100% to 0% as scroll progress goes 0.75 -> 1.00
   const y3 = useTransform(smoothProgress, [0, 0.75, 1.00], ["100%", "100%", "0%"]);
 
@@ -156,37 +157,54 @@ export function RoleTabs() {
   };
 
   return (
-    <div ref={sectionRef} className="relative h-[300vh] w-full">
-      {/* Sticky Inner Viewport Pin */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center bg-background">
-        <div className="mx-auto max-w-7xl w-full px-6 py-8 flex flex-col h-full justify-center">
-          
+    <div ref={sectionRef} className="relative h-[300vh]  w-full">
+      {/* Sticky Inner Viewport Pin — offset below the fixed nav (h-16) so the
+          header never overlaps it, instead of eating into the pinned
+          section's own height budget with a top margin (that pushed the
+          min-h cards container past the bottom edge and got clipped). */}
+      <div className="sticky top-16 h-[calc(100vh-4rem)] w-full overflow-hidden flex flex-col justify-center bg-background">
+        <div className="mx-auto max-w-7xl w-full px-6 md:px-8 py-8 flex flex-col h-full justify-center">
+
           {/* Header */}
-          <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-10 shrink-0">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-3 py-1.5 rounded-full mb-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+            variants={staggerContainer}
+            className="flex flex-col items-center text-center max-w-3xl mx-auto mb-4 shrink-0"
+          >
+            <motion.span
+              variants={revealItem}
+              className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-3 py-1.5 rounded-full mb-4"
+            >
               BUILT FOR EVERY ROLE
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-serif">
+            </motion.span>
+            <motion.h2
+              variants={revealItem}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-serif"
+            >
               One network, four ways to work.
-            </h2>
-            <p className="mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed hidden sm:block">
-              Tailored workspaces matching your specific business goals, because creators, freelancers, 
+            </motion.h2>
+            <motion.p
+              variants={revealItem}
+              className="mt-3 text-muted-foreground text-sm sm:text-base leading-relaxed hidden sm:block"
+            >
+              Tailored workspaces matching your specific business goals, because creators, freelancers,
               brands, and agencies don&apos;t work the same way.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Tabs Selector Bar */}
-          <div className="flex justify-center mb-10 shrink-0">
+          <div className="flex justify-center mb-4  shrink-0">
             <div className="inline-flex rounded-full bg-muted/60 p-1.5 border border-border/40">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                    activeTab === tab.id
-                      ? "bg-white dark:bg-neutral-800 text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${activeTab === tab.id
+                    ? "bg-white dark:bg-neutral-800 text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   {tab.title}
                 </button>
@@ -194,8 +212,10 @@ export function RoleTabs() {
             </div>
           </div>
 
-          {/* Stacked Cards Container */}
-          <div className="relative flex-1 w-full min-h-[460px] max-w-5xl mx-auto shadow-sm">
+          {/* Stacked Cards Container — sized by flex-1 off whatever the header
+              and tabs bar leave behind, not a fixed height, so it can never
+              force the pinned viewport to overflow on shorter screens. */}
+          <div className="relative flex-1 w-full min-h-[380px] max-w-5xl mx-auto shadow-sm">
             {TABS.map((tab, idx) => {
               const yVal = idx === 0 ? y0 : idx === 1 ? y1 : idx === 2 ? y2 : y3;
               const zIndex = 10 + idx;
@@ -204,29 +224,31 @@ export function RoleTabs() {
                 <motion.div
                   key={tab.id}
                   style={{ y: yVal, zIndex, willChange: "transform" }}
-                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-6 sm:p-10 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
+                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-6 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
                 >
                   {/* Left Column (Details) */}
-                  <div className="flex flex-col items-start text-left space-y-4">
+                  <div className="flex flex-col items-start text-left space-y-2.5">
                     {/* Badge with Tab-colored Shadow Offset */}
                     <span className={`inline-flex rounded-full bg-white text-black text-xs font-bold px-4 py-2 border border-black/10 transition-transform hover:-translate-y-0.5 ${tab.shadowColor}`}>
                       {tab.badgeText}
                     </span>
-                    
-                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight font-serif">
+
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight font-serif">
                       {tab.heading}
                     </h3>
-                    
-                    <p className="text-xs sm:text-sm leading-relaxed opacity-85">
+
+                    <p className="text-xs sm:text-sm leading-relaxed opacity-85 line-clamp-2">
                       {tab.description}
                     </p>
 
-                    {/* Checklist */}
-                    <ul className="space-y-2.5 w-full">
+                    {/* Checklist — two columns so 5 items take 3 short rows
+                        instead of 5 tall ones, the single biggest lever for
+                        fitting inside a fixed-height pinned viewport. */}
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 w-full">
                       {tab.checklist.map((item, index) => (
-                        <li key={index} className="flex items-center gap-3 text-xs sm:text-sm font-semibold">
-                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-black border border-black/10">
-                            <Check className="size-3" />
+                        <li key={index} className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+                          <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-white text-black border border-black/10">
+                            <Check className="size-2.5" />
                           </span>
                           <span>{item}</span>
                         </li>

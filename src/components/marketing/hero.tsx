@@ -1,13 +1,40 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Bell, Calendar, ChevronRight, DollarSign, MessageSquare, Play, Sparkles, TrendingUp } from "lucide-react";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+import { ArrowRight, Bell, Calendar, ChevronRight, DollarSign, MessageSquare, Sparkles, TrendingUp } from "lucide-react";
+import { INTRO_REVEAL_DELAY_S } from "@/components/marketing/loading-screen";
+
+// Staggered rise-from-bottom for each hero element. delay 0 skips straight
+// to visible (used for prefers-reduced-motion, where there's no curtain to
+// wait for).
+const revealVariants: Variants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 export function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
-  
+  const mockupWrapRef = useRef<HTMLDivElement>(null);
+
+  // Times the hero text's entrance to land right as the loading curtain
+  // lifts, so the "rise from bottom" is actually visible instead of
+  // finishing off-screen underneath it. Reduced-motion users never see a
+  // curtain, so they get an immediate reveal instead of a dead wait. Read
+  // once via lazy init (not an effect) — this only feeds an animation
+  // timing prop, never rendered markup, so there's no hydration mismatch
+  // risk in computing it differently per environment.
+  const [revealDelay] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? 0
+      : INTRO_REVEAL_DELAY_S
+  );
+
   // Track scroll progress of the Hero section
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -19,6 +46,15 @@ export function Hero() {
   const y = useTransform(scrollYProgress, [0, 1], [0, -30]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.9]);
 
+  // Entrance: mockup rises from below and fades in as it scrolls into view
+  // (tracked separately so it settles before the parallax above takes over)
+  const { scrollYProgress: entranceProgress } = useScroll({
+    target: mockupWrapRef,
+    offset: ["start 95%", "start 55%"],
+  });
+  const entranceY = useTransform(entranceProgress, [0, 1], [140, 0]);
+  const entranceOpacity = useTransform(entranceProgress, [0, 1], [0, 1]);
+
   return (
     <section 
       ref={heroRef}
@@ -26,33 +62,73 @@ export function Hero() {
     >
       {/* Decorative gradient blur background */}
       <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
-      
-      <div className="mx-auto flex max-w-5xl flex-col items-center px-6 text-center">
+      <div className="pointer-events-none absolute top-10 left-[62%] -z-10 h-[280px] w-[420px] rounded-full bg-[#e8c9d4]/20 blur-[100px] dark:bg-[#e8c9d4]/10" />
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 md:px-8 text-center">
         {/* Onboarding Pill Badge */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-900/30 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-8 shadow-sm">
+        <motion.div
+          custom={revealDelay}
+          initial="hidden"
+          animate="visible"
+          variants={revealVariants}
+          className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-900/30 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-8 shadow-sm"
+        >
           <span className="relative flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
           The Network for Creator Business
-        </div>
+        </motion.div>
 
         {/* Serif Headline */}
-        <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl tracking-tight leading-[1.1] text-foreground max-w-4xl text-balance">
-          Where the creator economy{" "}
-          <span className="font-bold block sm:inline text-black dark:text-white">
-            Does business.
+        <motion.h1
+          custom={revealDelay + 0.1}
+          initial="hidden"
+          animate="visible"
+          variants={revealVariants}
+          className="font-serif text-5xl sm:text-6xl md:text-7xl tracking-tight leading-[1.1] text-foreground w-full max-w-6xl"
+        >
+          Where the creator economy
+          <br />
+          {/* Per-letter mask reveal — same technique as the loading screen's
+              wordmark, so the hero's punchline echoes that intro moment. */}
+          <span className="inline-flex overflow-hidden" aria-hidden="true">
+            {"Does business.".split("").map((char, i) => (
+              <span key={i} className="inline-block overflow-hidden py-1">
+                <motion.span
+                  initial={{ y: "110%" }}
+                  animate={{ y: "0%" }}
+                  transition={{ duration: 0.6, delay: revealDelay + 0.5 + i * 0.035, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-block font-bold text-black dark:text-white"
+                >
+                  {char === " " ? " " : char}
+                </motion.span>
+              </span>
+            ))}
           </span>
-        </h1>
+          <span className="sr-only">Does business.</span>
+        </motion.h1>
 
         {/* Subtitle / Description */}
-        <p className="mt-8 max-w-2xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-          Castway is the unified workspace built for professional collaboration. 
+        <motion.p
+          custom={revealDelay + 0.2}
+          initial="hidden"
+          animate="visible"
+          variants={revealVariants}
+          className="mt-8 max-w-2xl text-base sm:text-lg leading-relaxed text-muted-foreground"
+        >
+          Castway is the unified workspace built for professional collaboration.
           Manage your portfolio, message clients, sign contracts, and track instant payouts — all in one home.
-        </p>
+        </motion.p>
 
         {/* CTAs */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+        <motion.div
+          custom={revealDelay + 0.3}
+          initial="hidden"
+          animate="visible"
+          variants={revealVariants}
+          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
+        >
           <Link
             href="/login"
             className="w-full sm:w-auto rounded-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 px-8 py-3.5 text-sm font-semibold tracking-wide shadow-md transition-all inline-flex items-center justify-center gap-2 group"
@@ -66,11 +142,15 @@ export function Hero() {
           >
             See how it works
           </a>
-        </div>
+        </motion.div>
       </div>
 
       {/* Dashboard Mockup on Sage-Green Background Panel */}
-      <div className="mx-auto mt-20 w-full max-w-6xl px-6 md:px-8">
+      <motion.div
+        ref={mockupWrapRef}
+        style={{ y: entranceY, opacity: entranceOpacity }}
+        className="mx-auto mt-20 w-full max-w-6xl px-6 md:px-8"
+      >
         <div className="rounded-3xl bg-[#e3eae4] dark:bg-[#1a261d] p-4 sm:p-6 md:p-8 shadow-inner">
           <motion.div
             style={{ scale, y, opacity }}
@@ -197,7 +277,7 @@ export function Hero() {
             </div>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

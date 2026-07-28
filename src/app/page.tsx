@@ -1,3 +1,5 @@
+import { HideScrollbar } from "@/components/marketing/hide-scrollbar";
+import { LoadingScreen } from "@/components/marketing/loading-screen";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { Hero } from "@/components/marketing/hero";
 import { TrustedBy } from "@/components/marketing/trusted-by";
@@ -11,6 +13,8 @@ import { MarketingFooter } from "@/components/marketing/footer";
 export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
+      <HideScrollbar />
+      <LoadingScreen />
       <MarketingNav />
       <main className="flex-1">
         <Hero />
