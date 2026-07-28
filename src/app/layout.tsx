@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk, Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReduxProvider } from "@/lib/redux/provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,6 +25,15 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+// Loaded onto the --font-serif CSS variable (kept for now, touches every
+// `font-serif` usage site-wide) — despite the name, this now serves as the
+// display face: a geometric modern sans instead of the earlier editorial serif.
+const displayFont = Montserrat({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Castway — Creator OS",
@@ -43,7 +52,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${displayFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider
