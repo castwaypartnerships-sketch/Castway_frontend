@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ClipboardList, Plus, SearchIcon } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
+import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
@@ -73,8 +74,9 @@ function BrowseTab() {
   const [category, setCategory] = useState("");
   const [skills, setSkills] = useState("");
   const [isRemote, setIsRemote] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const { data, isFetching, isError } = useGetOpportunitiesQuery({
+  const { data, isLoading, isFetching, isError } = useGetOpportunitiesQuery({
     query: query.trim() || undefined,
     category: category.trim() || undefined,
     skills: skills
@@ -82,7 +84,18 @@ function BrowseTab() {
       .map((s) => s.trim())
       .filter(Boolean),
     isRemote: isRemote || undefined,
+    page,
   });
+
+  const hasMore = data ? data.items.length < data.total : false;
+  const sentinelRef = useInfiniteScroll(hasMore, isFetching, () => setPage((p) => p + 1));
+
+  function updateFilter<T>(setter: (value: T) => void) {
+    return (value: T) => {
+      setter(value);
+      setPage(1);
+    };
+  }
 
   return (
     <div className="space-y-5">
@@ -91,7 +104,7 @@ function BrowseTab() {
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => updateFilter(setQuery)(e.target.value)}
             placeholder="Search by title or description…"
             className="pl-9"
           />
@@ -102,7 +115,7 @@ function BrowseTab() {
             <Input
               id="opp-category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => updateFilter(setCategory)(e.target.value)}
               placeholder="e.g. Fashion, Tech, Fitness"
             />
           </div>
@@ -111,18 +124,18 @@ function BrowseTab() {
             <Input
               id="opp-skills"
               value={skills}
-              onChange={(e) => setSkills(e.target.value)}
+              onChange={(e) => updateFilter(setSkills)(e.target.value)}
               placeholder="e.g. Video Editing, Copywriting"
             />
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <Switch id="opp-remote" checked={isRemote} onCheckedChange={setIsRemote} />
+          <Switch id="opp-remote" checked={isRemote} onCheckedChange={updateFilter(setIsRemote)} />
           <Label htmlFor="opp-remote">Remote only</Label>
         </div>
       </div>
 
-      {isFetching ? (
+      {isLoading ? (
         <div className="space-y-5">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-muted" />
@@ -141,6 +154,13 @@ function BrowseTab() {
           {data.items.map((opportunity) => (
             <OpportunityCard key={opportunity.id} opportunity={opportunity} />
           ))}
+          {hasMore ? (
+            <div ref={sentinelRef}>
+              {isFetching ? (
+                <div className="h-24 animate-pulse rounded-2xl border border-border bg-muted" />
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

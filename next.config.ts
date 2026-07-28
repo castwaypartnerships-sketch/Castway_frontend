@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
+  },
   async rewrites() {
     return [
       {

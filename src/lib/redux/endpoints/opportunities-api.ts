@@ -1,5 +1,6 @@
 import { api } from "@/lib/redux/api";
 import type { Opportunity, OpportunityWriteInput } from "@/lib/types/opportunity";
+import { forceRefetchOnPageChange, mergePaginatedPage } from "@/lib/redux/pagination";
 
 interface OpportunitiesResponse {
   items: Opportunity[];
@@ -16,10 +17,13 @@ export interface OpportunityFilters {
   category?: string;
   skills?: string[];
   isRemote?: boolean;
+  page?: number;
 }
 
 export const opportunitiesApi = api.injectEndpoints({
   endpoints: (builder) => ({
+    // Infinite-scroll pagination: same merge-by-page recipe as `getFeed` in
+    // feed-api.ts — cache key ignores `page`, `merge` de-dupes and appends.
     getOpportunities: builder.query<OpportunitiesResponse, OpportunityFilters | void>({
       query: (args) => ({
         url: "/opportunities",
@@ -29,9 +33,19 @@ export const opportunitiesApi = api.injectEndpoints({
           category: args?.category,
           skills: args?.skills?.length ? args.skills.join(",") : undefined,
           isRemote: args?.isRemote,
+          page: args?.page ?? 1,
         },
       }),
       transformResponse: (response: { data: OpportunitiesResponse }) => response.data,
+      serializeQueryArgs: ({ queryArgs }) => ({
+        type: queryArgs?.type,
+        query: queryArgs?.query,
+        category: queryArgs?.category,
+        skills: queryArgs?.skills,
+        isRemote: queryArgs?.isRemote,
+      }),
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
       providesTags: (result) =>
         result
           ? [

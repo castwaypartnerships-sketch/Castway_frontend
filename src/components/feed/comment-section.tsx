@@ -145,8 +145,11 @@ function TopLevelComment({ postId, comment }: { postId: string; comment: FeedCom
 }
 
 export function CommentSection({ postId }: { postId: string }) {
-  const { data, isLoading } = useGetCommentsQuery(postId);
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching } = useGetCommentsQuery({ postId, page });
   const [addComment] = useAddCommentMutation();
+
+  const hasMore = data ? data.items.length < data.total : false;
 
   async function handleAddComment(content: string) {
     await addComment({ postId, content }).unwrap();
@@ -161,11 +164,24 @@ export function CommentSection({ postId }: { postId: string }) {
       ) : !data || data.items.length === 0 ? (
         <p className="text-sm text-muted-foreground">No comments yet — be the first to reply.</p>
       ) : (
-        <ul className="space-y-3">
-          {data.items.map((comment) => (
-            <TopLevelComment key={comment.id} postId={postId} comment={comment} />
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-3">
+            {data.items.map((comment) => (
+              <TopLevelComment key={comment.id} postId={postId} comment={comment} />
+            ))}
+          </ul>
+          {hasMore ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isFetching}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {isFetching ? "Loading…" : "Load more comments"}
+            </Button>
+          ) : null}
+        </>
       )}
     </div>
   );
