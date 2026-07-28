@@ -1,6 +1,7 @@
 import { api } from "@/lib/redux/api";
 import type { FeedComment, FeedItem, PostCategory } from "@/lib/types/feed";
 import { profileApi } from "@/lib/redux/endpoints/profile-api";
+import { forceRefetchOnPageChange, mergePaginatedPage } from "@/lib/redux/pagination";
 
 interface FeedResponse {
   items: FeedItem[];
@@ -44,18 +45,8 @@ export const feedApi = api.injectEndpoints({
       }),
       transformResponse: (response: { data: FeedResponse }) => response.data,
       serializeQueryArgs: ({ queryArgs }) => ({ category: queryArgs?.category }),
-      // De-duped append: a mutation elsewhere (e.g. creating a post)
-      // invalidates the "LIST" tag, which re-fetches whatever page the
-      // component is currently subscribed to (not just page 1) — without
-      // the id check that re-fetch would re-append a page already in cache.
-      merge: (currentCache, newPage) => {
-        const seenIds = new Set(currentCache.items.map((item) => item.id));
-        currentCache.items.push(...newPage.items.filter((item) => !seenIds.has(item.id)));
-        currentCache.page = newPage.page;
-        currentCache.pageSize = newPage.pageSize;
-        currentCache.total = newPage.total;
-      },
-      forceRefetch: ({ currentArg, previousArg }) => currentArg?.page !== previousArg?.page,
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
       providesTags: (result) =>
         result
           ? [
@@ -143,16 +134,8 @@ export const feedApi = api.injectEndpoints({
       query: ({ postId, page }) => ({ url: `/feed/${postId}/comments`, params: { page: page ?? 1 } }),
       transformResponse: (response: { data: CommentsResponse }) => response.data,
       serializeQueryArgs: ({ queryArgs }) => ({ postId: queryArgs.postId }),
-      // Same de-duped append as `getFeed` — `addComment`'s invalidation can
-      // re-fetch a page already present in this cache entry.
-      merge: (currentCache, newPage) => {
-        const seenIds = new Set(currentCache.items.map((item) => item.id));
-        currentCache.items.push(...newPage.items.filter((item) => !seenIds.has(item.id)));
-        currentCache.page = newPage.page;
-        currentCache.pageSize = newPage.pageSize;
-        currentCache.total = newPage.total;
-      },
-      forceRefetch: ({ currentArg, previousArg }) => currentArg?.page !== previousArg?.page,
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
       providesTags: (_result, _error, { postId }) => [{ type: "Comments", id: postId }],
     }),
     // Replies are fetched per-thread on demand ("View N replies"), not

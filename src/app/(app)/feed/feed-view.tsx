@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { useGetFeedQuery } from "@/lib/redux/endpoints/feed-api";
+import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { FeedFilterTabs, type FeedFilter } from "@/components/feed/filter-tabs";
 import { CreatePostDialog } from "@/components/feed/create-post-dialog";
 import { PostCard } from "@/components/feed/post-card";
@@ -18,31 +19,12 @@ export function FeedView() {
   });
 
   const hasMore = data ? data.items.length < data.total : false;
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useInfiniteScroll(hasMore, isFetching, () => setPage((p) => p + 1));
 
   function handleFilterChange(next: FeedFilter) {
     setFilter(next);
     setPage(1);
   }
-
-  // Advances `page` once the sentinel at the bottom of the list scrolls into
-  // view. Re-created whenever `hasMore`/`isFetching` change so it never
-  // fires while a page is already in flight or after the last page loads.
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node || !hasMore || isFetching) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setPage((p) => p + 1);
-        }
-      },
-      { rootMargin: "300px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasMore, isFetching]);
 
   return (
     <div className="space-y-5">

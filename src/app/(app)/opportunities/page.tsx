@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ClipboardList, Plus, SearchIcon } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
+import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
@@ -87,7 +88,7 @@ function BrowseTab() {
   });
 
   const hasMore = data ? data.items.length < data.total : false;
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useInfiniteScroll(hasMore, isFetching, () => setPage((p) => p + 1));
 
   function updateFilter<T>(setter: (value: T) => void) {
     return (value: T) => {
@@ -95,22 +96,6 @@ function BrowseTab() {
       setPage(1);
     };
   }
-
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node || !hasMore || isFetching) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setPage((p) => p + 1);
-        }
-      },
-      { rootMargin: "300px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasMore, isFetching]);
 
   return (
     <div className="space-y-5">

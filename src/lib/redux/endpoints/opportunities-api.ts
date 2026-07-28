@@ -1,5 +1,6 @@
 import { api } from "@/lib/redux/api";
 import type { Opportunity, OpportunityWriteInput } from "@/lib/types/opportunity";
+import { forceRefetchOnPageChange, mergePaginatedPage } from "@/lib/redux/pagination";
 
 interface OpportunitiesResponse {
   items: Opportunity[];
@@ -43,14 +44,8 @@ export const opportunitiesApi = api.injectEndpoints({
         skills: queryArgs?.skills,
         isRemote: queryArgs?.isRemote,
       }),
-      merge: (currentCache, newPage) => {
-        const seenIds = new Set(currentCache.items.map((item) => item.id));
-        currentCache.items.push(...newPage.items.filter((item) => !seenIds.has(item.id)));
-        currentCache.page = newPage.page;
-        currentCache.pageSize = newPage.pageSize;
-        currentCache.total = newPage.total;
-      },
-      forceRefetch: ({ currentArg, previousArg }) => currentArg?.page !== previousArg?.page,
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
       providesTags: (result) =>
         result
           ? [
