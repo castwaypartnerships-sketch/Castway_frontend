@@ -27,8 +27,7 @@ export function AppSidebar() {
 
   async function handleLogout() {
     await logout();
-    router.push("/login");
-    router.refresh();
+    window.location.href = "/";
   }
 
   return (
