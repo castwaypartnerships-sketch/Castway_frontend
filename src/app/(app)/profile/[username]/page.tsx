@@ -82,6 +82,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
     followerCount,
     followingCount,
     viewerIsFollowing,
+    managedByAgency,
   } = data;
   const isOwnProfile = session?.user?.id === profile.userId;
 
@@ -112,6 +113,14 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
                 <span className="font-medium text-foreground">{followerCount}</span> followers ·{" "}
                 <span className="font-medium text-foreground">{followingCount}</span> following
               </p>
+              {managedByAgency ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Managed by{" "}
+                  <Link href={`/profile/${managedByAgency.username}`} className="font-medium text-foreground hover:underline">
+                    {managedByAgency.name}
+                  </Link>
+                </p>
+              ) : null}
               {representingAgencies && representingAgencies.items.length > 0 ? (
                 <div className="mt-1 space-y-1">
                   <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
@@ -218,7 +227,9 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="experience">Experience</TabsTrigger>
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-          {profile.rateCardItems.length > 0 ? <TabsTrigger value="rates">Rates</TabsTrigger> : null}
+          {profile.rateCardItems.length > 0 || profile.minRate || profile.maxRate ? (
+            <TabsTrigger value="rates">Rates</TabsTrigger>
+          ) : null}
           {profile.caseStudies.length > 0 ? (
             <TabsTrigger value="case-studies">Case Studies</TabsTrigger>
           ) : null}
@@ -363,8 +374,18 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
           )}
         </TabsContent>
 
-        {profile.rateCardItems.length > 0 ? (
-          <TabsContent value="rates" className="mt-5">
+        {profile.rateCardItems.length > 0 || profile.minRate || profile.maxRate ? (
+          <TabsContent value="rates" className="mt-5 space-y-3">
+            {profile.minRate || profile.maxRate ? (
+              <p className="text-sm text-muted-foreground">
+                Typical range:{" "}
+                <span className="font-medium text-foreground">
+                  {profile.minRate ? `$${profile.minRate}` : "Up to"}
+                  {profile.minRate && profile.maxRate ? " – " : ""}
+                  {profile.maxRate ? `$${profile.maxRate}` : "+"}
+                </span>
+              </p>
+            ) : null}
             <ul className="space-y-2">
               {profile.rateCardItems.map((item) => (
                 <li

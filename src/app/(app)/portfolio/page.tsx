@@ -274,6 +274,7 @@ function ProfileForm({
         <div className="space-y-1.5">
           <Label htmlFor="agencySize">Team size</Label>
           <Select
+            items={AGENCY_SIZE_LABEL}
             value={agencySize || undefined}
             onValueChange={(value) => setAgencySize((value as AgencySize | null) ?? "")}
           >

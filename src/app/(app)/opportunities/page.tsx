@@ -129,6 +129,10 @@ function BrowseTab() {
           <div className="space-y-1.5">
             <Label htmlFor="opp-type">Type</Label>
             <Select
+              items={{
+                __any__: "Any type",
+                ...Object.fromEntries(OPPORTUNITY_TYPE_OPTIONS.map((o) => [o.value, o.label])),
+              }}
               value={type || "__any__"}
               onValueChange={updateFilter((value: string | null) =>
                 setType(!value || value === "__any__" ? "" : (value as OpportunityType)),
@@ -150,6 +154,7 @@ function BrowseTab() {
           <div className="space-y-1.5">
             <Label htmlFor="opp-category">Category</Label>
             <Select
+              items={{ __any__: "Any category", ...Object.fromEntries(PROFILE_CATEGORY_OPTIONS.map((o) => [o, o])) }}
               value={category || "__any__"}
               onValueChange={updateFilter((value: string | null) =>
                 setCategory(!value || value === "__any__" ? "" : value),
@@ -171,6 +176,7 @@ function BrowseTab() {
           <div className="space-y-1.5">
             <Label htmlFor="opp-status">Status</Label>
             <Select
+              items={Object.fromEntries(BROWSE_STATUS_OPTIONS.map((o) => [o.value, o.label]))}
               value={status}
               onValueChange={updateFilter((value: string | null) =>
                 setStatus((value as "OPEN" | "CLOSED" | "ARCHIVED" | null) ?? "OPEN"),

@@ -11,6 +11,7 @@ import {
   Search,
   Settings,
   UserCircle,
+  UserCog,
   UserPlus,
   Users,
   Briefcase,
@@ -42,6 +43,7 @@ const CRM: NavItem = { label: "Brand CRM", href: "/crm", icon: Handshake };
 const CLIENT_CAMPAIGNS: NavItem = { label: "Client Campaigns", href: "/campaigns/clients", icon: Megaphone };
 const ASSIGNED_ROSTER: NavItem = { label: "My Assigned Roster", href: "/roster/assigned", icon: UserPlus };
 const TEAM: NavItem = { label: "Team", href: "/roster/team", icon: Users };
+const MANAGED_TALENT: NavItem = { label: "Managed Talent", href: "/roster/managed", icon: UserCog };
 const BRAND_TEAM: NavItem = { label: "Team", href: "/brand-team", icon: Users };
 
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
@@ -111,6 +113,7 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     SAVED,
     ROSTER,
     TEAM,
+    MANAGED_TALENT,
     CLIENT_CAMPAIGNS,
     COMPANY_PROFILE,
     SETTINGS,

@@ -85,6 +85,7 @@ export default function SearchPage() {
           <div className="space-y-1.5">
             <Label htmlFor="category">Category</Label>
             <Select
+              items={{ __any__: "Any category", ...Object.fromEntries(PROFILE_CATEGORY_OPTIONS.map((o) => [o, o])) }}
               value={category || "__any__"}
               onValueChange={(value) => setCategory(!value || value === "__any__" ? "" : value)}
             >
@@ -166,7 +167,11 @@ export default function SearchPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="agencySize">Agency size</Label>
-            <Select value={agencySize || "__any__"} onValueChange={(value) => setAgencySize(value === "__any__" || !value ? "" : value)}>
+            <Select
+              items={{ __any__: "Any size", ...AGENCY_SIZE_LABEL }}
+              value={agencySize || "__any__"}
+              onValueChange={(value) => setAgencySize(value === "__any__" || !value ? "" : value)}
+            >
               <SelectTrigger id="agencySize" className="w-full">
                 <SelectValue placeholder="Any size" />
               </SelectTrigger>
