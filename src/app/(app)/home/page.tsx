@@ -2,11 +2,11 @@
 
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
-import { CreatorDashboard } from "@/components/dashboard/creator-dashboard";
-import { FreelancerDashboard } from "@/components/dashboard/freelancer-dashboard";
-import { BrandDashboard } from "@/components/dashboard/brand-dashboard";
-import { AgencyDashboard } from "@/components/dashboard/agency-dashboard";
-import { RecentActivitySection } from "@/components/dashboard/recent-activity-section";
+import { CreatorDashboard } from "@/components/home/creator-dashboard";
+import { FreelancerDashboard } from "@/components/home/freelancer-dashboard";
+import { BrandDashboard } from "@/components/home/brand-dashboard";
+import { AgencyDashboard } from "@/components/home/agency-dashboard";
+import { RecentActivitySection } from "@/components/home/recent-activity-section";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 
 export default function HomePage() {

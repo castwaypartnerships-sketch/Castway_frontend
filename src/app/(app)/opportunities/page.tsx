@@ -9,15 +9,27 @@ import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
-import { ApplicationStatusBadge } from "@/components/dashboard/status-badge";
+import { OPPORTUNITY_TYPE_OPTIONS } from "@/components/opportunities/opportunity-form";
+import { ApplicationStatusBadge } from "@/components/home/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { canPostOpportunity, canApplyToOpportunity } from "@/lib/rbac";
+import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
+import type { OpportunityType } from "@/lib/types/opportunity";
+
+// Only statuses safe to expose on a public browse — DRAFT is owner-only and
+// the backend's search() has no ownership check, so it's never offered here.
+const BROWSE_STATUS_OPTIONS: { value: "OPEN" | "CLOSED" | "ARCHIVED"; label: string }[] = [
+  { value: "OPEN", label: "Open" },
+  { value: "CLOSED", label: "Closed" },
+  { value: "ARCHIVED", label: "Archived" },
+];
 
 export default function OpportunitiesPage() {
   const { data: session } = useGetSessionQuery();
@@ -71,6 +83,8 @@ export default function OpportunitiesPage() {
 
 function BrowseTab() {
   const [query, setQuery] = useState("");
+  const [type, setType] = useState<OpportunityType | "">("");
+  const [status, setStatus] = useState<"OPEN" | "CLOSED" | "ARCHIVED">("OPEN");
   const [category, setCategory] = useState("");
   const [skills, setSkills] = useState("");
   const [isRemote, setIsRemote] = useState(false);
@@ -78,6 +92,8 @@ function BrowseTab() {
 
   const { data, isLoading, isFetching, isError } = useGetOpportunitiesQuery({
     query: query.trim() || undefined,
+    type: type || undefined,
+    status,
     category: category.trim() || undefined,
     skills: skills
       .split(",")
@@ -111,15 +127,68 @@ function BrowseTab() {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="opp-category">Category</Label>
-            <Input
-              id="opp-category"
-              value={category}
-              onChange={(e) => updateFilter(setCategory)(e.target.value)}
-              placeholder="e.g. Fashion, Tech, Fitness"
-            />
+            <Label htmlFor="opp-type">Type</Label>
+            <Select
+              value={type || "__any__"}
+              onValueChange={updateFilter((value: string | null) =>
+                setType(!value || value === "__any__" ? "" : (value as OpportunityType)),
+              )}
+            >
+              <SelectTrigger id="opp-type" className="w-full">
+                <SelectValue placeholder="Any type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__any__">Any type</SelectItem>
+                {OPPORTUNITY_TYPE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="opp-category">Category</Label>
+            <Select
+              value={category || "__any__"}
+              onValueChange={updateFilter((value: string | null) =>
+                setCategory(!value || value === "__any__" ? "" : value),
+              )}
+            >
+              <SelectTrigger id="opp-category" className="w-full">
+                <SelectValue placeholder="Any category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__any__">Any category</SelectItem>
+                {PROFILE_CATEGORY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="opp-status">Status</Label>
+            <Select
+              value={status}
+              onValueChange={updateFilter((value: string | null) =>
+                setStatus((value as "OPEN" | "CLOSED" | "ARCHIVED" | null) ?? "OPEN"),
+              )}
+            >
+              <SelectTrigger id="opp-status" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {BROWSE_STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="opp-skills">Skills (comma-separated)</Label>
             <Input
               id="opp-skills"

@@ -7,14 +7,18 @@ export interface OnboardingProfileInput {
   name: string;
   bio?: string;
   avatarUrl?: string;
+  coverImageUrl?: string;
   creatorCategory?: string;
   location?: string;
   skills?: string[];
   services?: string[];
+  languages?: string[];
+  contactNumber?: string;
   businessEmail?: string;
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
   availableForWork?: boolean;
+  socialLinks?: { website?: string; instagram?: string; youtube?: string; linkedin?: string };
 }
 
 export const onboardingApi = api.injectEndpoints({

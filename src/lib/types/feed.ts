@@ -37,7 +37,7 @@ export interface FeedProposalDetails {
 }
 
 export type PostVisibility = "PUBLIC" | "CONNECTIONS_ONLY";
-export type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DELETED";
+export type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "DELETED";
 
 export interface FeedItem {
   id: string;
@@ -45,6 +45,8 @@ export interface FeedItem {
   category: PostCategory;
   visibility: PostVisibility;
   status: PostStatus;
+  /** Only meaningful while `status === "SCHEDULED"`. */
+  scheduledFor: string | null;
   title: string;
   /** Sanitized rich-text HTML (bold/italic/lists/links) — safe to render via
    * `dangerouslySetInnerHTML`, see `backend/src/lib/sanitize-post-content.ts`. */

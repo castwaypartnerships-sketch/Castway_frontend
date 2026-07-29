@@ -44,6 +44,8 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
   const [category, setCategory] = useState<PostCategory>("GENERAL");
   const [visibility, setVisibility] = useState<PostVisibility>("PUBLIC");
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+  const [scheduleForLater, setScheduleForLater] = useState(false);
+  const [scheduledFor, setScheduledFor] = useState("");
   const [title, setTitle] = useState("");
   const [budget, setBudget] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -55,6 +57,8 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
     setCategory("GENERAL");
     setVisibility("PUBLIC");
     setSaveAsDraft(false);
+    setScheduleForLater(false);
+    setScheduledFor("");
     setTitle("");
     setBudget("");
     setDeadline("");
@@ -64,6 +68,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isContentEmpty(content)) return;
+    if (scheduleForLater && !scheduledFor) return;
     setError(null);
 
     try {
@@ -76,8 +81,11 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
         title: title || undefined,
         budget: budget || undefined,
         applicationDeadline: deadline ? new Date(deadline).toISOString() : undefined,
+        scheduledFor: scheduleForLater && scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
       }).unwrap();
-      toast.success(saveAsDraft ? "Saved as draft" : "Post published");
+      toast.success(
+        saveAsDraft ? "Saved as draft" : scheduleForLater ? "Post scheduled" : "Post published",
+      );
       reset();
       onOpenChange(false);
     } catch {
@@ -169,15 +177,52 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           ) : null}
 
           <div className="flex items-center gap-2.5">
-            <Switch id="post-draft" checked={saveAsDraft} onCheckedChange={setSaveAsDraft} />
+            <Switch
+              id="post-draft"
+              checked={saveAsDraft}
+              onCheckedChange={(checked) => {
+                setSaveAsDraft(checked);
+                if (checked) setScheduleForLater(false);
+              }}
+            />
             <Label htmlFor="post-draft">Save as draft instead of publishing</Label>
           </div>
+
+          {!saveAsDraft ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5">
+                <Switch
+                  id="post-schedule"
+                  checked={scheduleForLater}
+                  onCheckedChange={setScheduleForLater}
+                />
+                <Label htmlFor="post-schedule">Schedule for later instead of publishing now</Label>
+              </div>
+              {scheduleForLater ? (
+                <Input
+                  type="datetime-local"
+                  required
+                  value={scheduledFor}
+                  onChange={(e) => setScheduledFor(e.target.value)}
+                />
+              ) : null}
+            </div>
+          ) : null}
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading || isContentEmpty(content)}>
-              {isLoading ? "Saving…" : saveAsDraft ? "Save draft" : "Publish"}
+            <Button
+              type="submit"
+              disabled={isLoading || isContentEmpty(content) || (scheduleForLater && !scheduledFor)}
+            >
+              {isLoading
+                ? "Saving…"
+                : saveAsDraft
+                  ? "Save draft"
+                  : scheduleForLater
+                    ? "Schedule"
+                    : "Publish"}
             </Button>
           </DialogFooter>
         </form>

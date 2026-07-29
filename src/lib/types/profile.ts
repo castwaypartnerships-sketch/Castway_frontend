@@ -1,3 +1,5 @@
+export type AgencySize = "SOLO" | "SMALL" | "MEDIUM" | "LARGE";
+
 export interface SocialLinks {
   instagram?: string | null;
   youtube?: string | null;
@@ -115,8 +117,11 @@ export interface Profile {
   unavailableRanges: DateRange[];
   rateCardVisible: boolean;
   rateCardItems: RateCardItem[];
+  minRate: number | null;
+  maxRate: number | null;
   caseStudies: CaseStudy[];
   subSpecializations: string[];
+  agencySize: AgencySize | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -138,6 +143,9 @@ export interface ProfileUpdateInput {
   openForCollaboration?: boolean;
   lookingToHire?: boolean;
   availableForWork?: boolean;
+  minRate?: number;
+  maxRate?: number;
+  agencySize?: AgencySize;
 }
 
 export interface ExperienceInput {
@@ -199,4 +207,8 @@ export interface ProfileSearchFilters {
   lookingToHire?: boolean;
   availableForWork?: boolean;
   verifiedOnly?: boolean;
+  minFollowers?: number;
+  rateMin?: number;
+  rateMax?: number;
+  agencySize?: AgencySize;
 }

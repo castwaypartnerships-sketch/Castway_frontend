@@ -9,8 +9,12 @@ import type {
 } from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
+export interface SearchProfileItem extends Profile {
+  followerCount: number;
+}
+
 interface SearchProfilesResponse {
-  items: Profile[];
+  items: SearchProfileItem[];
   page: number;
   pageSize: number;
   total: number;
@@ -25,6 +29,9 @@ export interface PublicProfileResponse {
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
+  followerCount: number;
+  followingCount: number;
+  viewerIsFollowing: boolean;
 }
 
 export interface MediaKitResponse extends PublicProfileResponse {

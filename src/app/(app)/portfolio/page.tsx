@@ -28,9 +28,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type {
+  AgencySize,
   Availability,
   CaseStudy,
   DateRange,
@@ -58,6 +60,9 @@ export default function PortfolioPage() {
   // Case-Study Portfolio / Sub-Specialization Tagging are FREELANCER-only,
   // same narrowing rationale as `isCreator` above.
   const isFreelancer = session?.user?.role === "FREELANCER";
+  // Agency team-size bucket is AGENCY-only — narrower than `hiring`, which
+  // also covers BRAND.
+  const isAgency = session?.user?.role === "AGENCY";
 
   if (isLoading) {
     return (
@@ -99,14 +104,19 @@ export default function PortfolioPage() {
         <VerificationStatusAction isVerified={data.isVerified} />
       </div>
 
-      <ProfileForm profile={data.profile} hiring={hiring} />
+      <ProfileForm profile={data.profile} hiring={hiring} isAgency={isAgency} />
       <SocialLinksSection socialLinks={data.profile.socialLinks} />
       {hiring ? null : (
         <>
           <AvailabilitySection ranges={data.profile.unavailableRanges} availability={data.availability} />
           <PortfolioItems items={data.profile.portfolioItems} />
           {isCreator ? (
-            <RateCardSection items={data.profile.rateCardItems} visible={data.profile.rateCardVisible} />
+            <RateCardSection
+              items={data.profile.rateCardItems}
+              visible={data.profile.rateCardVisible}
+              minRate={data.profile.minRate}
+              maxRate={data.profile.maxRate}
+            />
           ) : null}
           {isFreelancer ? (
             <>
@@ -122,9 +132,17 @@ export default function PortfolioPage() {
   );
 }
 
+const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
+  SOLO: "Just me",
+  SMALL: "2-10 people",
+  MEDIUM: "11-50 people",
+  LARGE: "51+ people",
+};
+
 function ProfileForm({
   profile,
   hiring,
+  isAgency,
 }: {
   profile: {
     name: string;
@@ -139,8 +157,10 @@ function ProfileForm({
     services: string[];
     businessEmail: string | null;
     contactNumber: string | null;
+    agencySize: AgencySize | null;
   };
   hiring: boolean;
+  isAgency: boolean;
 }) {
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   const [updatePhoto] = useUpdateProfileMutation();
@@ -154,6 +174,7 @@ function ProfileForm({
   const [services, setServices] = useState(profile.services.join(", "));
   const [businessEmail, setBusinessEmail] = useState(profile.businessEmail ?? "");
   const [contactNumber, setContactNumber] = useState(profile.contactNumber ?? "");
+  const [agencySize, setAgencySize] = useState<AgencySize | "">(profile.agencySize ?? "");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -202,6 +223,7 @@ function ProfileForm({
         .map((s) => s.trim())
         .filter(Boolean),
       ...(hiring ? { businessEmail: businessEmail || undefined } : {}),
+      ...(isAgency ? { agencySize: agencySize || undefined } : {}),
     }).unwrap();
     setSaved(true);
   }
@@ -245,6 +267,27 @@ function ProfileForm({
             value={businessEmail}
             onChange={(e) => setBusinessEmail(e.target.value)}
           />
+        </div>
+      ) : null}
+
+      {isAgency ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="agencySize">Team size</Label>
+          <Select
+            value={agencySize || undefined}
+            onValueChange={(value) => setAgencySize((value as AgencySize | null) ?? "")}
+          >
+            <SelectTrigger id="agencySize" className="w-full">
+              <SelectValue placeholder="Select team size" />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(AGENCY_SIZE_LABEL) as AgencySize[]).map((size) => (
+                <SelectItem key={size} value={size}>
+                  {AGENCY_SIZE_LABEL[size]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       ) : null}
 
@@ -710,13 +753,26 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
   );
 }
 
-function RateCardSection({ items, visible }: { items: RateCardItem[]; visible: boolean }) {
+function RateCardSection({
+  items,
+  visible,
+  minRate,
+  maxRate,
+}: {
+  items: RateCardItem[];
+  visible: boolean;
+  minRate: number | null;
+  maxRate: number | null;
+}) {
   const [addItem, { isLoading: isAdding }] = useAddRateCardItemMutation();
   const [removeItem] = useRemoveRateCardItemMutation();
   const [setVisibility, { isLoading: isTogglingVisibility }] = useSetRateCardVisibilityMutation();
+  const [updateProfile, { isLoading: isSavingRange }] = useUpdateProfileMutation();
   const [showForm, setShowForm] = useState(false);
   const [deliverableType, setDeliverableType] = useState("");
   const [price, setPrice] = useState("");
+  const [rangeMin, setRangeMin] = useState(minRate?.toString() ?? "");
+  const [rangeMax, setRangeMax] = useState(maxRate?.toString() ?? "");
 
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -724,6 +780,15 @@ function RateCardSection({ items, visible }: { items: RateCardItem[]; visible: b
     setDeliverableType("");
     setPrice("");
     setShowForm(false);
+  }
+
+  async function handleSaveRange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await updateProfile({
+      minRate: rangeMin.trim() ? Number(rangeMin) : undefined,
+      maxRate: rangeMax.trim() ? Number(rangeMax) : undefined,
+    }).unwrap();
+    toast.success("Rate range saved");
   }
 
   return (
@@ -752,6 +817,36 @@ function RateCardSection({ items, visible }: { items: RateCardItem[]; visible: b
           {visible ? "Public — visible on your profile" : "Private — only visible to you"}
         </Label>
       </div>
+
+      <form onSubmit={handleSaveRange} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="space-y-1.5">
+          <Label htmlFor="rate-range-min">Typical rate — from</Label>
+          <Input
+            id="rate-range-min"
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={rangeMin}
+            onChange={(e) => setRangeMin(e.target.value)}
+            placeholder="e.g. 500"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="rate-range-max">To</Label>
+          <Input
+            id="rate-range-max"
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={rangeMax}
+            onChange={(e) => setRangeMax(e.target.value)}
+            placeholder="e.g. 2000"
+          />
+        </div>
+        <Button type="submit" variant="outline" size="sm" disabled={isSavingRange}>
+          {isSavingRange ? "Saving…" : "Save range"}
+        </Button>
+      </form>
 
       {showForm ? (
         <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">

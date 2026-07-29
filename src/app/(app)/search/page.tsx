@@ -10,8 +10,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { initialsFromName } from "@/lib/format";
+import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
+import type { AgencySize } from "@/lib/types/profile";
+
+const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
+  SOLO: "Just me",
+  SMALL: "2-10 people",
+  MEDIUM: "11-50 people",
+  LARGE: "51+ people",
+};
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -24,6 +34,10 @@ export default function SearchPage() {
   const [lookingToHire, setLookingToHire] = useState(false);
   const [availableForWork, setAvailableForWork] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [minFollowers, setMinFollowers] = useState("");
+  const [rateMin, setRateMin] = useState("");
+  const [rateMax, setRateMax] = useState("");
+  const [agencySize, setAgencySize] = useState("");
 
   const { data, isFetching, isError } = useSearchProfilesQuery({
     query: query.trim() || undefined,
@@ -41,6 +55,10 @@ export default function SearchPage() {
     lookingToHire: lookingToHire || undefined,
     availableForWork: availableForWork || undefined,
     verifiedOnly: verifiedOnly || undefined,
+    minFollowers: minFollowers.trim() ? Number(minFollowers) : undefined,
+    rateMin: rateMin.trim() ? Number(rateMin) : undefined,
+    rateMax: rateMax.trim() ? Number(rateMax) : undefined,
+    agencySize: (agencySize as AgencySize) || undefined,
   });
 
   return (
@@ -66,12 +84,22 @@ export default function SearchPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g. Fashion, Tech, Fitness"
-            />
+            <Select
+              value={category || "__any__"}
+              onValueChange={(value) => setCategory(!value || value === "__any__" ? "" : value)}
+            >
+              <SelectTrigger id="category" className="w-full">
+                <SelectValue placeholder="Any category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__any__">Any category</SelectItem>
+                {PROFILE_CATEGORY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="location">Location</Label>
@@ -99,6 +127,58 @@ export default function SearchPage() {
               onChange={(e) => setSubSpecializations(e.target.value)}
               placeholder="e.g. B2B SaaS onboarding, Fintech dashboards"
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="minFollowers">Minimum followers</Label>
+            <Input
+              id="minFollowers"
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={minFollowers}
+              onChange={(e) => setMinFollowers(e.target.value)}
+              placeholder="e.g. 1000"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rateMin">Rate — from</Label>
+            <Input
+              id="rateMin"
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={rateMin}
+              onChange={(e) => setRateMin(e.target.value)}
+              placeholder="e.g. 500"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rateMax">Rate — to</Label>
+            <Input
+              id="rateMax"
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={rateMax}
+              onChange={(e) => setRateMax(e.target.value)}
+              placeholder="e.g. 2000"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="agencySize">Agency size</Label>
+            <Select value={agencySize || "__any__"} onValueChange={(value) => setAgencySize(value === "__any__" || !value ? "" : value)}>
+              <SelectTrigger id="agencySize" className="w-full">
+                <SelectValue placeholder="Any size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__any__">Any size</SelectItem>
+                {(Object.keys(AGENCY_SIZE_LABEL) as AgencySize[]).map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {AGENCY_SIZE_LABEL[size]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -161,6 +241,7 @@ export default function SearchPage() {
                   <p className="truncate text-xs text-muted-foreground">
                     @{profile.username}
                     {profile.location ? ` · ${profile.location}` : ""}
+                    {` · ${profile.followerCount} followers`}
                   </p>
                   {profile.skills.length > 0 ? (
                     <div className="mt-1.5 flex flex-wrap gap-1">

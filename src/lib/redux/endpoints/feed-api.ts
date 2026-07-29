@@ -27,6 +27,7 @@ export interface CreatePostInput {
   tags?: string[];
   budget?: string;
   applicationDeadline?: string;
+  scheduledFor?: string;
 }
 
 export const feedApi = api.injectEndpoints({

@@ -17,6 +17,10 @@ export interface OpportunityFilters {
   category?: string;
   skills?: string[];
   isRemote?: boolean;
+  // Public browse only ever sends OPEN/CLOSED/ARCHIVED (see BrowseTab) —
+  // DRAFT/DELETED are owner-only states and the backend's search() has no
+  // ownership check, so this type intentionally isn't the full enum.
+  status?: "OPEN" | "CLOSED" | "ARCHIVED";
   page?: number;
 }
 
@@ -33,6 +37,7 @@ export const opportunitiesApi = api.injectEndpoints({
           category: args?.category,
           skills: args?.skills?.length ? args.skills.join(",") : undefined,
           isRemote: args?.isRemote,
+          status: args?.status,
           page: args?.page ?? 1,
         },
       }),
@@ -43,6 +48,7 @@ export const opportunitiesApi = api.injectEndpoints({
         category: queryArgs?.category,
         skills: queryArgs?.skills,
         isRemote: queryArgs?.isRemote,
+        status: queryArgs?.status,
       }),
       merge: mergePaginatedPage,
       forceRefetch: forceRefetchOnPageChange,

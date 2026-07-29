@@ -18,6 +18,7 @@ import { formatRelativeTime } from "@/lib/format";
 
 const STATUS_LABEL: Record<PostStatus, string> = {
   DRAFT: "Draft",
+  SCHEDULED: "Scheduled",
   PUBLISHED: "Published",
   ARCHIVED: "Archived",
   DELETED: "Deleted",
@@ -25,6 +26,7 @@ const STATUS_LABEL: Record<PostStatus, string> = {
 
 const STATUS_VARIANT: Record<PostStatus, "default" | "secondary" | "destructive" | "outline"> = {
   DRAFT: "outline",
+  SCHEDULED: "secondary",
   PUBLISHED: "default",
   ARCHIVED: "secondary",
   DELETED: "destructive",
@@ -112,12 +114,16 @@ export default function MyPostsPage() {
                     <Badge variant="outline">Connections only</Badge>
                   ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">{formatRelativeTime(post.createdAt)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {post.status === "SCHEDULED" && post.scheduledFor
+                    ? `Scheduled for ${new Date(post.scheduledFor).toLocaleString()}`
+                    : formatRelativeTime(post.createdAt)}
+                </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {post.status === "DRAFT" ? (
+                {post.status === "DRAFT" || post.status === "SCHEDULED" ? (
                   <Button size="sm" onClick={() => handlePublish(post)}>
-                    Publish
+                    {post.status === "SCHEDULED" ? "Publish now" : "Publish"}
                   </Button>
                 ) : null}
                 {post.status === "PUBLISHED" ? (

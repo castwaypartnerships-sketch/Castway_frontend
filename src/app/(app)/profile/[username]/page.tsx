@@ -20,6 +20,7 @@ import { useSendConnectionRequestMutation } from "@/lib/redux/endpoints/connecti
 import { useStartConversationMutation } from "@/lib/redux/endpoints/messages-api";
 import { useEndorseSkillMutation } from "@/lib/redux/endpoints/endorsements-api";
 import { useGetRepresentingAgenciesQuery, useSetPubliclyListedMutation } from "@/lib/redux/endpoints/roster-api";
+import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
 import type { DateRange, Education, Experience } from "@/lib/types/profile";
 import type { RosterEntryDto } from "@/lib/types/roster";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +47,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
     useSendConnectionRequestMutation();
   const [startConversation, { isLoading: isMessaging }] = useStartConversationMutation();
   const [endorseSkill, { isLoading: isEndorsing }] = useEndorseSkillMutation();
+  const [toggleFollow, { isLoading: isTogglingFollow }] = useToggleFollowMutation();
   const { data: representingAgencies } = useGetRepresentingAgenciesQuery(data?.profile.userId ?? "", {
     skip: !data,
   });
@@ -77,6 +79,9 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
     openOpportunities,
     availability,
     endorsementCounts,
+    followerCount,
+    followingCount,
+    viewerIsFollowing,
   } = data;
   const isOwnProfile = session?.user?.id === profile.userId;
 
@@ -102,6 +107,10 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               <p className="text-sm text-muted-foreground">
                 @{profile.username}
                 {profile.location ? ` · ${profile.location}` : ""}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{followerCount}</span> followers ·{" "}
+                <span className="font-medium text-foreground">{followingCount}</span> following
               </p>
               {representingAgencies && representingAgencies.items.length > 0 ? (
                 <div className="mt-1 space-y-1">
@@ -140,6 +149,14 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
             </Link>
             {!isOwnProfile ? (
               <>
+                <Button
+                  size="sm"
+                  variant={viewerIsFollowing ? "outline" : "default"}
+                  disabled={isTogglingFollow}
+                  onClick={() => toggleFollow({ userId: profile.userId, username: profile.username })}
+                >
+                  {viewerIsFollowing ? "Following" : "Follow"}
+                </Button>
                 <Button
                   size="sm"
                   variant={connected ? "outline" : "default"}
