@@ -10,5 +10,9 @@ export interface ConnectionListItem {
     name: string;
     avatarUrl: string | null;
     bio: string | null;
+    location: string | null;
+    accountRole: string;
+    followerCount: number;
+    mutualConnectionsCount: number;
   };
 }

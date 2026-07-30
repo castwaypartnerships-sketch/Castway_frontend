@@ -2,8 +2,14 @@ import type { PostCategory } from "@/lib/types/feed";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<PostCategory, { label: string; className: string }> = {
-  PARTNERSHIP: { label: "Partnership", className: "bg-primary/10 text-primary" },
-  PROJECT: { label: "Project", className: "bg-primary/10 text-primary" },
+  PARTNERSHIP: {
+    label: "Partnership",
+    className: "bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]",
+  },
+  PROJECT: {
+    label: "Project",
+    className: "bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]",
+  },
   HIRING: { label: "Hiring", className: "bg-success/15 text-success" },
   COLLABORATION: { label: "Collaboration", className: "bg-accent text-accent-foreground" },
   BRAND_DEAL: { label: "Brand Deal", className: "bg-accent text-accent-foreground" },

@@ -2,12 +2,13 @@
 
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, Plus, Search } from "lucide-react";
 
 import { findNavItemByPathname } from "@/lib/nav-items";
-import { formatRelativeTime } from "@/lib/format";
+import { formatRelativeTime, initialsFromName } from "@/lib/format";
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
-import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
+import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
+import { useGetSessionQuery, useLogoutMutation } from "@/lib/redux/endpoints/auth-api";
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
@@ -17,12 +18,16 @@ import type { AppNotification } from "@/lib/types/notification";
 import { isHiringRole } from "@/lib/rbac";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/app-shell/theme-toggle";
+import { useComposer } from "@/components/feed/composer-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -33,6 +38,7 @@ export function AppTopbar() {
   const [searchTerm, setSearchTerm] = useState("");
   const activeItem = findNavItemByPathname(pathname);
   const { data: session } = useGetSessionQuery();
+  const { data: profileData } = useGetOwnProfileQuery(undefined, { skip: !session?.user });
   const isPortfolio = activeItem?.href === "/portfolio";
   const breadcrumbLabel =
     isPortfolio && isHiringRole(session?.user?.role)
@@ -40,6 +46,7 @@ export function AppTopbar() {
       : (activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview");
   const { data: dashboard } = useGetDashboardQuery();
   const hasUnreadNotifications = (dashboard?.unreadNotificationsCount ?? 0) > 0;
+  const { openComposer } = useComposer();
 
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== "Enter") return;
@@ -67,9 +74,66 @@ export function AppTopbar() {
             className="pl-9"
           />
         </div>
+        <button
+          type="button"
+          onClick={openComposer}
+          className="flex items-center gap-1.5 rounded-lg bg-[#476948] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+        >
+          <Plus className="size-4" />
+          Create
+        </button>
         <NotificationsMenu hasUnread={hasUnreadNotifications} />
+        <AccountMenu
+          name={profileData?.profile?.name ?? session?.user?.email ?? "Your account"}
+          avatarUrl={profileData?.profile?.avatarUrl ?? undefined}
+        />
       </div>
     </header>
+  );
+}
+
+function AccountMenu({ name, avatarUrl }: { name: string; avatarUrl?: string }) {
+  const router = useRouter();
+  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+
+  async function handleLogout() {
+    await logout();
+    window.location.href = "/";
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button type="button" className="flex items-center gap-2 rounded-lg p-1 pr-2">
+            <Avatar>
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback>{initialsFromName(name)}</AvatarFallback>
+              <AvatarBadge className="bg-success" />
+            </Avatar>
+            <span className="hidden text-left leading-tight sm:block">
+              <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+              <p className="text-xs text-muted-foreground">View profile</p>
+            </span>
+          </button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => router.push("/portfolio")}>View profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/settings")}>Settings</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <div className="px-1.5 py-1">
+          <ThemeToggle />
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" disabled={isLoggingOut} onClick={handleLogout}>
+          <LogOut className="size-4" />
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -135,7 +199,8 @@ function NotificationsMenu({ hasUnread }: { hasUnread: boolean }) {
                 onClick={() => handleSelect(notification)}
                 className={cn(
                   "flex-col items-start gap-0.5 whitespace-normal rounded-md",
-                  unreadSnapshot.has(notification.id) && "bg-primary/10",
+                  unreadSnapshot.has(notification.id) &&
+                    "bg-[#e6f4ea] dark:bg-[#1a261d]",
                 )}
               >
                 <span className={cn("text-sm", unreadSnapshot.has(notification.id) && "font-medium text-foreground")}>

@@ -1,0 +1,156 @@
+
+> backend@0.1.0 dev
+> tsx watch src/server.ts
+
+Castway backend listening on http://localhost:4000
+11:06:41 pm [tsx] change in ./src\modules\notification\notification.repository.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:09:54 pm [tsx] change in ./src\modules\auth\auth.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:10:20 pm [tsx] change in ./src\modules\auth\auth.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:11:36 pm [tsx] change in ./src\modules\auth\auth.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:11:51 pm [tsx] change in ./src\modules\opportunity\opportunity.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:12:03 pm [tsx] change in ./src\modules\opportunity\opportunity.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:12:21 pm [tsx] change in ./src\modules\opportunity\opportunity.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:12:45 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:13:12 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:13:32 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:13:41 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:13:59 pm [tsx] change in ./src\modules\admin\admin.schema.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:14:09 pm [tsx] change in ./src\routes\admin.routes.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:14:22 pm [tsx] change in ./src\routes\admin.routes.ts Restarting...
+Castway backend listening on http://localhost:4000
+GET /api/auth/session 304 252.9ms
+GET /api/admin/users?page=1&pageSize=20 304 327.5ms
+GET /api/admin/platform-settings 200 2556.5ms
+POST /api/admin/platform-settings/signupsPaused 200 903.8ms
+POST /api/auth/signup 403 155.2ms
+GET /api/auth/session 200 103.6ms
+GET /api/profile/me 200 5564.4ms
+GET /api/connections/suggested 200 6855.6ms
+GET /api/feed?page=1 200 7077.3ms
+GET /api/dashboard 200 7135.3ms
+GET /api/connections 200 130.6ms
+GET /api/auth/session 304 207.2ms
+GET /api/admin/users?page=1&pageSize=20 304 125.3ms
+POST /api/admin/platform-settings/signupsPaused 200 536.1ms
+GET /api/admin/platform-settings 200 139.7ms
+11:22:34 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:22:53 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:23:12 pm [tsx] change in ./src\app.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:23:32 pm [tsx] change in ./src\app.ts Restarting...
+Castway backend listening on http://localhost:4000
+GET /api/auth/session 304 180.9ms
+GET /api/admin/users?page=1&pageSize=20 304 270.1ms
+POST /api/blog/admin 201 1290.2ms
+GET /api/blog 200 788.8ms
+POST /api/blog/admin/6a6a3e8bcfe06c47702622f1/publish 200 780.9ms
+GET /api/blog 200 561.8ms
+GET /api/blog/castway-q3-update 200 112.5ms
+DELETE /api/blog/admin/6a6a3e8bcfe06c47702622f1 200 556.5ms
+GET /api/auth/session 304 5470.0ms
+GET /api/admin/users?page=1&pageSize=20 304 417.1ms
+11:30:32 pm [tsx] change in ./src\modules\admin\audit-log.service.ts Restarting...
+Castway backend listening on http://localhost:4000
+11:30:42 pm [tsx] change in ./src\lib\di\container.ts Restarting...
+Castway backend listening on http://localhost:4000
+GET /api/auth/session 200 8.2ms
+GET /api/auth/session 304 1.6ms
+GET /api/auth/session 304 1.2ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 1.0ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 0.7ms
+GET /api/auth/session 304 1.5ms
+POST /api/auth/login 200 12574.2ms
+GET /api/auth/session 200 6979.5ms
+GET /api/admin/users?page=1&pageSize=20 200 142.1ms
+GET /api/auth/session 304 116.1ms
+GET /api/auth/session 304 1306.1ms
+GET /api/auth/session 304 157.3ms
+GET /api/blog/admin/all?page=1&pageSize=20 200 148.5ms
+GET /api/auth/session 304 132.7ms
+GET /api/auth/session 304 119.5ms
+GET /api/admin/platform-settings 200 119.6ms
+GET /api/auth/session 304 133.1ms
+GET /api/admin/audit-log?page=1&pageSize=30 200 211.1ms
+GET /api/auth/session 304 191.9ms
+GET /api/admin/reports?status=OPEN&page=1&pageSize=20 200 381.6ms
+GET /api/auth/session 304 227.6ms
+GET /api/admin/analytics?windowDays=30 200 647.5ms
+GET /api/auth/session 304 236.8ms
+GET /api/admin/reports?status=OPEN&page=1&pageSize=20 304 163.3ms
+GET /api/admin/reports?page=1&pageSize=20 200 249.2ms
+GET /api/admin/reports?page=1&pageSize=20 401 4.0ms
+GET /api/auth/session 200 0.4ms
+GET /api/auth/session 304 0.5ms
+GET /api/admin/reports?page=1&pageSize=20 401 0.6ms
+POST /api/auth/login 200 9729.9ms
+GET /api/auth/session 200 9896.2ms
+GET /api/admin/users?page=1&pageSize=20 200 132.1ms
+GET /api/admin/reports?page=1&pageSize=20 200 206.9ms
+GET /api/auth/session 304 211.0ms
+GET /api/admin/reports?status=OPEN&page=1&pageSize=20 200 136.0ms
+GET /api/admin/reports?page=1&pageSize=20 304 167.7ms
+GET /api/auth/session 304 226.1ms
+GET /api/admin/audit-log?page=1&pageSize=30 200 340.9ms
+GET /api/auth/session 304 269.2ms
+GET /api/blog/admin/all?page=1&pageSize=20 200 277.8ms
+POST /api/blog/admin 201 4320.0ms
+GET /api/blog/admin/all?page=1&pageSize=20 200 2568.2ms
+GET /api/blog/admin/all 200 187.5ms
+DELETE /api/blog/admin/6a6a492afa543cbd40f43925 200 776.6ms
+GET /api/auth/session 304 202.6ms
+GET /api/admin/insights/managed-talent?page=1&pageSize=20 200 11589.9ms
+GET /api/auth/session 200 118.4ms
+GET /api/auth/session 304 147.3ms
+POST /api/auth/logout 200 1.2ms
+GET /api/auth/session 200 0.5ms
+POST /api/auth/login 401 1595.5ms
+GET /api/auth/session 304 0.3ms
+GET /api/auth/session 304 0.4ms
+GET /api/auth/session 304 0.4ms
+POST /api/auth/login 401 1144.0ms
+GET /api/auth/session 304 0.5ms
+POST /api/auth/login 401 1522.3ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 0.4ms
+POST /api/auth/login 401 1099.6ms
+GET /api/auth/session 304 0.4ms
+GET /api/auth/session 304 0.5ms
+GET /api/auth/session 304 0.4ms
+POST /api/auth/login 200 5347.8ms
+GET /api/auth/session 200 117.8ms
+GET /api/admin/users?page=1&pageSize=20 200 133.6ms
+GET /api/auth/session 304 138.3ms
+GET /api/admin/users?page=1&pageSize=20 304 793.7ms
+GET /api/admin/analytics?windowDays=30 200 588.9ms
+GET /api/admin/insights/managed-talent?page=1&pageSize=20 200 209.8ms
+GET /api/blog/admin/all?page=1&pageSize=20 200 197.3ms
+GET /api/admin/platform-settings 200 210.8ms
+GET /api/admin/audit-log?page=1&pageSize=30 200 303.0ms
+POST /api/admin/platform-settings/maintenanceMode 200 772.5ms
+GET /api/admin/platform-settings 200 137.6ms
+GET /api/admin/users?page=1&pageSize=20 304 149.6ms
+GET /api/auth/session 304 188.1ms
+GET /api/admin/users?page=1&pageSize=20 304 187.8ms
+POST /api/auth/logout 200 0.9ms
+GET /api/auth/session 200 0.4ms
+GET /api/auth/session 304 0.9ms
+GET /api/auth/session 304 0.4ms

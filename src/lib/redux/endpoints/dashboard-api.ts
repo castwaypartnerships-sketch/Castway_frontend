@@ -28,6 +28,8 @@ interface TalentDashboardFields {
   profileViewsCount: number;
   pendingConnectionRequestsCount: number;
   unreadNotificationsCount: number;
+  unreadMessagesCount: number;
+  newOpportunitiesCount: number;
   postsCount: number;
   recentApplications: RecentApplication[];
 }
@@ -40,6 +42,7 @@ interface HiringDashboardFields {
   profileViewsCount: number;
   pendingConnectionRequestsCount: number;
   unreadNotificationsCount: number;
+  unreadMessagesCount: number;
   recentApplicants: RecentApplicant[];
 }
 

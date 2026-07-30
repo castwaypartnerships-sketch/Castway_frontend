@@ -1,0 +1,17 @@
+
+> docs@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.83.127.202:3000
+- Environments: .env.local
+✓ Ready in 1047ms
+[MDX] generated files in 40.01270000000022ms
+[MDX] started dev server
+
+ GET /docs/admin-panel 200 in 2.7s (next.js: 1336ms, generate-params: 804ms, application-code: 1396ms)
+ GET /docs/compliance 200 in 739ms (next.js: 21ms, generate-params: 13ms, application-code: 718ms)
+ GET /docs/agency-dashboard 200 in 1121ms (next.js: 18ms, generate-params: 9ms, application-code: 1103ms)
+ GET /docs/build-plan 200 in 2.1s (next.js: 33ms, generate-params: 16ms, application-code: 2.1s)
+ GET /docs/index 200 in 1755ms (next.js: 21ms, generate-params: 11ms, application-code: 1735ms)

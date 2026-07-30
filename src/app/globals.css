@@ -90,16 +90,16 @@
   --chart-5: oklch(0.269 0 0);
   --radius: 0.5rem;
 
-  /* Sidebar is a fixed dark "chrome" surface — it does not follow the
-     light/dark workspace toggle, matching the reference design where the
-     nav rail stays dark regardless of content theme. */
-  --sidebar: oklch(0.155 0.014 285.5);
-  --sidebar-foreground: oklch(0.94 0.004 285);
+  /* Sidebar now follows the workspace light/dark theme like the rest of the
+     shell (see Figma castway node 3430:680); only the active-nav-item accent
+     is a scoped brand green rather than the site-wide --primary. */
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.18 0.005 285);
   --sidebar-primary: oklch(0.585 0.233 277.117);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.225 0.016 285);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-accent: #e6f4ea;
+  --sidebar-accent-foreground: #2d4a35;
+  --sidebar-border: oklch(0.922 0.003 285);
   --sidebar-ring: oklch(0.585 0.233 277.117);
 }
 
@@ -129,13 +129,13 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.13 0.012 285.5);
-  --sidebar-foreground: oklch(0.94 0.004 285);
+  --sidebar: oklch(0.205 0.006 285);
+  --sidebar-foreground: oklch(0.97 0.002 285);
   --sidebar-primary: oklch(0.673 0.182 276.935);
   --sidebar-primary-foreground: oklch(0.15 0.03 277);
-  --sidebar-accent: oklch(0.2 0.016 285);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-accent: #1a261d;
+  --sidebar-accent-foreground: #daf0dd;
+  --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.673 0.182 276.935);
 }
 

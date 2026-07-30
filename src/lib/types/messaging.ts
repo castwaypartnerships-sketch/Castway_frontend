@@ -14,6 +14,7 @@ export interface ConversationListItem {
   opportunityTitle: string | null;
   dealBudget: string | null;
   dealStatus: DealInquiryStatus | null;
+  unreadCount: number;
   otherParticipant: {
     userId: string;
     username: string;

@@ -50,7 +50,9 @@ function SuggestedConnectionRow({ connection }: { connection: SuggestedConnectio
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 truncate text-sm font-medium text-foreground">
           {connection.name}
-          {connection.verified ? <BadgeCheck className="size-3.5 shrink-0 text-primary" /> : null}
+          {connection.verified ? (
+            <BadgeCheck className="size-3.5 shrink-0 text-[#476948] dark:text-[#a7d9b5]" />
+          ) : null}
         </p>
         <p className="truncate text-xs text-muted-foreground">{connection.role}</p>
         <p className="truncate text-xs text-muted-foreground/70">{connection.location}</p>

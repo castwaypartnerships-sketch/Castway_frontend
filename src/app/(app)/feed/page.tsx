@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 import { SuggestedConnectionsCard } from "@/components/feed/suggested-connections-card";
+import { TrendingSkillsCard } from "@/components/shared/trending-skills-card";
+import { NewOpportunitiesCard } from "@/components/shared/new-opportunities-card";
 import { FeedView } from "@/app/(app)/feed/feed-view";
 
 export const metadata: Metadata = {
@@ -16,6 +18,8 @@ export default function FeedPage() {
       <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
         <ProfileCompletionCard />
         <SuggestedConnectionsCard />
+        <TrendingSkillsCard />
+        <NewOpportunitiesCard />
       </aside>
     </div>
   );

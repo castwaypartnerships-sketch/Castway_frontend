@@ -1,0 +1,49 @@
+
+> frontend@0.1.0 dev
+> next dev -p 3100
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3100
+- Network:       http://10.83.127.202:3100
+- Environments: .env.local
+✓ Ready in 1608ms
+
+ GET /login 200 in 901ms (next.js: 215ms, proxy.ts: 9ms, application-code: 677ms)
+ GET /login 200 in 106ms (next.js: 12ms, proxy.ts: 9ms, application-code: 86ms)
+ GET /feed 200 in 94ms (next.js: 55ms, proxy.ts: 13ms, application-code: 27ms)
+ GET /feed 200 in 109ms (next.js: 12ms, proxy.ts: 13ms, application-code: 85ms)
+ GET /feed 200 in 44ms (next.js: 9ms, proxy.ts: 11ms, application-code: 24ms)
+ GET /opportunities 200 in 365ms (next.js: 89ms, proxy.ts: 6ms, application-code: 270ms)
+ GET /feed 200 in 212ms (next.js: 8ms, proxy.ts: 8ms, application-code: 197ms)
+ GET /opportunities 200 in 57ms (next.js: 8ms, proxy.ts: 7ms, application-code: 42ms)
+ GET /login 200 in 115ms (next.js: 9ms, proxy.ts: 7ms, application-code: 100ms)
+ GET /feed 200 in 133ms (next.js: 12ms, proxy.ts: 8ms, application-code: 113ms)
+ GET /feed 200 in 65ms (next.js: 12ms, proxy.ts: 8ms, application-code: 45ms)
+ GET / 200 in 450ms (next.js: 93ms, proxy.ts: 7ms, application-code: 350ms)
+ GET /login 200 in 377ms (next.js: 14ms, proxy.ts: 9ms, application-code: 354ms)
+ GET /feed 200 in 45ms (next.js: 6ms, proxy.ts: 7ms, application-code: 32ms)
+ GET /feed 200 in 99ms (next.js: 16ms, proxy.ts: 19ms, application-code: 63ms)
+ GET /login 200 in 105ms (next.js: 13ms, proxy.ts: 14ms, application-code: 77ms)
+ GET /login 200 in 46ms (next.js: 10ms, proxy.ts: 8ms, application-code: 28ms)
+ GET /feed 200 in 97ms (next.js: 7ms, proxy.ts: 6ms, application-code: 84ms)
+ GET /feed 200 in 51ms (next.js: 7ms, proxy.ts: 7ms, application-code: 37ms)
+ GET /opportunities 200 in 50ms (next.js: 5ms, proxy.ts: 4ms, application-code: 41ms)
+ GET /opportunities 200 in 43ms (next.js: 4ms, proxy.ts: 3ms, application-code: 35ms)
+ GET / 200 in 380ms (next.js: 8ms, proxy.ts: 14ms, application-code: 358ms)
+ GET /login 200 in 168ms (next.js: 14ms, proxy.ts: 16ms, application-code: 139ms)
+ GET /feed 200 in 53ms (next.js: 7ms, proxy.ts: 8ms, application-code: 38ms)
+ GET /feed 200 in 69ms (next.js: 15ms, proxy.ts: 15ms, application-code: 39ms)
+ GET /feed 200 in 43ms (next.js: 8ms, proxy.ts: 7ms, application-code: 28ms)
+ GET / 200 in 205ms (next.js: 9ms, proxy.ts: 7ms, application-code: 190ms)
+ GET /login 200 in 50ms (next.js: 8ms, proxy.ts: 6ms, application-code: 36ms)
+ GET /feed 200 in 27ms (next.js: 5ms, proxy.ts: 4ms, application-code: 18ms)
+ GET /feed 200 in 38ms (next.js: 6ms, proxy.ts: 7ms, application-code: 25ms)
+ GET /login 200 in 71ms (next.js: 7ms, proxy.ts: 7ms, application-code: 57ms)
+ GET /login 200 in 31ms (next.js: 5ms, proxy.ts: 7ms, application-code: 19ms)
+ GET /feed 200 in 90ms (next.js: 6ms, proxy.ts: 4ms, application-code: 79ms)
+ GET /feed 200 in 58ms (next.js: 9ms, proxy.ts: 6ms, application-code: 43ms)
+ GET /connections 200 in 105ms (next.js: 66ms, proxy.ts: 5ms, application-code: 33ms)
+ GET /opportunities 200 in 40ms (next.js: 7ms, proxy.ts: 7ms, application-code: 26ms)
+○ Compiling /signup ...
+ GET /signup 200 in 5.9s (next.js: 5.6s, proxy.ts: 69ms, application-code: 217ms)
+ GET /feed 200 in 58ms (next.js: 11ms, proxy.ts: 6ms, application-code: 41ms)

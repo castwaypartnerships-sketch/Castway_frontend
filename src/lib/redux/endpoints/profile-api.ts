@@ -170,6 +170,11 @@ export const profileApi = api.injectEndpoints({
       transformResponse: (response: { data: Profile }) => response.data,
       invalidatesTags: ["Dashboard"],
     }),
+    getTrendingSkills: builder.query<{ items: { skill: string; count: number }[] }, void>({
+      query: () => "/profile/trending-skills",
+      transformResponse: (response: { data: { items: { skill: string; count: number }[] } }) =>
+        response.data,
+    }),
   }),
 });
 
@@ -196,4 +201,5 @@ export const {
   useAddEducationMutation,
   useUpdateEducationMutation,
   useRemoveEducationMutation,
+  useGetTrendingSkillsQuery,
 } = profileApi;

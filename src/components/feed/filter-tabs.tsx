@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ClipboardList, Plus } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 export type FeedFilter = "ALL" | "PARTNERSHIP" | "PROJECT" | "HIRING" | "COLLABORATION";
 
@@ -17,31 +16,38 @@ const FILTERS: { value: FeedFilter; label: string }[] = [
 interface FeedFilterTabsProps {
   value: FeedFilter;
   onValueChange: (value: FeedFilter) => void;
-  onNewProposal?: () => void;
 }
 
-export function FeedFilterTabs({ value, onValueChange, onNewProposal }: FeedFilterTabsProps) {
+export function FeedFilterTabs({ value, onValueChange }: FeedFilterTabsProps) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <Tabs value={value} onValueChange={(next) => onValueChange(next as FeedFilter)}>
-        <TabsList>
-          {FILTERS.map((filter) => (
-            <TabsTrigger key={filter.value} value={filter.value}>
+    <div className="flex items-center justify-between gap-4 border-b border-border">
+      <div className="flex flex-1 items-center gap-6">
+        {FILTERS.map((filter) => {
+          const isActive = filter.value === value;
+          return (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => onValueChange(filter.value)}
+              className={cn(
+                "border-b-2 pb-3 text-sm font-medium transition-colors",
+                isActive
+                  ? "border-[#a7d9b5] font-bold text-[#2d4a35] dark:border-[#daf0dd] dark:text-[#daf0dd]"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
               {filter.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-      <div className="flex items-center gap-2">
-        <Link href="/feed/mine" className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}>
-          <ClipboardList className="size-4" />
-          My Posts
-        </Link>
-        <Button size="sm" className="gap-1.5" onClick={onNewProposal}>
-          <Plus className="size-4" />
-          Create Post
-        </Button>
+            </button>
+          );
+        })}
       </div>
+      <Link
+        href="/feed/mine"
+        className={cn(buttonVariants({ size: "sm", variant: "outline" }), "mb-2 gap-1.5")}
+      >
+        <ClipboardList className="size-4" />
+        My Posts
+      </Link>
     </div>
   );
 }

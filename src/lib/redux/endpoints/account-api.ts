@@ -6,6 +6,10 @@ export interface NotificationPreferences {
   applicationUpdates: boolean;
   postActivity: boolean;
   reviewsAndEndorsements: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  weeklyDigestOptIn: boolean;
 }
 
 export type Visibility = "PUBLIC" | "CONNECTIONS_ONLY";

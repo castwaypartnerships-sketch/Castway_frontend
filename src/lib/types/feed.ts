@@ -90,6 +90,9 @@ export interface SuggestedConnection {
   username: string;
   name: string;
   role: string;
+  accountRole: string;
+  followerCount: number;
+  mutualConnectionsCount: number;
   location: string;
   avatarUrl: string | null;
   verified: boolean;

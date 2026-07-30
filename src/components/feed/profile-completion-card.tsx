@@ -71,7 +71,7 @@ export function ProfileCompletionCard() {
               {!task.done && anchor ? (
                 <Link
                   href={`/portfolio#${anchor}`}
-                  className="flex items-center gap-2 rounded-md transition-colors hover:text-primary"
+                  className="flex items-center gap-2 rounded-md transition-colors hover:text-[#476948] dark:hover:text-[#a7d9b5]"
                 >
                   {content}
                 </Link>
@@ -84,7 +84,13 @@ export function ProfileCompletionCard() {
       </ul>
 
       {!isComplete ? (
-        <Link href="/portfolio" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4 w-full")}>
+        <Link
+          href="/portfolio"
+          className={cn(
+            buttonVariants({ size: "sm" }),
+            "mt-4 w-full bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]",
+          )}
+        >
           Complete your profile
         </Link>
       ) : null}

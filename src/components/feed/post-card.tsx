@@ -81,7 +81,7 @@ export function PostCard({ item }: { item: FeedItem }) {
             <div className="flex items-center gap-1.5">
               <p className="text-sm font-semibold text-foreground hover:underline">{item.author.name}</p>
               {item.author.verified ? (
-                <BadgeCheck className="size-4 text-primary" aria-label="Verified" />
+                <BadgeCheck className="size-4 text-[#476948] dark:text-[#a7d9b5]" aria-label="Verified" />
               ) : null}
               <CategoryBadge category={item.category} className="ml-1" />
             </div>
@@ -96,14 +96,14 @@ export function PostCard({ item }: { item: FeedItem }) {
         </time>
       </div>
 
-      <h3 className="mt-4 text-lg font-semibold text-primary hover:underline">
+      <h3 className="mt-4 text-lg font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]">
         <Link href={`/feed/${item.id}`}>{item.title}</Link>
       </h3>
       <div
         // `item.description` is sanitized server-side before persisting (see
         // `backend/src/lib/sanitize-post-content.ts`) — only ever the fixed
         // set of rich-text tags the post editor can produce.
-        className="prose-post mt-2 text-sm leading-relaxed text-muted-foreground [&_a]:text-primary [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+        className="prose-post mt-2 text-sm leading-relaxed text-muted-foreground [&_a]:text-[#476948] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 dark:[&_a]:text-[#a7d9b5]"
         dangerouslySetInnerHTML={{ __html: item.description }}
       />
 
@@ -122,7 +122,7 @@ export function PostCard({ item }: { item: FeedItem }) {
       {item.proposal ? (
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-background text-primary">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-background text-[#476948] dark:text-[#a7d9b5]">
               <DollarSign className="size-4" />
             </span>
             <div>
@@ -133,7 +133,7 @@ export function PostCard({ item }: { item: FeedItem }) {
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-background text-primary">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-background text-[#476948] dark:text-[#a7d9b5]">
               <CalendarDays className="size-4" />
             </span>
             <div>
@@ -210,6 +210,7 @@ export function PostCard({ item }: { item: FeedItem }) {
           <Button
             size="sm"
             disabled={isApplying || hasApplied}
+            className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
             onClick={() => {
               if (isFreelancer) setComposing(true);
               else void handleApply();
