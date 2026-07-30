@@ -11,6 +11,9 @@ import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
 export interface SearchProfileItem extends Profile {
   followerCount: number;
+  verified: boolean;
+  accountRole: string;
+  isFollowing: boolean;
 }
 
 interface SearchProfilesResponse {

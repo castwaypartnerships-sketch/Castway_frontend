@@ -6,6 +6,11 @@ export interface NotificationPreferences {
   applicationUpdates: boolean;
   postActivity: boolean;
   reviewsAndEndorsements: boolean;
+  connectionRequestsEmail: boolean;
+  messagesEmail: boolean;
+  applicationUpdatesEmail: boolean;
+  postActivityEmail: boolean;
+  reviewsAndEndorsementsEmail: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;
