@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Moon, Monitor, Plus, ShieldAlert, Sun, Trash2 } from "lucide-react";
+import { ChevronRight, Moon, Monitor, Plus, ShieldAlert, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -22,6 +22,7 @@ import {
   type Visibility,
 } from "@/lib/redux/endpoints/account-api";
 import { useGetSessionQuery, useLogoutMutation } from "@/lib/redux/endpoints/auth-api";
+import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
 import {
   useCreateProposalTemplateMutation,
   useGetProposalTemplatesQuery,
@@ -48,12 +49,13 @@ export default function SettingsPage() {
   const isTalent = isTalentRole(session?.user?.role);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
+    <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
       <div>
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account security and notifications.</p>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your account, privacy, and notifications.</p>
       </div>
 
+      <ProfileSettingsCard />
       <AccountCard email={session?.user?.email} />
       <ChangePasswordCard />
       <SecurityCard />
@@ -63,6 +65,38 @@ export default function SettingsPage() {
       {isTalent ? <RosterInvitesCard /> : null}
       {isFreelancer ? <ProposalTemplatesCard /> : null}
     </div>
+  );
+}
+
+function ProfileSettingsCard() {
+  const { data, isLoading } = useGetOwnProfileQuery();
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-sm font-semibold text-foreground">Profile Settings</h2>
+      <p className="text-xs text-muted-foreground">How you appear to others on Castway.</p>
+
+      {isLoading ? (
+        <div className="mt-4 h-16 animate-pulse rounded-xl bg-muted" />
+      ) : (
+        <Link
+          href="/portfolio"
+          className="mt-4 flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted"
+        >
+          <Avatar size="lg">
+            <AvatarImage src={data?.profile?.avatarUrl ?? undefined} />
+            <AvatarFallback>{initialsFromName(data?.profile?.name ?? "?")}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">{data?.profile?.name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {data?.profile?.bio || "Add a bio, photo, and social links"}
+            </p>
+          </div>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </Link>
+      )}
+    </section>
   );
 }
 
@@ -547,7 +581,10 @@ function PrivacyCard() {
           </div>
 
           <div className="border-t border-border pt-4">
-            <Link href="/connections?tab=blocked" className="text-sm font-medium text-primary hover:underline">
+            <Link
+              href="/connections?tab=blocked"
+              className="text-sm font-medium text-[#476948] hover:underline dark:text-[#a7d9b5]"
+            >
               Manage blocked users →
             </Link>
           </div>
@@ -571,11 +608,14 @@ function NotificationPreferencesCard() {
   const [override, setOverride] = useState<NotificationPreferences | null>(null);
   const preferences = override ?? data ?? null;
 
-  function handleToggle(key: keyof NotificationPreferences, value: boolean) {
-    if (!preferences) return;
-    const next = { ...preferences, [key]: value };
+  function handleUpdate(next: NotificationPreferences) {
     setOverride(next);
     updatePreferences(next);
+  }
+
+  function handleToggle(key: keyof NotificationPreferences, value: boolean) {
+    if (!preferences) return;
+    handleUpdate({ ...preferences, [key]: value });
   }
 
   return (
@@ -584,18 +624,69 @@ function NotificationPreferencesCard() {
       {isLoading || !preferences ? (
         <div className="mt-4 h-20 animate-pulse rounded-xl bg-muted" />
       ) : (
-        <ul className="mt-4 space-y-4">
-          {PREFERENCE_LABELS.map((pref) => (
-            <li key={pref.key} className="flex items-center justify-between">
-              <Label htmlFor={pref.key}>{pref.label}</Label>
+        <>
+          <ul className="mt-4 space-y-4">
+            {PREFERENCE_LABELS.map((pref) => (
+              <li key={pref.key} className="flex items-center justify-between">
+                <Label htmlFor={pref.key}>{pref.label}</Label>
+                <Switch
+                  id={pref.key}
+                  checked={preferences[pref.key]}
+                  onCheckedChange={(checked) => handleToggle(pref.key, checked)}
+                />
+              </li>
+            ))}
+            <li className="flex items-center justify-between border-t border-border pt-4">
+              <div>
+                <Label htmlFor="weeklyDigestOptIn">Weekly digest</Label>
+                <p className="text-xs text-muted-foreground">
+                  A weekly email summarizing your connections, messages, and applications.
+                </p>
+              </div>
               <Switch
-                id={pref.key}
-                checked={preferences[pref.key]}
-                onCheckedChange={(checked) => handleToggle(pref.key, checked)}
+                id="weeklyDigestOptIn"
+                checked={preferences.weeklyDigestOptIn}
+                onCheckedChange={(checked) => handleToggle("weeklyDigestOptIn", checked)}
               />
             </li>
-          ))}
-        </ul>
+          </ul>
+
+          <div className="mt-6 border-t border-border pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="quietHoursEnabled">Do Not Disturb</Label>
+                <p className="text-xs text-muted-foreground">Pause new notifications during a daily window.</p>
+              </div>
+              <Switch
+                id="quietHoursEnabled"
+                checked={preferences.quietHoursEnabled}
+                onCheckedChange={(checked) => handleToggle("quietHoursEnabled", checked)}
+              />
+            </div>
+            {preferences.quietHoursEnabled ? (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="quietHoursStart">From</Label>
+                  <Input
+                    id="quietHoursStart"
+                    type="time"
+                    value={preferences.quietHoursStart}
+                    onChange={(e) => handleUpdate({ ...preferences, quietHoursStart: e.target.value })}
+                  />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="quietHoursEnd">To</Label>
+                  <Input
+                    id="quietHoursEnd"
+                    type="time"
+                    value={preferences.quietHoursEnd}
+                    onChange={(e) => handleUpdate({ ...preferences, quietHoursEnd: e.target.value })}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </>
       )}
     </section>
   );
