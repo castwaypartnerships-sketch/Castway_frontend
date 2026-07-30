@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const PLATFORM_LINKS = [
-  { label: "Feed", href: "/feed" },
+  { label: "Home", href: "/home" },
   { label: "Opportunities", href: "/opportunities" },
   { label: "Find talent", href: "/login" },
   { label: "Enterprise", href: "/login" },

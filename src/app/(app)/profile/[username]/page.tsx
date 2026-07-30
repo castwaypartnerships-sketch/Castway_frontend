@@ -149,7 +149,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
         >
           {isOwnProfile ? (
             <Link
-              href="/portfolio"
+              href="/profile/edit"
               className="flex items-center gap-1.5 rounded-md border border-white/60 bg-white/20 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm"
             >
               <Pencil className="size-3.5" />
@@ -167,7 +167,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               </Avatar>
               {isOwnProfile ? (
                 <Link
-                  href="/portfolio"
+                  href="/profile/edit"
                   aria-label="Edit avatar"
                   className="absolute -right-1 -bottom-1 flex size-8 items-center justify-center rounded-full border-2 border-card bg-[#476948] text-white dark:bg-[#1c3322]"
                 >
@@ -193,7 +193,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               </button>
               {isOwnProfile ? (
                 <Link
-                  href="/portfolio"
+                  href="/profile/edit"
                   className={cn(
                     buttonVariants({ size: "sm" }),
                     "gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]",
@@ -383,7 +383,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
                   })}
                   {isOwnProfile ? (
                     <Link
-                      href="/portfolio"
+                      href="/profile/edit"
                       className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-accent"
                     >
                       + Add Skill
@@ -491,7 +491,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               ))}
               {isOwnProfile ? (
                 <Link
-                  href="/portfolio"
+                  href="/profile/edit"
                   className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#a3d1c1] bg-[#e6f4ea] p-4 text-center dark:border-[#25422d] dark:bg-[#1a261d]"
                 >
                   <div className="flex size-11 items-center justify-center rounded-full border border-[#a3d1c1] bg-card dark:border-[#25422d]">
@@ -515,7 +515,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
               <h2 className="font-heading text-lg font-bold text-foreground">Work History &amp; Timeline</h2>
               {isOwnProfile ? (
                 <Link
-                  href="/portfolio"
+                  href="/profile/edit"
                   className="inline-flex items-center gap-1.5 rounded-md border border-[#a3d1c1] bg-[#e6f4ea] px-3 py-1.5 text-xs font-semibold text-[#2d4a35] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
                 >
                   <Plus className="size-3.5" />

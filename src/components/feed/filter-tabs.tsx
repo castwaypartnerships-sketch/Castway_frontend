@@ -42,7 +42,7 @@ export function FeedFilterTabs({ value, onValueChange }: FeedFilterTabsProps) {
         })}
       </div>
       <Link
-        href="/feed/mine"
+        href="/home/mine"
         className={cn(buttonVariants({ size: "sm", variant: "outline" }), "mb-2 gap-1.5")}
       >
         <ClipboardList className="size-4" />

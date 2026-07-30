@@ -42,7 +42,7 @@ export function resolveDestination(
     return "/onboarding/profile";
   }
   if (zone === "protected") return null;
-  return "/feed";
+  return "/home";
 }
 
 export function RouteGuard({ zone, children }: { zone: RouteGuardZone; children: React.ReactNode }) {

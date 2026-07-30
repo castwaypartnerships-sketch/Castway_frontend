@@ -9,7 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Mirrors the task ids from `buildProfileCompletion` (backend) to the
-// section each one is actually completed in on `/portfolio`.
+// section each one is actually completed in on `/profile/edit`.
 const TASK_ANCHORS: Record<string, string> = {
   avatar: "avatar-section",
   bio: "bio",
@@ -70,7 +70,7 @@ export function ProfileCompletionCard() {
             <li key={task.id} className="text-sm">
               {!task.done && anchor ? (
                 <Link
-                  href={`/portfolio#${anchor}`}
+                  href={`/profile/edit#${anchor}`}
                   className="flex items-center gap-2 rounded-md transition-colors hover:text-[#476948] dark:hover:text-[#a7d9b5]"
                 >
                   {content}
@@ -85,7 +85,7 @@ export function ProfileCompletionCard() {
 
       {!isComplete ? (
         <Link
-          href="/portfolio"
+          href="/profile/edit"
           className={cn(
             buttonVariants({ size: "sm" }),
             "mt-4 w-full bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]",

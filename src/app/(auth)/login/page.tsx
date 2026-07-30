@@ -27,7 +27,7 @@ export default function LoginPage() {
 
     try {
       await login({ email, password }).unwrap();
-      router.push("/feed");
+      router.push("/home");
       router.refresh();
     } catch (err) {
       const body = (err as { data?: LoginErrorBody } | undefined)?.data;

@@ -39,11 +39,14 @@ export function AppTopbar() {
   const activeItem = findNavItemByPathname(pathname);
   const { data: session } = useGetSessionQuery();
   const { data: profileData } = useGetOwnProfileQuery(undefined, { skip: !session?.user });
-  const isPortfolio = activeItem?.href === "/portfolio";
-  const breadcrumbLabel =
-    isPortfolio && isHiringRole(session?.user?.role)
+  const ownProfileHref = profileData?.profile?.username ? `/profile/${profileData.profile.username}` : null;
+  const isOwnProfile =
+    ownProfileHref != null && (pathname === ownProfileHref || pathname.startsWith(`${ownProfileHref}/`));
+  const breadcrumbLabel = isOwnProfile
+    ? isHiringRole(session?.user?.role)
       ? "Company Profile"
-      : (activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview");
+      : "My Profile"
+    : (activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview");
   const { data: dashboard } = useGetDashboardQuery();
   const hasUnreadNotifications = (dashboard?.unreadNotificationsCount ?? 0) > 0;
   const { openComposer } = useComposer();
@@ -86,13 +89,14 @@ export function AppTopbar() {
         <AccountMenu
           name={profileData?.profile?.name ?? session?.user?.email ?? "Your account"}
           avatarUrl={profileData?.profile?.avatarUrl ?? undefined}
+          username={profileData?.profile?.username}
         />
       </div>
     </header>
   );
 }
 
-function AccountMenu({ name, avatarUrl }: { name: string; avatarUrl?: string }) {
+function AccountMenu({ name, avatarUrl, username }: { name: string; avatarUrl?: string; username?: string }) {
   const router = useRouter();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
@@ -120,7 +124,9 @@ function AccountMenu({ name, avatarUrl }: { name: string; avatarUrl?: string }) 
       />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push("/portfolio")}>View profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push(username ? `/profile/${username}` : "/settings")}>
+            View profile
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/settings")}>Settings</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

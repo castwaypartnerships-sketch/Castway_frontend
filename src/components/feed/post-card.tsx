@@ -97,7 +97,7 @@ export function PostCard({ item }: { item: FeedItem }) {
       </div>
 
       <h3 className="mt-4 text-lg font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]">
-        <Link href={`/feed/${item.id}`}>{item.title}</Link>
+        <Link href={`/home/${item.id}`}>{item.title}</Link>
       </h3>
       <div
         // `item.description` is sanitized server-side before persisting (see

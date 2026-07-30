@@ -1,44 +1,26 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
-import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
-import { CreatorDashboard } from "@/components/home/creator-dashboard";
-import { FreelancerDashboard } from "@/components/home/freelancer-dashboard";
-import { BrandDashboard } from "@/components/home/brand-dashboard";
-import { AgencyDashboard } from "@/components/home/agency-dashboard";
-import { RecentActivitySection } from "@/components/home/recent-activity-section";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
+import { SuggestedConnectionsCard } from "@/components/feed/suggested-connections-card";
+import { TrendingSkillsCard } from "@/components/shared/trending-skills-card";
+import { NewOpportunitiesCard } from "@/components/shared/new-opportunities-card";
+import { FeedView } from "@/app/(app)/home/feed-view";
+
+export const metadata: Metadata = {
+  title: "Home",
+};
 
 export default function HomePage() {
-  const { data, isLoading, isError } = useGetDashboardQuery();
-  const { data: session } = useGetSessionQuery();
-
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-6">
-      <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Home</h1>
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[1fr_320px]">
+      <FeedView />
 
-      <ProfileCompletionCard />
-
-      <RecentActivitySection role={session?.user?.role} />
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl border border-border bg-muted" />
-          ))}
-        </div>
-      ) : isError || !data ? (
-        <p className="rounded-2xl border border-dashed border-destructive/40 py-16 text-center text-sm text-destructive">
-          Couldn&apos;t load your stats.
-        </p>
-      ) : (
-        <div>
-          {data.kind === "CREATOR" ? <CreatorDashboard data={data} /> : null}
-          {data.kind === "FREELANCER" ? <FreelancerDashboard data={data} /> : null}
-          {data.kind === "BRAND" ? <BrandDashboard data={data} /> : null}
-          {data.kind === "AGENCY" ? <AgencyDashboard data={data} /> : null}
-        </div>
-      )}
+      <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
+        <ProfileCompletionCard />
+        <SuggestedConnectionsCard />
+        <TrendingSkillsCard />
+        <NewOpportunitiesCard />
+      </aside>
     </div>
   );
 }

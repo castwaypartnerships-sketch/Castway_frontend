@@ -8,9 +8,7 @@ import {
   ListChecks,
   Megaphone,
   MessageSquare,
-  Rss,
   Settings,
-  UserCircle,
   UserCog,
   UserPlus,
   Users,
@@ -26,16 +24,13 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
-const HOME: NavItem = { label: "Home", href: "/home", icon: Home };
-const FEED: NavItem = { label: "Feed", breadcrumbLabel: "Announcements Feed", href: "/feed", icon: Rss };
+const HOME: NavItem = { label: "Home", breadcrumbLabel: "Announcements Feed", href: "/home", icon: Home };
 const SEARCH: NavItem = { label: "Discover", breadcrumbLabel: "Discover", href: "/search", icon: Compass };
 const OPPORTUNITIES: NavItem = { label: "Opportunities", href: "/opportunities", icon: Briefcase };
 const CONNECTIONS: NavItem = { label: "Connections", href: "/connections", icon: Users };
 const MESSAGES: NavItem = { label: "Messages", href: "/messages", icon: MessageSquare };
 const MY_APPLICATIONS: NavItem = { label: "My Applications", href: "/applications", icon: ListChecks };
 const SAVED: NavItem = { label: "Saved Board", href: "/saved", icon: Bookmark };
-const PORTFOLIO: NavItem = { label: "My Profile", href: "/portfolio", icon: UserCircle };
-const COMPANY_PROFILE: NavItem = { label: "Company Profile", href: "/portfolio", icon: UserCircle };
 const SETTINGS: NavItem = { label: "Settings", href: "/settings", icon: Settings };
 const ROSTER: NavItem = { label: "Roster", href: "/roster", icon: UserPlus };
 const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megaphone };
@@ -51,14 +46,12 @@ const BRAND_TEAM: NavItem = { label: "Team", href: "/brand-team", icon: Users };
  * every route that appears in any role's sidebar needs exactly one entry here. */
 export const NAV_ITEMS: NavItem[] = [
   HOME,
-  FEED,
   SEARCH,
   OPPORTUNITIES,
   CONNECTIONS,
   MESSAGES,
   MY_APPLICATIONS,
   SAVED,
-  PORTFOLIO,
   SETTINGS,
   ROSTER,
   CAMPAIGNS,
@@ -73,9 +66,9 @@ export const NAV_ITEMS: NavItem[] = [
 /**
  * Per-role sidebar nav, scoped to what each role can actually do (see PHASES.md
  * role functionality matrix) rather than a shared default:
- * - Home: every role — an activity hub (profile completion, notifications,
- *   messages, opportunities preview) plus the per-role stats that used to be
- *   a Creator-only "Dashboard & Stats" page.
+ * - Home: every role — the announcements feed (posts, proposals, filters).
+ *   Formerly a separate "Feed" nav item; merged into Home so there's a
+ *   single landing hub instead of two overlapping ones.
  * - Saved Board: kept for every role — not in the feature spec, but bookmark
  *   buttons on Feed/Opportunities cards write to it for all roles, so it needs
  *   a nav entry regardless of the spec.
@@ -91,36 +84,20 @@ export const NAV_ITEMS: NavItem[] = [
  *   person who was shortlisted.
  */
 export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
-  CREATOR: [
-    HOME,
-    FEED,
-    SEARCH,
-    OPPORTUNITIES,
-    CONNECTIONS,
-    MESSAGES,
-    MY_APPLICATIONS,
-    SAVED,
-    PORTFOLIO,
-    SHORTLISTS,
-    CRM,
-    SETTINGS,
-  ],
+  CREATOR: [HOME, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, MY_APPLICATIONS, SAVED, SHORTLISTS, CRM, SETTINGS],
   FREELANCER: [
     HOME,
-    FEED,
     SEARCH,
     OPPORTUNITIES,
     CONNECTIONS,
     MESSAGES,
     MY_APPLICATIONS,
     SAVED,
-    PORTFOLIO,
     SHORTLISTS,
     SETTINGS,
   ],
   AGENCY: [
     HOME,
-    FEED,
     SEARCH,
     OPPORTUNITIES,
     CONNECTIONS,
@@ -131,10 +108,9 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     TEAM,
     MANAGED_TALENT,
     CLIENT_CAMPAIGNS,
-    COMPANY_PROFILE,
     SETTINGS,
   ],
-  BRAND: [HOME, FEED, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, BRAND_TEAM, COMPANY_PROFILE, SETTINGS],
+  BRAND: [HOME, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, BRAND_TEAM, SETTINGS],
   // Talent manager sub-account — deliberately narrow: only the roster
   // subset assigned to them (with the act-on-behalf-of apply/message
   // actions that go with it), messaging, and settings. No Company Profile
@@ -144,18 +120,7 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
   // Full parity with BRAND (unlike AGENCY_MANAGER above) — teammates share
   // the whole owning Brand account (see `Actor.resourceOwnerId`), so they
   // get the exact same nav.
-  BRAND_TEAM_MEMBER: [
-    HOME,
-    FEED,
-    SEARCH,
-    CAMPAIGNS,
-    CONNECTIONS,
-    MESSAGES,
-    SAVED,
-    BRAND_TEAM,
-    COMPANY_PROFILE,
-    SETTINGS,
-  ],
+  BRAND_TEAM_MEMBER: [HOME, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, BRAND_TEAM, SETTINGS],
 };
 
 export function getNavItemsForRole(role: string | null | undefined): NavItem[] {

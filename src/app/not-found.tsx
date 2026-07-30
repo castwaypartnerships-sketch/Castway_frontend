@@ -11,7 +11,7 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or may have moved.
         </p>
       </div>
-      <Link href="/feed" className={buttonVariants({ variant: "default" })}>
+      <Link href="/home" className={buttonVariants({ variant: "default" })}>
         Back to Castway
       </Link>
     </div>

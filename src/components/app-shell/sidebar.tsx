@@ -21,6 +21,7 @@ export function AppSidebar() {
   const displayName = profileData?.profile?.name ?? session?.user?.email ?? "Your account";
   const displayRole = profileData?.profile?.bio ?? session?.user?.role ?? "";
   const navItems = getNavItemsForRole(session?.user?.role);
+  const ownProfileHref = profileData?.profile?.username ? `/profile/${profileData.profile.username}` : "/settings";
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar pt-4 text-sidebar-foreground">
@@ -67,7 +68,7 @@ export function AppSidebar() {
         </div>
 
         <Link
-          href="/portfolio"
+          href={ownProfileHref}
           className="flex items-center gap-2 rounded-lg border-t border-sidebar-border px-2.5 pt-3"
         >
           <Avatar>

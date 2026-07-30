@@ -89,7 +89,7 @@ export default function OnboardingProfilePage() {
         // to the "Looking to hire" search filter until their first Settings edit.
         lookingToHire: requiresBusinessEmail,
       }).unwrap();
-      router.push("/feed");
+      router.push("/home");
       router.refresh();
     } catch (err) {
       const body = (err as { data?: ApiErrorBody } | undefined)?.data;
