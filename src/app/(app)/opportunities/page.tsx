@@ -6,18 +6,14 @@ import { ClipboardList, Plus, SearchIcon } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
-import { useGetMyApplicationsQuery, useWithdrawApplicationMutation } from "@/lib/redux/endpoints/applications-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
 import { OPPORTUNITY_TYPE_OPTIONS } from "@/components/opportunities/opportunity-form";
-import { ApplicationStatusBadge } from "@/components/home/status-badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { canPostOpportunity, canApplyToOpportunity } from "@/lib/rbac";
 import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
@@ -33,7 +29,6 @@ const BROWSE_STATUS_OPTIONS: { value: "OPEN" | "CLOSED" | "ARCHIVED"; label: str
 
 export default function OpportunitiesPage() {
   const { data: session } = useGetSessionQuery();
-  const showMyApplications = canApplyToOpportunity(session?.user?.role);
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
@@ -44,39 +39,35 @@ export default function OpportunitiesPage() {
             Open hiring posts, collaborations, and brand deals from the network.
           </p>
         </div>
-        {canPostOpportunity(session?.user?.role) ? (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          {canApplyToOpportunity(session?.user?.role) ? (
             <Link
-              href="/opportunities/mine"
+              href="/applications"
               className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}
             >
               <ClipboardList className="size-4" />
-              My Opportunities
+              My Applications
             </Link>
-            <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
-              <Plus className="size-4" />
-              Post Opportunity
-            </Link>
-          </div>
-        ) : null}
+          ) : null}
+          {canPostOpportunity(session?.user?.role) ? (
+            <>
+              <Link
+                href="/opportunities/mine"
+                className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}
+              >
+                <ClipboardList className="size-4" />
+                My Opportunities
+              </Link>
+              <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
+                <Plus className="size-4" />
+                Post Opportunity
+              </Link>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      {showMyApplications ? (
-        <Tabs defaultValue="browse">
-          <TabsList>
-            <TabsTrigger value="browse">Browse</TabsTrigger>
-            <TabsTrigger value="mine">My Applications</TabsTrigger>
-          </TabsList>
-          <TabsContent value="browse" className="mt-5">
-            <BrowseTab />
-          </TabsContent>
-          <TabsContent value="mine" className="mt-5">
-            <MyApplicationsTab />
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <BrowseTab />
-      )}
+      <BrowseTab />
     </div>
   );
 }
@@ -239,54 +230,5 @@ function BrowseTab() {
         </div>
       )}
     </div>
-  );
-}
-
-function MyApplicationsTab() {
-  const { data, isLoading } = useGetMyApplicationsQuery();
-  const [withdraw, { isLoading: isWithdrawing }] = useWithdrawApplicationMutation();
-
-  if (isLoading) {
-    return <div className="h-40 animate-pulse rounded-2xl border border-border bg-muted" />;
-  }
-
-  if (!data || data.items.length === 0) {
-    return (
-      <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-        You haven&apos;t applied to anything yet.
-      </p>
-    );
-  }
-
-  return (
-    <ul className="space-y-3">
-      {data.items.map((application) => (
-        <li
-          key={application.id}
-          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4"
-        >
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">{application.opportunity.title}</p>
-            <p className="text-xs text-muted-foreground">
-              Applied {formatRelativeTime(application.createdAt)}
-              {application.opportunity.budget ? ` · ${application.opportunity.budget}` : ""}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <ApplicationStatusBadge status={application.status} />
-            {application.status === "PENDING" ? (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isWithdrawing}
-                onClick={() => withdraw(application.id)}
-              >
-                Withdraw
-              </Button>
-            ) : null}
-          </div>
-        </li>
-      ))}
-    </ul>
   );
 }

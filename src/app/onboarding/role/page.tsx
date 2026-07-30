@@ -54,10 +54,13 @@ export default function OnboardingRolePage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 px-4 py-12">
+    <div className="flex min-h-dvh items-center justify-center bg-[#f9fafb] px-4 py-12 dark:bg-background">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center">
-          <h1 className="text-lg font-semibold text-foreground">How will you use Castway?</h1>
+          <p className="font-heading text-lg font-bold tracking-tight text-[#476948] dark:text-[#a7d9b5]">
+            Castway
+          </p>
+          <h1 className="mt-4 text-lg font-semibold text-foreground">How will you use Castway?</h1>
           <p className="text-sm text-muted-foreground">
             You can&apos;t change this later, so pick the one that fits best.
           </p>
@@ -70,13 +73,13 @@ export default function OnboardingRolePage() {
               type="button"
               onClick={() => setSelected(role.value)}
               className={cn(
-                "rounded-2xl border p-5 text-left transition-colors",
+                "rounded-2xl border p-5 text-left shadow-sm transition-colors",
                 selected === role.value
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-card hover:bg-muted",
+                  ? "border-[#476948] bg-[#e6f4ea] dark:border-[#25422d] dark:bg-[#1a261d]"
+                  : "border-border bg-card hover:bg-accent",
               )}
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]">
                 <role.icon className="size-4.5" />
               </span>
               <p className="mt-3 text-sm font-semibold text-foreground">{role.label}</p>
@@ -91,7 +94,7 @@ export default function OnboardingRolePage() {
           type="button"
           disabled={!selected || isLoading}
           onClick={handleContinue}
-          className="w-full"
+          className="w-full bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
         >
           {isLoading ? "Saving…" : "Continue"}
         </Button>

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 
 import type { PostCategory, PostVisibility } from "@/lib/types/feed";
 import { categoryLabel } from "@/components/feed/category-badge";
@@ -26,6 +27,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 function isContentEmpty(html: string): boolean {
   return html.replace(/<[^>]*>/g, "").trim().length === 0;
 }
+
+const GREEN_SWITCH = "data-checked:bg-[#476948] dark:data-checked:bg-[#1c3322]";
 
 const CATEGORIES: PostCategory[] = ["GENERAL", "HIRING", "COLLABORATION", "BRAND_DEAL", "PARTNERSHIP", "PROJECT"];
 
@@ -101,9 +104,14 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
         onOpenChange(next);
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>New post</DialogTitle>
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]">
+              <Sparkles className="size-4" />
+            </span>
+            <DialogTitle>New post</DialogTitle>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -179,6 +187,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           <div className="flex items-center gap-2.5">
             <Switch
               id="post-draft"
+              className={GREEN_SWITCH}
               checked={saveAsDraft}
               onCheckedChange={(checked) => {
                 setSaveAsDraft(checked);
@@ -193,6 +202,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
               <div className="flex items-center gap-2.5">
                 <Switch
                   id="post-schedule"
+                  className={GREEN_SWITCH}
                   checked={scheduleForLater}
                   onCheckedChange={setScheduleForLater}
                 />
@@ -214,6 +224,7 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           <DialogFooter>
             <Button
               type="submit"
+              className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
               disabled={isLoading || isContentEmpty(content) || (scheduleForLater && !scheduledFor)}
             >
               {isLoading

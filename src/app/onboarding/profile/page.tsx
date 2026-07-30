@@ -98,14 +98,17 @@ export default function OnboardingProfilePage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 px-4 py-12">
+    <div className="flex min-h-dvh items-center justify-center bg-[#f9fafb] px-4 py-12 dark:bg-background">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-lg font-semibold text-foreground">Set up your profile</h1>
+          <p className="font-heading text-lg font-bold tracking-tight text-[#476948] dark:text-[#a7d9b5]">
+            Castway
+          </p>
+          <h1 className="mt-4 text-lg font-semibold text-foreground">Set up your profile</h1>
           <p className="text-sm text-muted-foreground">This is what other creators will see.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-card p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <CoverUpload coverImageUrl={coverImageUrl} onUploaded={setCoverImageUrl} />
           <div className="flex flex-col items-center gap-2">
             <AvatarUpload avatarUrl={avatarUrl} name={name} onUploaded={setAvatarUrl} size="lg" />
@@ -235,7 +238,11 @@ export default function OnboardingProfilePage() {
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+            disabled={isLoading}
+          >
             {isLoading ? "Saving…" : "Finish setup"}
           </Button>
         </form>

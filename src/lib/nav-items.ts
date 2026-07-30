@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Bookmark,
+  Compass,
   Handshake,
   Home,
   LayoutGrid,
@@ -8,7 +9,6 @@ import {
   Megaphone,
   MessageSquare,
   Rss,
-  Search,
   Settings,
   UserCircle,
   UserCog,
@@ -28,10 +28,11 @@ export interface NavItem {
 
 const HOME: NavItem = { label: "Home", href: "/home", icon: Home };
 const FEED: NavItem = { label: "Feed", breadcrumbLabel: "Announcements Feed", href: "/feed", icon: Rss };
-const SEARCH: NavItem = { label: "Search", breadcrumbLabel: "Search Professionals", href: "/search", icon: Search };
+const SEARCH: NavItem = { label: "Discover", breadcrumbLabel: "Discover", href: "/search", icon: Compass };
 const OPPORTUNITIES: NavItem = { label: "Opportunities", href: "/opportunities", icon: Briefcase };
 const CONNECTIONS: NavItem = { label: "Connections", href: "/connections", icon: Users };
 const MESSAGES: NavItem = { label: "Messages", href: "/messages", icon: MessageSquare };
+const MY_APPLICATIONS: NavItem = { label: "My Applications", href: "/applications", icon: ListChecks };
 const SAVED: NavItem = { label: "Saved Board", href: "/saved", icon: Bookmark };
 const PORTFOLIO: NavItem = { label: "My Profile", href: "/portfolio", icon: UserCircle };
 const COMPANY_PROFILE: NavItem = { label: "Company Profile", href: "/portfolio", icon: UserCircle };
@@ -55,6 +56,7 @@ export const NAV_ITEMS: NavItem[] = [
   OPPORTUNITIES,
   CONNECTIONS,
   MESSAGES,
+  MY_APPLICATIONS,
   SAVED,
   PORTFOLIO,
   SETTINGS,
@@ -77,7 +79,7 @@ export const NAV_ITEMS: NavItem[] = [
  * - Saved Board: kept for every role — not in the feature spec, but bookmark
  *   buttons on Feed/Opportunities cards write to it for all roles, so it needs
  *   a nav entry regardless of the spec.
- * - Search: Creator/Agency/Brand search professionals/creators explicitly;
+ * - Discover: Creator/Agency/Brand search professionals/creators explicitly;
  *   Freelancer keeps it too since finding creators/agencies to pitch is implied
  *   by "apply for opportunities".
  * - Messages: kept for Brand even though not explicitly listed — connecting
@@ -96,13 +98,26 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     OPPORTUNITIES,
     CONNECTIONS,
     MESSAGES,
+    MY_APPLICATIONS,
     SAVED,
     PORTFOLIO,
     SHORTLISTS,
     CRM,
     SETTINGS,
   ],
-  FREELANCER: [HOME, FEED, SEARCH, OPPORTUNITIES, CONNECTIONS, MESSAGES, SAVED, PORTFOLIO, SHORTLISTS, SETTINGS],
+  FREELANCER: [
+    HOME,
+    FEED,
+    SEARCH,
+    OPPORTUNITIES,
+    CONNECTIONS,
+    MESSAGES,
+    MY_APPLICATIONS,
+    SAVED,
+    PORTFOLIO,
+    SHORTLISTS,
+    SETTINGS,
+  ],
   AGENCY: [
     HOME,
     FEED,
@@ -110,6 +125,7 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     OPPORTUNITIES,
     CONNECTIONS,
     MESSAGES,
+    MY_APPLICATIONS,
     SAVED,
     ROSTER,
     TEAM,

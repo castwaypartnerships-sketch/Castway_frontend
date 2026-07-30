@@ -18,6 +18,11 @@ export const crmApi = api.injectEndpoints({
       transformResponse: (response: { data: BrandRelationshipDto }) => response.data,
       invalidatesTags: ["BrandRelationships"],
     }),
+    updateDealValue: builder.mutation<BrandRelationshipDto, { id: string; dealValue: number | null }>({
+      query: ({ id, dealValue }) => ({ url: `/crm/${id}/value`, method: "PATCH", body: { dealValue } }),
+      transformResponse: (response: { data: BrandRelationshipDto }) => response.data,
+      invalidatesTags: ["BrandRelationships"],
+    }),
     addRelationshipNote: builder.mutation<BrandRelationshipDto, { id: string; text: string }>({
       query: ({ id, text }) => ({ url: `/crm/${id}/notes`, method: "POST", body: { text } }),
       transformResponse: (response: { data: BrandRelationshipDto }) => response.data,
@@ -34,6 +39,7 @@ export const {
   useGetBrandRelationshipsQuery,
   useAddBrandRelationshipMutation,
   useUpdateDealStageMutation,
+  useUpdateDealValueMutation,
   useAddRelationshipNoteMutation,
   useRemoveBrandRelationshipMutation,
 } = crmApi;

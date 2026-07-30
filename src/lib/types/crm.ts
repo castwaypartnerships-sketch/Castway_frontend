@@ -10,7 +10,8 @@ export interface BrandRelationshipDto {
   id: string;
   stage: DealStage;
   notes: BrandRelationshipNote[];
+  dealValue: number | null;
   createdAt: string;
   updatedAt: string;
-  brand: { userId: string; username: string; name: string; avatarUrl: string | null } | null;
+  brand: { userId: string; username: string; name: string; avatarUrl: string | null; accountRole: string } | null;
 }
