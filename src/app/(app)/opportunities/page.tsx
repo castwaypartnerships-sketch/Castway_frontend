@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ClipboardList, Plus, SearchIcon } from "lucide-react";
+import { Briefcase, ClipboardList, Plus, SearchIcon } from "lucide-react";
 
 import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
@@ -33,11 +33,16 @@ export default function OpportunitiesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Opportunities</h1>
-          <p className="text-sm text-muted-foreground">
-            Open hiring posts, collaborations, and brand deals from the network.
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]">
+            <Briefcase className="size-5" />
+          </span>
+          <div>
+            <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Opportunities</h1>
+            <p className="text-sm text-muted-foreground">
+              Open hiring posts, collaborations, and brand deals from the network.
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {canApplyToOpportunity(session?.user?.role) ? (
@@ -58,7 +63,13 @@ export default function OpportunitiesPage() {
                 <ClipboardList className="size-4" />
                 My Opportunities
               </Link>
-              <Link href="/opportunities/new" className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}>
+              <Link
+                href="/opportunities/new"
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]",
+                )}
+              >
                 <Plus className="size-4" />
                 Post Opportunity
               </Link>
@@ -196,7 +207,12 @@ function BrowseTab() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <Switch id="opp-remote" checked={isRemote} onCheckedChange={updateFilter(setIsRemote)} />
+          <Switch
+            id="opp-remote"
+            className="data-checked:bg-[#476948] dark:data-checked:bg-[#1c3322]"
+            checked={isRemote}
+            onCheckedChange={updateFilter(setIsRemote)}
+          />
           <Label htmlFor="opp-remote">Remote only</Label>
         </div>
       </div>

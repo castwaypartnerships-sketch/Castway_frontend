@@ -57,7 +57,7 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
               {opportunity.poster.name}
             </p>
             <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
+              <span className="rounded-full bg-[#e6f4ea] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#2d4a35] uppercase dark:bg-[#1a261d] dark:text-[#daf0dd]">
                 {TYPE_LABEL[opportunity.type]}
               </span>
               {opportunity.status !== "OPEN" ? (
@@ -84,20 +84,20 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
         {opportunity.budget ? (
           <span className="flex items-center gap-1.5">
-            <DollarSign className="size-3.5 text-primary" />
+            <DollarSign className="size-3.5 text-[#476948] dark:text-[#a7d9b5]" />
             {opportunity.budget}
           </span>
         ) : null}
         {opportunity.location ? (
           <span className="flex items-center gap-1.5">
-            <MapPin className="size-3.5 text-primary" />
+            <MapPin className="size-3.5 text-[#476948] dark:text-[#a7d9b5]" />
             {opportunity.location}
             {opportunity.isRemote ? " · Remote" : ""}
           </span>
         ) : null}
         {opportunity.category ? (
           <span className="flex items-center gap-1.5">
-            <Briefcase className="size-3.5 text-primary" />
+            <Briefcase className="size-3.5 text-[#476948] dark:text-[#a7d9b5]" />
             {opportunity.category}
           </span>
         ) : null}
@@ -124,11 +124,14 @@ export function OpportunityCard({ opportunity, initiallySaved = false }: { oppor
           aria-pressed={saved}
           aria-label={saved ? "Remove from saved" : "Save opportunity"}
         >
-          <Bookmark className={cn("size-4", saved && "fill-foreground")} />
+          <Bookmark
+            className={cn("size-4", saved && "fill-[#476948] text-[#476948] dark:fill-[#a7d9b5] dark:text-[#a7d9b5]")}
+          />
         </Button>
         {canApply && !composing ? (
           <Button
             size="sm"
+            className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
             disabled={isApplying || hasApplied || opportunity.status !== "OPEN"}
             onClick={() => {
               if (isFreelancer) setComposing(true);

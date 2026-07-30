@@ -34,7 +34,12 @@ export function ApplyComposer({ flow }: { flow: ApplyFlow }) {
         placeholder="Write your pitch…"
       />
       <div className="flex items-center gap-2">
-        <Button size="sm" disabled={isApplying} onClick={() => void handleApply(message || undefined)}>
+        <Button
+          size="sm"
+          className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+          disabled={isApplying}
+          onClick={() => void handleApply(message || undefined)}
+        >
           {isApplying ? "Applying…" : "Send application"}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setComposing(false)}>
