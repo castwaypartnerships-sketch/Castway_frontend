@@ -51,13 +51,19 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-8 shadow-sm">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted/30 px-4">
+      <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[380px] w-[560px] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute right-[15%] bottom-0 -z-10 h-[200px] w-[300px] rounded-full bg-[#e8c9d4]/20 blur-[100px] dark:bg-[#e8c9d4]/10" />
+
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-8 shadow-lg">
         <div className="space-y-1 text-center">
-          <div className="mx-auto flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+          <Link
+            href="/"
+            className="mx-auto flex size-10 items-center justify-center rounded-full bg-black text-sm font-bold text-white transition-transform hover:scale-105 dark:bg-white dark:text-black"
+          >
             C
-          </div>
-          <h1 className="text-lg font-semibold text-foreground">Enter your reset code</h1>
+          </Link>
+          <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">Enter your reset code</h1>
           <p className="text-sm text-muted-foreground">
             Check your inbox for the 6-digit code we sent you.
           </p>
@@ -110,13 +116,17 @@ function ResetPasswordForm() {
 
           {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
 
-          <Button type="submit" className="w-full" disabled={isLoading || code.length !== 6}>
+          <Button
+            type="submit"
+            className="w-full rounded-full bg-black text-white shadow-sm hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+            disabled={isLoading || code.length !== 6}
+          >
             {isLoading ? "Resetting…" : "Reset password"}
           </Button>
         </form>
 
         <p className="text-center text-xs text-muted-foreground">
-          <Link href="/login" className="font-medium text-primary hover:underline">
+          <Link href="/login" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
             Back to sign in
           </Link>
         </p>

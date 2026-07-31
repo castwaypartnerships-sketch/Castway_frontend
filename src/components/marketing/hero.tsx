@@ -164,7 +164,7 @@ export function Hero() {
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
                     <span className="size-2.5 rounded-full bg-red-400/80" />
-                    <span className="size-2.5 rounded-full bg-yellow-400/80" />
+                    <span className="size-2.5 rounded-full bg-muted-foreground/40" />
                     <span className="size-2.5 rounded-full bg-green-400/80" />
                   </div>
                   <span className="ml-4 font-mono text-[10px] text-muted-foreground/60 hidden sm:inline">castway.co/alexrivers</span>
@@ -199,7 +199,7 @@ export function Hero() {
                   <div className="space-y-1.5">
                     <div className="text-[10px] font-bold text-muted-foreground/60 tracking-wider uppercase px-2">Active deals</div>
                     <div className="px-2 py-1 hover:bg-muted/40 rounded-md transition-colors flex items-center gap-1.5 text-muted-foreground">
-                      <span className="size-1.5 rounded-full bg-amber-400" /> Nike Summer
+                      <span className="size-1.5 rounded-full bg-slate-400" /> Nike Summer
                     </div>
                     <div className="px-2 py-1 hover:bg-muted/40 rounded-md transition-colors flex items-center gap-1.5 text-muted-foreground">
                       <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Spotify Pods
@@ -257,7 +257,7 @@ export function Hero() {
                             <div className="text-[10px] text-muted-foreground">Proposal submitted · June 24</div>
                           </div>
                         </div>
-                        <span className="rounded bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-800 dark:bg-amber-950/30 dark:text-amber-400">Reviewing</span>
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-[9px] font-semibold text-slate-700 dark:bg-slate-800/40 dark:text-slate-300">Reviewing</span>
                       </div>
                       <div className="px-4 py-3 flex items-center justify-between hover:bg-muted/10 transition-colors">
                         <div className="flex items-center gap-3">

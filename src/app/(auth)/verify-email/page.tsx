@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import {
   useGetSessionQuery,
@@ -71,13 +72,19 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-8 shadow-sm">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted/30 px-4">
+      <div className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[380px] w-[560px] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute right-[15%] bottom-0 -z-10 h-[200px] w-[300px] rounded-full bg-[#e8c9d4]/20 blur-[100px] dark:bg-[#e8c9d4]/10" />
+
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-card p-8 shadow-lg">
         <div className="space-y-1 text-center">
-          <div className="mx-auto flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+          <Link
+            href="/"
+            className="mx-auto flex size-10 items-center justify-center rounded-full bg-black text-sm font-bold text-white transition-transform hover:scale-105 dark:bg-white dark:text-black"
+          >
             C
-          </div>
-          <h1 className="text-lg font-semibold text-foreground">Verify your email</h1>
+          </Link>
+          <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">Verify your email</h1>
           <p className="text-sm text-muted-foreground">
             Enter the 6-digit code we sent to{" "}
             <span className="font-medium text-foreground">{data?.user?.email ?? "your email"}</span>.
@@ -107,7 +114,11 @@ export default function VerifyEmailPage() {
             <p className="text-sm text-muted-foreground">{resendMessage}</p>
           ) : null}
 
-          <Button type="submit" className="w-full" disabled={isVerifying || code.length !== 6}>
+          <Button
+            type="submit"
+            className="w-full rounded-full bg-black text-white shadow-sm hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+            disabled={isVerifying || code.length !== 6}
+          >
             {isVerifying ? "Verifying…" : "Verify email"}
           </Button>
         </form>
@@ -118,7 +129,7 @@ export default function VerifyEmailPage() {
             type="button"
             onClick={handleResend}
             disabled={isResending || cooldown > 0}
-            className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
+            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
           >
             {cooldown > 0 ? `Resend in ${cooldown}s` : isResending ? "Sending…" : "Resend code"}
           </button>
@@ -130,7 +141,7 @@ export default function VerifyEmailPage() {
             type="button"
             onClick={handleWrongEmail}
             disabled={isLoggingOut}
-            className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
+            className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
           >
             {isLoggingOut ? "Signing out…" : "Start over"}
           </button>
