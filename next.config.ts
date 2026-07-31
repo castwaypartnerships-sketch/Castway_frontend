@@ -28,6 +28,27 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // `/feed` was renamed to `/home` (commit 30c68c0); keep old links
+      // and bookmarks working instead of 404ing.
+      {
+        source: "/feed",
+        destination: "/home",
+        permanent: true,
+      },
+      {
+        source: "/feed/mine",
+        destination: "/home/mine",
+        permanent: true,
+      },
+      {
+        source: "/feed/:id",
+        destination: "/home/:id",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
