@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, LogOut, Plus, Search } from "lucide-react";
+import { Bell, LogOut, Menu, Plus, Search } from "lucide-react";
 
 import { findNavItemByPathname } from "@/lib/nav-items";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-export function AppTopbar() {
+export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,14 +58,24 @@ export function AppTopbar() {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-6">
-      <nav aria-label="Breadcrumb" className="min-w-0 text-sm text-muted-foreground">
-        <span>Workspace</span>
-        <span className="mx-1.5">/</span>
-        <span className="font-medium text-foreground">{breadcrumbLabel}</span>
-      </nav>
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-4 sm:gap-4 sm:px-6">
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted md:hidden"
+        >
+          <Menu className="size-5" />
+        </button>
+        <nav aria-label="Breadcrumb" className="min-w-0 truncate text-sm text-muted-foreground">
+          <span>Workspace</span>
+          <span className="mx-1.5">/</span>
+          <span className="font-medium text-foreground">{breadcrumbLabel}</span>
+        </nav>
+      </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         <div className="relative hidden w-72 sm:block">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -79,11 +89,19 @@ export function AppTopbar() {
         </div>
         <button
           type="button"
+          onClick={() => router.push("/search")}
+          aria-label="Search"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted sm:hidden"
+        >
+          <Search className="size-4.5" />
+        </button>
+        <button
+          type="button"
           onClick={openComposer}
-          className="flex items-center gap-1.5 rounded-lg bg-[#476948] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+          className="flex items-center gap-1.5 rounded-lg bg-[#476948] px-2.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d] sm:px-3"
         >
           <Plus className="size-4" />
-          Create
+          <span className="hidden sm:inline">Create</span>
         </button>
         <NotificationsMenu hasUnread={hasUnreadNotifications} />
         <AccountMenu

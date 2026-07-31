@@ -15,7 +15,7 @@ export default function HomePage() {
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[1fr_320px]">
       <FeedView />
 
-      <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
+      <aside className="hidden space-y-5 lg:block lg:sticky lg:top-6 lg:self-start">
         <ProfileCompletionCard />
         <SuggestedConnectionsCard />
         <TrendingSkillsCard />
