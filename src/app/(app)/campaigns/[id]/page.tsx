@@ -3,9 +3,25 @@
 import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Link2, MessageSquare, Trash2, UserPlus } from "lucide-react";
-import { ShortlistCommentThread } from "@/components/campaigns/shortlist-comment-thread";
+import {
+  ArrowLeft,
+  FileText,
+  Link2,
+  MessageSquare,
+  Trash2,
+  UserPlus,
+  Share2,
+  Edit,
+  CheckCircle,
+  Clock,
+  Lock,
+  Search,
+  ExternalLink,
+  Circle,
+  Download,
+} from "lucide-react";
 
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import {
   useAddToShortlistMutation,
   useGetCampaignAnalyticsQuery,
@@ -14,6 +30,8 @@ import {
   useRemoveFromShortlistMutation,
   useUpdateCampaignMutation,
 } from "@/lib/redux/endpoints/campaigns-api";
+import { useGetApplicationsForOpportunityQuery } from "@/lib/redux/endpoints/applications-api";
+import { useGetMyRosterQuery } from "@/lib/redux/endpoints/roster-api";
 import { useCreateOpportunityMutation } from "@/lib/redux/endpoints/opportunities-api";
 import { useLazyGetPublicProfileQuery } from "@/lib/redux/endpoints/search-api";
 import type { CampaignStatus } from "@/lib/types/campaign";
@@ -31,8 +49,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ShortlistCommentThread } from "@/components/campaigns/shortlist-comment-thread";
 import { ApplicantsList } from "@/components/opportunities/applicants-list";
 import { initialsFromName } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+// Import visual placeholders
+import {
+  MOCK_PIPELINE_STAGES,
+  MOCK_CAMPAIGN_BRIEF,
+  MOCK_SKILLS,
+  MOCK_TIMELINE,
+  MOCK_AGENCY_INTERNAL,
+  MOCK_ASSIGNABLE_TALENT,
+} from "@/lib/mocks/campaigns-data";
 
 const CAMPAIGN_STATUS_LABEL: Record<CampaignStatus, string> = {
   DRAFT: "Draft",
@@ -55,7 +85,442 @@ const OPPORTUNITY_TYPE_OPTIONS: { value: OpportunityType; label: string }[] = [
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { data: campaign, isLoading } = useGetCampaignQuery(id);
+  const { data: session } = useGetSessionQuery();
+  const role = session?.user?.role;
+  const isAgency = role === "AGENCY" || role === "AGENCY_MANAGER";
+
+  if (isAgency) {
+    return <AgencyCampaignDetailView campaignId={id} />;
+  }
+
+  return <StandardCampaignDetailPage campaignId={id} />;
+}
+
+/* ==========================================================================
+   AGENCY CAMPAIGN DETAIL VIEW (Redesigned Layout with Sidebar & Pipeline)
+   ========================================================================== */
+function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
+  const { data: campaign, isLoading } = useGetCampaignQuery(campaignId);
+  const [updateCampaign, { isLoading: isSaving }] = useUpdateCampaignMutation();
+  const { data: roster } = useGetMyRosterQuery();
+
+  // Query live applicants if opportunity is linked
+  const opportunityId = campaign?.opportunityId ?? "";
+  const { data: liveApplicants } = useGetApplicationsForOpportunityQuery(
+    opportunityId,
+    { skip: !opportunityId }
+  );
+
+  // Read-only / Edit layout toggle
+  const [isEditing, setIsEditing] = useState(false);
+  const [rosterSearch, setRosterSearch] = useState("");
+
+  const [name, setName] = useState("");
+  const [goals, setGoals] = useState("");
+  const [budget, setBudget] = useState("");
+  const [deliverables, setDeliverables] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!campaign) return;
+    setName(campaign.name);
+    setGoals(campaign.goals ?? "");
+    setBudget(campaign.budget ?? "");
+    setDeliverables(campaign.deliverables.join(", "));
+  }, [campaign]);
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await updateCampaign({
+      id: campaignId,
+      patch: {
+        name,
+        goals: goals || undefined,
+        budget: budget || undefined,
+        deliverables: deliverables
+          .split(",")
+          .map((d) => d.trim())
+          .filter(Boolean),
+      },
+    }).unwrap();
+    setSaved(true);
+    setIsEditing(false);
+    toast.success("Campaign brief updated successfully!");
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  // Filter roster for Assign Talent widget
+  const filterRosterItems = () => {
+    const list: Array<{ id: string; name: string; role: string; initials: string; avatarUrl?: string }> = [];
+
+    // 1. Add real roster members
+    if (roster?.items) {
+      const accepted = roster.items.filter((r) => r.status === "ACCEPTED" && r.member);
+      accepted.forEach((entry) => {
+        list.push({
+          id: entry.id,
+          name: entry.member!.name,
+          role: "Represented Performer",
+          initials: initialsFromName(entry.member!.name),
+          avatarUrl: entry.member?.avatarUrl ?? undefined,
+        });
+      });
+    }
+
+    // 2. Add visual mockup fallbacks if list is empty
+    if (list.length === 0) {
+      list.push(...MOCK_ASSIGNABLE_TALENT);
+    }
+
+    // Apply search query
+    return list.filter((item) =>
+      item.name.toLowerCase().includes(rosterSearch.toLowerCase())
+    );
+  };
+
+  const assignableTalentList = filterRosterItems();
+
+  const handleAssignTalent = (talentName: string) => {
+    toast.success(`Assigned ${talentName} to campaign "${campaign?.name ?? 'Brief'}"!`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-4 px-6 py-6 animate-pulse">
+        <div className="h-48 rounded-2xl bg-muted" />
+        <div className="h-64 rounded-2xl bg-muted" />
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-6 text-center">
+        <p className="rounded-2xl border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Campaign brief not found.
+        </p>
+      </div>
+    );
+  }
+
+  // Live count override for APPLIED pipeline status
+  const appliedCount = liveApplicants?.items?.length ?? 12;
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
+      
+      {/* Back button & top right actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 pb-4">
+        <Link
+          href="/campaigns/clients"
+          className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Campaigns
+        </Link>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toast.success("Campaign brief link copied to clipboard!")}
+            className="text-xs font-semibold flex items-center gap-1 h-8"
+          >
+            <Share2 className="size-3.5" />
+            Share
+          </Button>
+
+          <Button
+            onClick={() => setIsEditing((v) => !v)}
+            className="bg-[#476948] hover:bg-[#3d5a3e] text-white text-xs font-semibold rounded-lg flex items-center gap-1 h-8"
+          >
+            <Edit className="size-3.5" />
+            {isEditing ? "View Dashboard" : "Edit Campaign"}
+          </Button>
+        </div>
+      </div>
+
+      {isEditing ? (
+        /* Edit Campaign Brief Mode */
+        <form onSubmit={handleSave} className="space-y-4 rounded-2xl border border-border bg-card p-6 max-w-3xl mx-auto shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground border-b border-border/50 pb-2">Edit Campaign Brief</h2>
+          <div className="space-y-1.5">
+            <Label htmlFor="name">Campaign name</Label>
+            <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="goals">Goals / Description</Label>
+            <Textarea id="goals" rows={5} value={goals} onChange={(e) => setGoals(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="budget">Budget</Label>
+              <Input id="budget" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="$10,000" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="deliverables">Deliverables (comma-separated)</Label>
+              <Input
+                id="deliverables"
+                value={deliverables}
+                onChange={(e) => setDeliverables(e.target.value)}
+                placeholder="1 reel, 2 stories"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 pt-3">
+            <Button type="submit" disabled={isSaving} className="bg-[#476948] hover:bg-[#3d5a3e] text-white">
+              {isSaving ? "Saving…" : "Save brief"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+            {saved ? <span className="text-sm text-success">Saved</span> : null}
+          </div>
+        </form>
+      ) : (
+        /* Dashboard Mode */
+        <div className="space-y-6">
+          {/* Header Brief Info */}
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              <span>NIKE</span>
+              <span>•</span>
+              <Badge variant={CAMPAIGN_STATUS_VARIANT[campaign.status]} className="text-[9px] py-0.5 leading-none">
+                {CAMPAIGN_STATUS_LABEL[campaign.status]}
+              </Badge>
+            </div>
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground leading-tight mt-1">
+              {campaign.name}
+            </h1>
+          </div>
+
+          {/* Core Dashboard Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left Content (2 Columns) */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Applicant Pipeline Widget */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Applicant Pipeline</h3>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {MOCK_PIPELINE_STAGES.map((stage) => {
+                    const countVal = stage.label === "APPLIED" ? appliedCount : stage.count;
+                    return (
+                      <div key={stage.label} className="border border-border rounded-xl p-3 space-y-2 bg-muted/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold text-muted-foreground tracking-wide">{stage.label}</span>
+                          <span className="text-xs font-bold font-mono">{countVal}</span>
+                        </div>
+                        {/* Progress line */}
+                        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className={cn("h-full rounded-full", stage.colorClass)} style={{ width: countVal > 0 ? "50%" : "0%" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Campaign Brief */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                  <h3 className="text-sm font-bold text-foreground">Campaign Brief</h3>
+                  <button
+                    onClick={() => toast.info("PDF generation and download is disabled in layout validation.")}
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline flex items-center gap-1 uppercase tracking-wider"
+                  >
+                    <Download className="size-3.5" />
+                    Download PDF
+                  </button>
+                </div>
+                
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {campaign.goals || MOCK_CAMPAIGN_BRIEF}
+                </p>
+              </div>
+
+              {/* Skills & Requirements */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Skills & Requirements</h3>
+                <div className="flex flex-wrap gap-2">
+                  {MOCK_SKILLS.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-xs font-semibold border border-border">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Project Timeline */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                  Project Timeline
+                </h3>
+
+                <ul className="space-y-4">
+                  {MOCK_TIMELINE.map((step) => (
+                    <li key={step.id} className="flex gap-3">
+                      {step.status === "done" ? (
+                        <CheckCircle className="size-5 text-success shrink-0 mt-0.5" />
+                      ) : step.status === "in-progress" ? (
+                        <Clock className="size-5 text-primary shrink-0 mt-0.5" />
+                      ) : (
+                        <Circle className="size-5 text-muted-foreground/35 shrink-0 mt-0.5" />
+                      )}
+                      
+                      <div className="min-w-0">
+                        <p className={cn(
+                          "text-xs font-bold leading-normal",
+                          step.status === "done" && "text-muted-foreground line-through"
+                        )}>
+                          {step.title}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{step.dateRange}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Linking Opportunities section & Shortlists */}
+              <div className="space-y-4">
+                <LinkOpportunitySection campaign={campaign} />
+                <ShortlistSection campaignId={campaignId} />
+              </div>
+
+            </div>
+
+            {/* Right Columns (Sidebar) */}
+            <div className="space-y-5">
+              
+              {/* Widget 1: Campaign Details */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3.5">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                  Campaign Details
+                </h4>
+
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-muted-foreground">Budget</span>
+                    <span className="font-bold text-foreground font-mono">{campaign.budget || "$4,000 - $6,000"}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-t border-border/40">
+                    <span className="text-muted-foreground">Category</span>
+                    <span className="font-semibold text-foreground">Post-Production</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-t border-border/40">
+                    <span className="text-muted-foreground">Deadline</span>
+                    <span className="font-semibold text-red-600 dark:text-red-400">3 days remaining</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-t border-border/40">
+                    <span className="text-muted-foreground">Visibility</span>
+                    <span className="font-semibold text-foreground flex items-center gap-1">
+                      <ExternalLink className="size-3.5" />
+                      Public
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Widget 2: Assign Talent */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                  Assign Talent
+                </h4>
+
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search roster..."
+                    value={rosterSearch}
+                    onChange={(e) => setRosterSearch(e.target.value)}
+                    className="w-full pl-8 h-8 rounded-lg border border-border bg-card text-xs focus:ring-1 focus:ring-[#476948] outline-none"
+                  />
+                </div>
+
+                <ul className="space-y-3">
+                  {assignableTalentList.map((talent) => (
+                    <li key={talent.id} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Avatar size="sm" className="size-7">
+                          <AvatarImage src={talent.avatarUrl} />
+                          <AvatarFallback className="text-[9px]">{talent.initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-foreground truncate leading-normal">{talent.name}</p>
+                          <p className="text-[9px] text-muted-foreground truncate leading-none mt-0.5">{talent.role}</p>
+                        </div>
+                      </div>
+
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => handleAssignTalent(talent.name)}
+                        className="text-[10px] font-semibold h-6 text-[#476948] border-[#476948] hover:bg-[#476948]/5 dark:text-[#a7d9b5]"
+                      >
+                        Assign
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="text-center pt-1 border-t border-border/40">
+                  <Link href="/roster" className="text-[10px] font-bold text-[#476948] dark:text-[#a7d9b5] uppercase tracking-wider hover:underline">
+                    View All Roster
+                  </Link>
+                </div>
+              </div>
+
+              {/* Widget 3: Agency Internal Notes (Locked/Private) */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Agency Internal
+                  </h4>
+                  <Lock className="size-3.5 text-muted-foreground/60" />
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Primary Contact</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Avatar size="sm" className="size-6">
+                        <AvatarFallback className="text-[8px] bg-muted">{MOCK_AGENCY_INTERNAL.primaryContact.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xs font-bold text-foreground leading-normal">{MOCK_AGENCY_INTERNAL.primaryContact.name}</p>
+                        <p className="text-[9px] text-muted-foreground leading-none">{MOCK_AGENCY_INTERNAL.primaryContact.role}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-border/40">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Internal Notes</p>
+                    <p className="text-xs text-muted-foreground bg-muted/30 border border-border/80 rounded-lg p-2.5 leading-relaxed font-medium">
+                      {MOCK_AGENCY_INTERNAL.internalNotes}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+/* ==========================================================================
+   STANDARD CAMPAIGN DETAIL PAGE (FALLBACK FOR OTHER ROLES)
+   ========================================================================== */
+function StandardCampaignDetailPage({ campaignId }: { campaignId: string }) {
+  const { data: campaign, isLoading } = useGetCampaignQuery(campaignId);
   const [updateCampaign, { isLoading: isSaving }] = useUpdateCampaignMutation();
 
   const [name, setName] = useState("");
@@ -75,7 +540,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await updateCampaign({
-      id,
+      id: campaignId,
       patch: {
         name,
         goals: goals || undefined,
@@ -165,9 +630,9 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         </div>
       </form>
 
-      <ShortlistSection campaignId={id} />
+      <ShortlistSection campaignId={campaignId} />
       <LinkOpportunitySection campaign={campaign} />
-      <AnalyticsSection campaignId={id} />
+      <AnalyticsSection campaignId={campaignId} />
     </div>
   );
 }

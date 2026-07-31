@@ -59,7 +59,14 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pt-2 md:pt-0">
           {navItems.map((item) => {
             const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+              pathname === item.href ||
+              (pathname.startsWith(`${item.href}/`) &&
+                !navItems.some(
+                  (other) =>
+                    other.href !== item.href &&
+                    other.href.startsWith(`${item.href}/`) &&
+                    pathname.startsWith(other.href)
+                ));
             const Icon = item.icon;
 
             return (

@@ -1,26 +1,10 @@
 import type { Metadata } from "next";
-
-import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
-import { SuggestedConnectionsCard } from "@/components/feed/suggested-connections-card";
-import { TrendingSkillsCard } from "@/components/shared/trending-skills-card";
-import { NewOpportunitiesCard } from "@/components/shared/new-opportunities-card";
-import { FeedView } from "@/app/(app)/home/feed-view";
+import { HomeClient } from "./home-client";
 
 export const metadata: Metadata = {
   title: "Home",
 };
 
 export default function HomePage() {
-  return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[1fr_320px]">
-      <FeedView />
-
-      <aside className="hidden space-y-5 lg:block lg:sticky lg:top-6 lg:self-start">
-        <ProfileCompletionCard />
-        <SuggestedConnectionsCard />
-        <TrendingSkillsCard />
-        <NewOpportunitiesCard />
-      </aside>
-    </div>
-  );
+  return <HomeClient />;
 }
