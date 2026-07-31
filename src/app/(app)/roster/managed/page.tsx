@@ -47,8 +47,8 @@ export default function ManagedTalentPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Managed Talent</h1>
           <p className="text-sm text-muted-foreground">
             Talent profiles you create and control directly — distinct from your{" "}

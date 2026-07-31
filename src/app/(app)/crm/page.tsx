@@ -243,15 +243,15 @@ function RelationshipCard({ relationship }: { relationship: BrandRelationshipDto
   }
 
   return (
-    <li className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
+    <li className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <Avatar size="lg">
             <AvatarImage src={relationship.brand?.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(relationship.brand?.name ?? "?")}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {relationship.brand ? (
                 <Link
                   href={`/profile/${relationship.brand.username}`}

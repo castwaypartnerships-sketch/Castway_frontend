@@ -25,14 +25,14 @@ export default function CampaignsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Campaigns</h1>
           <p className="text-sm text-muted-foreground">
             Brief creators, shortlist candidates, and generate contracts.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/campaigns/agencies"
             className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"

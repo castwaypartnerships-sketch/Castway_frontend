@@ -7,6 +7,7 @@ import type { PresenceChannel } from "pusher-js";
 import {
   Archive,
   ArchiveRestore,
+  ArrowLeft,
   BellOff,
   Check,
   CheckCheck,
@@ -64,6 +65,7 @@ export default function MessagesPage() {
   const searchParams = useSearchParams();
   const conversationIdFromQuery = searchParams.get("conversationId");
   const [manuallySelectedId, setManuallySelectedId] = useState<string | null>(null);
+  const [mobileShowThread, setMobileShowThread] = useState(false);
   const [filter, setFilter] = useState<InboxFilter>("all");
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
@@ -93,7 +95,12 @@ export default function MessagesPage() {
 
   return (
     <div className="flex h-full bg-card">
-      <aside className="w-80 shrink-0 overflow-y-auto border-r border-border">
+      <aside
+        className={cn(
+          "w-full shrink-0 overflow-y-auto border-r border-border md:block md:w-80",
+          mobileShowThread ? "hidden" : "block",
+        )}
+      >
         <div className="border-b border-border px-5 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-foreground">Messages</h1>
@@ -107,7 +114,12 @@ export default function MessagesPage() {
               >
                 {showArchived ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />}
               </Button>
-              <NewChatMenu onStarted={setManuallySelectedId} />
+              <NewChatMenu
+                onStarted={(id) => {
+                  setManuallySelectedId(id);
+                  setMobileShowThread(true);
+                }}
+              />
             </div>
           </div>
 
@@ -175,20 +187,29 @@ export default function MessagesPage() {
                 active={conversation.id === selectedId}
                 online={onlineUserIds.has(conversation.otherParticipant.userId)}
                 isCreator={isCreator}
-                onSelect={() => setManuallySelectedId(conversation.id)}
+                onSelect={() => {
+                  setManuallySelectedId(conversation.id);
+                  setMobileShowThread(true);
+                }}
               />
             ))}
           </ul>
         )}
       </aside>
 
-      <div className="flex-1 bg-[#f9fafb] dark:bg-background">
+      <div
+        className={cn(
+          "flex-1 bg-[#f9fafb] dark:bg-background",
+          mobileShowThread ? "block" : "hidden md:block",
+        )}
+      >
         {selectedId && selectedConversation ? (
           <ThreadView
             key={selectedId}
             conversationId={selectedId}
             conversation={selectedConversation}
             online={onlineUserIds.has(selectedConversation.otherParticipant.userId)}
+            onBack={() => setMobileShowThread(false)}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -488,10 +509,12 @@ function ThreadView({
   conversationId,
   conversation,
   online,
+  onBack,
 }: {
   conversationId: string;
   conversation: ConversationListItem;
   online: boolean;
+  onBack: () => void;
 }) {
   const { data: session } = useGetSessionQuery();
   const { data, isLoading } = useGetMessagesQuery(conversationId);
@@ -519,10 +542,19 @@ function ThreadView({
 
   return (
     <div className="flex h-full flex-col">
-      <Link
-        href={`/profile/${conversation.otherParticipant.username}`}
-        className="group/thread-header flex items-center gap-3 border-b border-border bg-card px-6 py-3.5 transition-colors hover:bg-accent/50"
-      >
+      <div className="flex items-center border-b border-border bg-card">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to conversations"
+          className="flex size-11 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground md:hidden"
+        >
+          <ArrowLeft className="size-5" />
+        </button>
+        <Link
+          href={`/profile/${conversation.otherParticipant.username}`}
+          className="group/thread-header flex min-w-0 flex-1 items-center gap-3 py-3.5 pr-6 pl-2 transition-colors hover:bg-accent/50 md:pl-6"
+        >
         <span className="relative shrink-0">
           <Avatar size="sm" className="transition-transform group-hover/thread-header:scale-105">
             <AvatarImage src={conversation.otherParticipant.avatarUrl ?? undefined} />
@@ -546,7 +578,8 @@ function ThreadView({
                   : "Offline"}
           </p>
         </div>
-      </Link>
+        </Link>
+      </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto px-6 py-5">
         {isLoading ? (

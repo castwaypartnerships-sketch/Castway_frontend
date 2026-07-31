@@ -24,7 +24,7 @@ export function FeedStatsRow() {
 
   if (dashboardLoading || profileLoading) {
     return (
-      <div className="flex gap-4">
+      <div className="hidden gap-4 md:flex">
         {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} className="h-24 flex-1 animate-pulse rounded-2xl border border-border bg-muted" />
         ))}
@@ -36,7 +36,7 @@ export function FeedStatsRow() {
   const isTalent = dashboard.kind === "CREATOR" || dashboard.kind === "FREELANCER";
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="hidden flex-wrap gap-4 md:flex">
       {isTalent ? (
         <StatCard icon={Sparkles} label="New Opportunities" value={dashboard.newOpportunitiesCount} />
       ) : null}

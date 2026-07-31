@@ -32,19 +32,19 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]">
             <Briefcase className="size-5" />
           </span>
-          <div>
+          <div className="min-w-0">
             <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Opportunities</h1>
             <p className="text-sm text-muted-foreground">
               Open hiring posts, collaborations, and brand deals from the network.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {canApplyToOpportunity(session?.user?.role) ? (
             <Link
               href="/applications"

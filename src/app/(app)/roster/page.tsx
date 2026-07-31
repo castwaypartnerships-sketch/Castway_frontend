@@ -47,8 +47,8 @@ export default function RosterPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Roster</h1>
           <p className="text-sm text-muted-foreground">
             Creators and freelancers you represent — they keep full control of their own profile and must

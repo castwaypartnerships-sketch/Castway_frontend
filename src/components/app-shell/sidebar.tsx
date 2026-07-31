@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { getNavItemsForRole } from "@/lib/nav-items";
 import { initialsFromName } from "@/lib/format";
@@ -87,18 +87,6 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
         </nav>
 
         <div className="space-y-4 px-3 pb-4">
-          <div className="rounded-xl bg-gradient-to-br from-[#a7d9b5] to-[#476948] p-4 text-white dark:from-[#25422d] dark:to-[#1c3322]">
-            <p className="text-xs font-bold tracking-wide uppercase">Castway Pro</p>
-            <p className="mt-1 text-xs opacity-90">Unlock exclusive leads &amp; premium insights.</p>
-            <button
-              type="button"
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#2d4a35] dark:text-[#1c3322]"
-            >
-              <Sparkles className="size-3.5" />
-              Upgrade Now
-            </button>
-          </div>
-
           <Link
             href={ownProfileHref}
             onClick={onClose}

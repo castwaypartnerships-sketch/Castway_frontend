@@ -93,8 +93,8 @@ function MyApplicationsView() {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">My Applications</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track where you&apos;ve applied and the status of each opportunity.
@@ -128,7 +128,7 @@ function MyApplicationsView() {
       ) : null}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof FILTER_TABS)[number]["value"])} className="mt-6">
-        <TabsList className="h-auto gap-2 rounded-none bg-transparent p-0">
+        <TabsList className="h-auto max-w-full gap-2 overflow-x-auto rounded-none bg-transparent p-0">
           {FILTER_TABS.map((filterTab) => (
             <TabsTrigger
               key={filterTab.value}
