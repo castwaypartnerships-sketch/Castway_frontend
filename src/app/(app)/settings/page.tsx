@@ -843,7 +843,9 @@ function PrivacyPanel() {
               onValueChange={(value) => handleChange({ ...settings, profileVisibility: value as Visibility })}
             >
               <SelectTrigger id="profile-visibility" className="w-44 shrink-0">
-                <SelectValue />
+                <SelectValue>
+                  {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {VISIBILITY_OPTIONS.map((option) => (
@@ -867,7 +869,9 @@ function PrivacyPanel() {
               onValueChange={(value) => handleChange({ ...settings, messagePermission: value as Visibility })}
             >
               <SelectTrigger id="message-permission" className="w-44 shrink-0">
-                <SelectValue />
+                <SelectValue>
+                  {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {VISIBILITY_OPTIONS.map((option) => (

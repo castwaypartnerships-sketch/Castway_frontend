@@ -32,6 +32,7 @@ export interface PublicProfileResponse {
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
+  postStats: { postsCount: number; totalLikes: number; totalComments: number };
   followerCount: number;
   followingCount: number;
   viewerIsFollowing: boolean;
@@ -40,9 +41,7 @@ export interface PublicProfileResponse {
   managedByAgency: { userId: string; username: string; name: string; avatarUrl: string | null } | null;
 }
 
-export interface MediaKitResponse extends PublicProfileResponse {
-  postStats: { postsCount: number; totalLikes: number; totalComments: number };
-}
+export type MediaKitResponse = PublicProfileResponse;
 
 export const searchApi = api.injectEndpoints({
   endpoints: (builder) => ({

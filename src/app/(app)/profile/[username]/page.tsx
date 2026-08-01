@@ -25,6 +25,11 @@ import {
   AlertCircle,
   Compass,
   StarHalf,
+  Award,
+  FileText,
+  Heart,
+  MessageCircle,
+  Rss,
 } from "lucide-react";
 
 import { useGetPublicProfileQuery } from "@/lib/redux/endpoints/search-api";
@@ -49,6 +54,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 import { initialsFromName, formatRelativeTime } from "@/lib/format";
+import { isImageUrl } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 
 // Import visual placeholders
@@ -1019,6 +1025,7 @@ function StandardProfileView({
     openOpportunities,
     availability,
     endorsementCounts,
+    postStats,
     followerCount,
     followingCount,
     viewerIsFollowing,
@@ -1338,6 +1345,24 @@ function StandardProfileView({
                   </div>
                 </section>
               ) : null}
+
+              <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <h2 className="font-heading text-lg font-bold text-foreground">Analytics</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Engagement from posts and endorsements on Castway.{" "}
+                  {isOwnProfile ? "Live metrics from connected platforms aren't synced yet." : ""}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <AnalyticsTile icon={Rss} label="Posts" value={postStats.postsCount} />
+                  <AnalyticsTile icon={Heart} label="Post Likes" value={postStats.totalLikes} />
+                  <AnalyticsTile icon={MessageCircle} label="Post Comments" value={postStats.totalComments} />
+                  <AnalyticsTile
+                    icon={Award}
+                    label="Endorsements"
+                    value={Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
+                  />
+                </div>
+              </section>
             </div>
 
             <div className="space-y-5">
@@ -1349,25 +1374,38 @@ function StandardProfileView({
         <TabsContent value="portfolio" className="mt-5">
           {profile.portfolioItems.length > 0 || isOwnProfile ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {profile.portfolioItems.map((item: any) => (
-                <a
-                  key={item.id}
-                  href={item.link ?? undefined}
-                  target={item.link ? "_blank" : undefined}
-                  rel={item.link ? "noreferrer" : undefined}
-                  className="group overflow-hidden rounded-2xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <div
-                    role="img"
-                    aria-label={item.title}
-                    className="aspect-video w-full rounded-lg bg-muted bg-cover bg-center"
-                    style={{ backgroundImage: `url(${item.imageUrl})` }}
-                  />
-                  <div className="mt-3 space-y-2">
-                    <p className="truncate text-sm font-semibold text-foreground">{item.title}</p>
-                  </div>
-                </a>
-              ))}
+              {profile.portfolioItems.map((item: any) => {
+                const isImage = isImageUrl(item.imageUrl);
+                // A non-image cover (PDF/video) has nothing to open unless the
+                // item also has a link, so fall back to the file itself.
+                const href = item.link ?? (!isImage ? item.imageUrl : undefined);
+                return (
+                  <a
+                    key={item.id}
+                    href={href}
+                    target={href ? "_blank" : undefined}
+                    rel={href ? "noreferrer" : undefined}
+                    className="group overflow-hidden rounded-2xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    {isImage ? (
+                      <div
+                        role="img"
+                        aria-label={item.title}
+                        className="aspect-video w-full rounded-lg bg-muted bg-cover bg-center"
+                        style={{ backgroundImage: `url(${item.imageUrl})` }}
+                      />
+                    ) : (
+                      <div className="flex aspect-video w-full items-center justify-center gap-1.5 rounded-lg bg-muted text-xs text-muted-foreground">
+                        <FileText className="size-4" />
+                        View file
+                      </div>
+                    )}
+                    <div className="mt-3 space-y-2">
+                      <p className="truncate text-sm font-semibold text-foreground">{item.title}</p>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
@@ -1445,6 +1483,28 @@ function SocialLinkCard({
         <p className="truncate text-sm font-semibold text-foreground">{href.replace(/^https?:\/\//, "")}</p>
       </div>
     </a>
+  );
+}
+
+function AnalyticsTile({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Rss;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-lg bg-muted/50 p-3">
+      <div className="flex items-center gap-1.5 text-muted-foreground">
+        <Icon className="size-3.5" />
+        <p className="text-[11px] font-medium">{label}</p>
+      </div>
+      <p className="mt-1 font-mono text-lg font-semibold text-foreground tabular-nums">
+        {value.toLocaleString()}
+      </p>
+    </div>
   );
 }
 

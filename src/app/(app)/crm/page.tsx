@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
+import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
 const DEAL_STAGE_LABELS: Record<DealStage, string> = {
@@ -83,7 +84,13 @@ export default function CrmPage() {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1fr_320px]">
       <div>
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Brand Relationships</h1>
+        <div className="flex items-center gap-1.5">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Brand Relationships</h1>
+          <SectionHelp
+            title="Brand CRM"
+            description="Your private pipeline of Brand and Agency contacts — track deal stage, log notes only you can see, and check Analytics to see how outreach is trending."
+          />
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Track the Brand and Agency accounts you&apos;ve dealt with — deal stage and private notes, just for
           you.
@@ -175,7 +182,13 @@ export default function CrmPage() {
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <h3 className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Pipeline Overview</h3>
+          <h3 className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+            Pipeline Overview
+            <SectionHelp
+              title="Pipeline Overview"
+              description="What share of your tracked relationships are Active Deals (New Contact, Negotiating, or Deal Closed) versus specifically Negotiating right now."
+            />
+          </h3>
           <div className="mt-4 space-y-3">
             <PipelineBar label="Active Deals" count={activeCount} total={items.length || 1} color="#476948" />
             <PipelineBar label="Negotiating" count={negotiatingCount} total={items.length || 1} color="#fbbf24" />

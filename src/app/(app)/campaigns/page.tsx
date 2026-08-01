@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectionHelp } from "@/components/shared/section-help";
 
 export default function CampaignsPage() {
   const { data, isLoading } = useGetCampaignsQuery();
@@ -27,7 +28,13 @@ export default function CampaignsPage() {
     <div className="mx-auto max-w-3xl space-y-5 px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Campaigns</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Campaigns</h1>
+            <SectionHelp
+              title="Campaigns"
+              description="Post a brief, review who applies, shortlist candidates, and generate contracts once you've picked talent — all from one campaign."
+            />
+          </div>
           <p className="text-sm text-muted-foreground">
             Brief creators, shortlist candidates, and generate contracts.
           </p>

@@ -13,6 +13,10 @@ export interface UploadSignature {
    * per-request file-size parameter, so this is enforced client-side before
    * upload rather than by Cloudinary itself. */
   maxFileSizeBytes: number;
+  /** Which Cloudinary upload endpoint to post to. `image` keeps avatars/
+   * covers/posts pinned to image-only uploads; `auto` (portfolio only) lets
+   * Cloudinary route PDFs/videos to the right resource type. */
+  resourceType: "image" | "auto";
 }
 
 export const uploadsApi = api.injectEndpoints({

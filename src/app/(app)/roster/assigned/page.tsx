@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
+import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
 /** AGENCY_MANAGER's scoped view of the on-behalf-of inbox — same read/reply
@@ -36,9 +37,15 @@ export default function AssignedRosterPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-6 py-6">
       <div>
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
-          My Assigned Roster
-        </h1>
+        <div className="flex items-center gap-1.5">
+          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+            My Assigned Roster
+          </h1>
+          <SectionHelp
+            title="My Assigned Roster"
+            description="The roster members your agency has assigned to you. Reply to their conversations and act on their behalf — you can't act for anyone not listed here."
+          />
+        </div>
         <p className="text-sm text-muted-foreground">
           Reply to conversations on behalf of the roster members assigned to you.
         </p>

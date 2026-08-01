@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { initialsFromName } from "@/lib/format";
+import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
 // Import visual placeholders/mocks
@@ -206,7 +207,13 @@ function AgencyTeamView() {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Team</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Team</h1>
+            <SectionHelp
+              title="Team"
+              description="Staff seats for your agency account — invite talent managers who can act on your roster's behalf (apply, message) without owning the account."
+            />
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage internal members who help run your agency&apos;s account.
           </p>
@@ -430,7 +437,13 @@ function AgencyTeamView() {
           {/* Recent Team Activity Section */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <h3 className="text-sm font-bold text-foreground">Recent Team Activity</h3>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-foreground">Recent Team Activity</h3>
+                <SectionHelp
+                  title="Recent Team Activity"
+                  description="A running log of what your teammates have done — invites sent, campaigns started, roster changes. Export it to keep an audit trail."
+                />
+              </div>
               <button
                 onClick={() => toast.success("Activity log exported successfully!")}
                 className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline uppercase tracking-wider"
@@ -462,7 +475,14 @@ function AgencyTeamView() {
           {/* Permissions Guide Card (Dark Green background) */}
           <div className="rounded-2xl bg-[#476948] text-white p-5 shadow-sm space-y-4 dark:bg-[#1a2f1f] dark:border dark:border-border/60">
             <div className="flex items-center justify-between border-b border-white/20 pb-2">
-              <h4 className="text-sm font-bold">Permissions Guide</h4>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-sm font-bold">Permissions Guide</h4>
+                <SectionHelp
+                  variant="dark"
+                  title="Permissions Guide"
+                  description="What each role can do when you invite a teammate. Pick the narrowest role that still lets them do their job."
+                />
+              </div>
               <Shield className="size-4 opacity-80" />
             </div>
 
@@ -512,7 +532,13 @@ function AgencyTeamView() {
           {/* Team Capacity Progress widget */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3.5">
             <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              <span>Team Capacity</span>
+              <span className="flex items-center gap-1.5">
+                Team Capacity
+                <SectionHelp
+                  title="Team Capacity"
+                  description="How many of your plan's team seats are in use. Once you hit the limit, remove an inactive teammate or upgrade to invite more."
+                />
+              </span>
               <span className="font-mono text-foreground">{MOCK_CAPACITY.usagePercent}%</span>
             </div>
 

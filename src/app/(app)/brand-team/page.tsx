@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SectionHelp } from "@/components/shared/section-help";
 
 /** Brand team seats — owner-provisioned (no self-serve signup), so the temp
  * password is shown exactly once here and never again; the owner is expected
@@ -58,7 +59,13 @@ export default function BrandTeamPage() {
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Team</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Team</h1>
+            <SectionHelp
+              title="Team"
+              description="Teammate seats for your brand account — everyone added here shares the same campaigns, opportunities, profile, feed, and messages as you."
+            />
+          </div>
           <p className="text-sm text-muted-foreground">
             Teammates share this whole account — same campaigns, opportunities, profile, feed, and messages.
           </p>

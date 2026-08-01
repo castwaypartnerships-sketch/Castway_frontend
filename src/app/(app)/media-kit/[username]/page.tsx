@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { Heart, Link2, MessageCircle, Rss } from "lucide-react";
+import { FileText, Heart, Link2, MessageCircle, Rss } from "lucide-react";
 
 import { useGetMediaKitQuery } from "@/lib/redux/endpoints/search-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrustBadge } from "@/components/profile/trust-badge";
 import { initialsFromName } from "@/lib/format";
+import { isImageUrl } from "@/lib/upload-image";
 
 export default function MediaKitPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
@@ -104,8 +105,20 @@ export default function MediaKitPage({ params }: { params: Promise<{ username: s
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {profile.portfolioItems.map((item) => (
               <div key={item.id} className="overflow-hidden rounded-xl border border-border bg-card">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.imageUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                {isImageUrl(item.imageUrl) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.imageUrl} alt={item.title} className="aspect-square w-full object-cover" />
+                ) : (
+                  <a
+                    href={item.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex aspect-square w-full items-center justify-center gap-1.5 bg-muted text-xs text-muted-foreground hover:underline"
+                  >
+                    <FileText className="size-4" />
+                    View file
+                  </a>
+                )}
                 <div className="p-2">
                   <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
                   {item.metrics && item.metrics.length > 0 ? (

@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { initialsFromName } from "@/lib/format";
+import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
 // Import visual placeholders
@@ -531,7 +532,13 @@ function AgencyCampaignsDashboard() {
           {/* List Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-5">
             <div>
-              <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Client Campaigns</h1>
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Client Campaigns</h1>
+                <SectionHelp
+                  title="Client Campaigns"
+                  description="Campaigns you post and manage on behalf of brands you co-manage. Pick a client, publish a brief, and assign talent — the brand sees it as their own."
+                />
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 Manage active briefs, applications, and talent assignments across your client campaigns.
               </p>
@@ -730,8 +737,12 @@ function AgencyCampaignsDashboard() {
               
               {/* Widget 1: Client Overview */}
               <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                <h4 className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
                   Client Overview
+                  <SectionHelp
+                    title="Client Overview"
+                    description="The brands you co-manage, with how many campaigns each has active right now. Select one from the filter above to see just their briefs."
+                  />
                 </h4>
                 
                 <ul className="space-y-3">
@@ -776,8 +787,12 @@ function AgencyCampaignsDashboard() {
 
               {/* Widget 2: Deadlines This Week */}
               <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3.5">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                <h4 className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
                   Deadlines This Week
+                  <SectionHelp
+                    title="Deadlines This Week"
+                    description="Application windows and deliverable due dates closing soon across your client campaigns — red means tomorrow."
+                  />
                 </h4>
 
                 <ul className="space-y-2.5">
@@ -805,8 +820,12 @@ function AgencyCampaignsDashboard() {
 
               {/* Widget 3: Top Performing */}
               <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
+                <h4 className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
                   Top Performing
+                  <SectionHelp
+                    title="Top Performing"
+                    description="Your client campaigns ranked by results — applicant volume, engagement, or completion rate, whichever's most notable for that brief."
+                  />
                 </h4>
 
                 <ul className="space-y-3">
@@ -849,9 +868,15 @@ function StandardAgencyClientsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div>
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
-          Client Campaigns
-        </h1>
+        <div className="flex items-center gap-1.5">
+          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
+            Client Campaigns
+          </h1>
+          <SectionHelp
+            title="Client Campaigns"
+            description="Brands you co-manage. Pick one to view or create campaign briefs on their behalf — only brands that added you as a co-manager show up here."
+          />
+        </div>
         <p className="text-sm text-muted-foreground">
           Brands you co-manage — view and create campaign briefs on their behalf.
         </p>

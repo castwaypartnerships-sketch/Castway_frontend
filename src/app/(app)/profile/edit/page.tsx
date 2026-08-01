@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { FileText, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -49,6 +49,7 @@ import { VerificationStatusAction } from "@/components/profile/verification-stat
 import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
 import { InlineImageUpload } from "@/components/upload/inline-image-upload";
+import { isImageUrl } from "@/lib/upload-image";
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -637,6 +638,7 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [metricLabel, setMetricLabel] = useState("");
   const [metricValue, setMetricValue] = useState("");
@@ -644,9 +646,10 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const metrics = metricLabel.trim() && metricValue.trim() ? [{ label: metricLabel, value: metricValue }] : undefined;
-    await addItem({ title, imageUrl, description: description || undefined, metrics }).unwrap();
+    await addItem({ title, imageUrl, link: link.trim() || undefined, description: description || undefined, metrics }).unwrap();
     setTitle("");
     setImageUrl("");
+    setLink("");
     setDescription("");
     setMetricLabel("");
     setMetricValue("");
@@ -670,8 +673,19 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
             <Input id="item-title" required value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>Cover image</Label>
+            <Label>Cover file</Label>
+            <p className="text-xs text-muted-foreground">Upload an image, PDF, or video to showcase this work.</p>
             <InlineImageUpload kind="portfolio" imageUrl={imageUrl} onUploaded={setImageUrl} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="item-link">Link (optional)</Label>
+            <Input
+              id="item-link"
+              type="url"
+              placeholder="https://…"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="item-description">Description</Label>
@@ -724,12 +738,34 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
         <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {items.map((item) => (
             <li key={item.id} className="overflow-hidden rounded-xl border border-border">
-              <div className="aspect-video bg-muted bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} />
+              {isImageUrl(item.imageUrl) ? (
+                <div className="aspect-video bg-muted bg-cover bg-center" style={{ backgroundImage: `url(${item.imageUrl})` }} />
+              ) : (
+                <a
+                  href={item.imageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex aspect-video items-center justify-center gap-1.5 bg-muted text-xs text-muted-foreground hover:underline"
+                >
+                  <FileText className="size-4" />
+                  View file
+                </a>
+              )}
               <div className="flex items-start justify-between gap-2 p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
                   {item.description ? (
                     <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+                  ) : null}
+                  {item.link ? (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate text-xs text-primary hover:underline"
+                    >
+                      {item.link}
+                    </a>
                   ) : null}
                   {item.metrics && item.metrics.length > 0 ? (
                     <p className="mt-1 text-xs font-medium text-primary">

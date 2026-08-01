@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SectionHelp } from "@/components/shared/section-help";
 
 /** Managed-talent sub-accounts — a second, deliberately separate ownership
  * model from Roster's invite/accept flow (`/roster/team`, `/roster`): the
@@ -49,7 +50,13 @@ export default function ManagedTalentPage() {
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Managed Talent</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Managed Talent</h1>
+            <SectionHelp
+              title="Managed Talent"
+              description="Sub-accounts your agency creates and fully controls directly — not independently-owned accounts that opted in via Roster."
+            />
+          </div>
           <p className="text-sm text-muted-foreground">
             Talent profiles you create and control directly — distinct from your{" "}
             <Link href="/roster" className="underline">

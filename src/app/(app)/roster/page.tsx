@@ -34,6 +34,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { initialsFromName } from "@/lib/format";
+import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
 type RosterTab = "view" | "applications" | "pipeline" | "catalog";
@@ -125,7 +126,13 @@ function AgencyRosterView() {
       {/* Redesigned Header: Title + Switcher */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Roster</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Roster</h1>
+            <SectionHelp
+              title="Roster"
+              description="Your represented talent. Invite creators/freelancers to join your agency, track who's accepted, and see each person's status at a glance."
+            />
+          </div>
           <p className="mt-1 text-sm text-muted-foreground max-w-xl leading-relaxed">
             {getSubTitleText()}
           </p>
@@ -401,6 +408,13 @@ function ApplicationsTabView() {
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Inbound Applications</h2>
+        <SectionHelp
+          title="Inbound Applications"
+          description="Creators and freelancers who applied to join your roster directly. Accept to add them to your roster, or decline to remove them from this list."
+        />
+      </div>
       {/* Filters Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2 max-w-sm flex-1">
@@ -568,6 +582,13 @@ function PipelineTabView({ roster }: { roster: RosterEntryDto[] }) {
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Pipeline</h2>
+        <SectionHelp
+          title="Pipeline"
+          description="Your roster's talent, grouped by stage — Invited, Accepted, Active on Campaign, and On Break. Scan the columns to see who's ready for a brief."
+        />
+      </div>
       {/* Search and counters */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2 max-w-sm flex-1">
@@ -748,7 +769,14 @@ function CatalogTabView({ ownProfile, roster }: { ownProfile: any; roster: Roste
 
   return (
     <div className="space-y-6">
-      
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Public Catalog</h2>
+        <SectionHelp
+          title="Public Catalog"
+          description="A shareable, public-facing page listing your roster members who've opted to be shown. Brands browsing your agency see exactly this."
+        />
+      </div>
+
       {/* Search & Select Filters */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
