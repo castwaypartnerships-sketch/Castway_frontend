@@ -11,6 +11,7 @@ import type {
   ProfileOpenOpportunity,
   ProfileUpdateInput,
   RateCardItemInput,
+  ResponseRateSignal,
   ResponseTimeSignal,
   SocialLinks,
   UnavailableRangeInput,
@@ -24,6 +25,7 @@ interface ProfileMeResponse {
   trustScore: number;
   reviewSummary: ReviewSummary;
   responseTime: ResponseTimeSignal | null;
+  responseRate: ResponseRateSignal | null;
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
