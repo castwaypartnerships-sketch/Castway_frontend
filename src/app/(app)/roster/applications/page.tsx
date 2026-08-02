@@ -12,6 +12,7 @@ const STATUS_VARIANT = {
   ACCEPTED: "default",
   REJECTED: "outline",
   WITHDRAWN: "outline",
+  COMPLETED: "default",
 } as const;
 
 /** Batch application management — an Agency's aggregated view of every

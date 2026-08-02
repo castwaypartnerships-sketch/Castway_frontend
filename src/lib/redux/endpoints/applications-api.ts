@@ -52,6 +52,10 @@ export const applicationsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { opportunityId }) => [{ type: "Applications", id: opportunityId }],
     }),
+    completeApplication: builder.mutation<void, { applicationId: string; opportunityId: string }>({
+      query: ({ applicationId }) => ({ url: `/applications/${applicationId}/complete`, method: "POST" }),
+      invalidatesTags: (_result, _error, { opportunityId }) => [{ type: "Applications", id: opportunityId }],
+    }),
   }),
 });
 
@@ -61,4 +65,5 @@ export const {
   useGetApplicationsForOpportunityQuery,
   useGetRosterApplicationsQuery,
   useSetApplicationStatusMutation,
+  useCompleteApplicationMutation,
 } = applicationsApi;

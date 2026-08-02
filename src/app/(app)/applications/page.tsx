@@ -24,6 +24,7 @@ const STATUS_META: Record<ApplicationStatus, { label: string; className: string 
   ACCEPTED: { label: "Accepted", className: "bg-[#e6f4ea] text-[#16a34a] dark:bg-[#1a261d] dark:text-[#daf0dd]" },
   REJECTED: { label: "Rejected", className: "bg-destructive/10 text-destructive" },
   WITHDRAWN: { label: "Withdrawn", className: "bg-muted text-muted-foreground" },
+  COMPLETED: { label: "Completed", className: "bg-[#e6f4ea] text-[#16a34a] dark:bg-[#1a261d] dark:text-[#daf0dd]" },
 };
 
 const OPPORTUNITY_TYPE_LABEL: Record<string, string> = {

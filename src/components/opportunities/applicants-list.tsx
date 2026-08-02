@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   useGetApplicationsForOpportunityQuery,
   useSetApplicationStatusMutation,
+  useCompleteApplicationMutation,
 } from "@/lib/redux/endpoints/applications-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { formatRelativeTime, initialsFromName } from "@/lib/format";
 export function ApplicantsList({ opportunityId }: { opportunityId: string }) {
   const { data, isLoading } = useGetApplicationsForOpportunityQuery(opportunityId);
   const [setStatus, { isLoading: isUpdating }] = useSetApplicationStatusMutation();
+  const [completeApplication, { isLoading: isCompleting }] = useCompleteApplicationMutation();
 
   async function handleStatus(applicationId: string, applicantName: string, status: "ACCEPTED" | "REJECTED") {
     try {
@@ -22,6 +24,15 @@ export function ApplicantsList({ opportunityId }: { opportunityId: string }) {
       toast.success(status === "ACCEPTED" ? `Accepted ${applicantName}` : `Rejected ${applicantName}`);
     } catch {
       toast.error("Couldn't update that application. Please try again.");
+    }
+  }
+
+  async function handleComplete(applicationId: string, applicantName: string) {
+    try {
+      await completeApplication({ applicationId, opportunityId }).unwrap();
+      toast.success(`Marked collaboration with ${applicantName} as complete`);
+    } catch {
+      toast.error("Couldn't mark that complete. Please try again.");
     }
   }
 
@@ -75,9 +86,25 @@ export function ApplicantsList({ opportunityId }: { opportunityId: string }) {
                 Accept
               </Button>
             </div>
+          ) : application.status === "ACCEPTED" ? (
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Badge>Accepted</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isCompleting}
+                onClick={() => handleComplete(application.id, application.applicant.name)}
+              >
+                Mark Complete
+              </Button>
+            </div>
           ) : (
-            <Badge variant={application.status === "ACCEPTED" ? "default" : "secondary"}>
-              {application.status === "ACCEPTED" ? "Accepted" : application.status === "REJECTED" ? "Rejected" : "Withdrawn"}
+            <Badge variant={application.status === "COMPLETED" ? "default" : "secondary"}>
+              {application.status === "COMPLETED"
+                ? "Completed"
+                : application.status === "REJECTED"
+                  ? "Rejected"
+                  : "Withdrawn"}
             </Badge>
           )}
         </li>
