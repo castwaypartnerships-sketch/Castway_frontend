@@ -35,6 +35,7 @@ export interface PublicProfileResponse {
   postStats: { postsCount: number; totalLikes: number; totalComments: number };
   followerCount: number;
   followingCount: number;
+  completedCollaborationsCount: number;
   viewerIsFollowing: boolean;
   /** Set only when this profile is a managed-talent sub-account (see
    * `ManagedTalentService`) — distinct from Roster's "Represented by". */
