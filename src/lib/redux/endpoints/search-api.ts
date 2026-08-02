@@ -6,6 +6,7 @@ import type {
   ProfileSearchFilters,
   Profile,
   ResponseTimeSignal,
+  ResponseRateSignal,
 } from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
@@ -29,6 +30,7 @@ export interface PublicProfileResponse {
   trustScore: number;
   reviewSummary: ReviewSummary;
   responseTime: ResponseTimeSignal | null;
+  responseRate: ResponseRateSignal | null;
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;

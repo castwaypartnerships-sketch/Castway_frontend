@@ -51,6 +51,12 @@ export interface ResponseTimeSignal {
   label: string;
 }
 
+export interface ResponseRateSignal {
+  repliedCount: number;
+  totalCount: number;
+  ratePercent: number | null;
+}
+
 /** "Live opportunities display on profile" — raw `Opportunity` fields only
  * (no `poster`/`viewerHasApplied` DTO enrichment, since the backend returns
  * this straight off `OpportunityService.listOpenByPoster` rather than
