@@ -38,6 +38,7 @@ const FILTER_TABS = [
   { value: "all", label: "All" },
   { value: "PENDING", label: "Pending" },
   { value: "ACCEPTED", label: "Accepted" },
+  { value: "COMPLETED", label: "Completed" },
   { value: "REJECTED", label: "Rejected" },
   { value: "WITHDRAWN", label: "Withdrawn" },
 ] as const;
@@ -79,7 +80,9 @@ function MyApplicationsView() {
   const total = items.length;
   const accepted = items.filter((a) => a.status === "ACCEPTED").length;
   const pending = items.filter((a) => a.status === "PENDING").length;
-  const decided = items.filter((a) => a.status === "ACCEPTED" || a.status === "REJECTED").length;
+  const decided = items.filter(
+    (a) => a.status === "ACCEPTED" || a.status === "REJECTED" || a.status === "COMPLETED",
+  ).length;
   const responseRate = total === 0 ? 0 : Math.round((decided / total) * 100);
 
   async function handleWithdraw(application: Application) {
