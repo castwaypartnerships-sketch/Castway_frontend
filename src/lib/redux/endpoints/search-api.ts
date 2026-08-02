@@ -39,6 +39,7 @@ export interface PublicProfileResponse {
   followingCount: number;
   completedCollaborationsCount: number;
   viewerIsFollowing: boolean;
+  role: string;
   /** Set only when this profile is a managed-talent sub-account (see
    * `ManagedTalentService`) — distinct from Roster's "Represented by". */
   managedByAgency: { userId: string; username: string; name: string; avatarUrl: string | null } | null;

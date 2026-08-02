@@ -31,6 +31,8 @@ import {
   MessageCircle,
   Rss,
 } from "lucide-react";
+import { FaInstagram, FaYoutube, FaLinkedin } from "react-icons/fa6";
+import { motion } from "framer-motion";
 
 import { useGetPublicProfileQuery } from "@/lib/redux/endpoints/search-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
@@ -78,8 +80,21 @@ function formatMonthYear(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
+function formatRole(role?: string): string {
+  if (!role) return "";
+  const r = role.toUpperCase();
+  if (r === "CREATOR") return "Creator";
+  if (r === "FREELANCER") return "Freelancer";
+  if (r === "BRAND" || r === "BRAND_TEAM_MEMBER") return "Brand";
+  if (r === "AGENCY" || r === "AGENCY_MANAGER") return "Agency";
+  return role;
+}
+
 const TAB_TRIGGER_CLASS =
   "rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-muted-foreground shadow-sm data-[state=active]:border-transparent data-[state=active]:bg-[#1c3322] data-[state=active]:text-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-[#25422d]";
+
+const NEW_TAB_TRIGGER_CLASS =
+  "relative py-3.5 px-4 text-sm font-normal text-muted-foreground data-[state=active]:text-[#1F5F3F] data-[state=active]:font-medium bg-transparent border-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 select-none cursor-pointer data-active:bg-transparent data-active:border-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent after:hidden";
 
 export default function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
@@ -126,7 +141,7 @@ function AgencyProfileView({
   isOwnProfile: boolean;
 }) {
   const router = useRouter();
-  const { profile, isVerified } = profileData;
+  const { profile, isVerified, role } = profileData;
 
   const { data: session } = useGetSessionQuery();
   const { data: roster } = useGetMyRosterQuery(undefined, { skip: !isOwnProfile });
@@ -343,9 +358,11 @@ function AgencyProfileView({
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground leading-none">{profile.name}</h1>
               {isVerified ? <BadgeCheck className="size-5 text-[#476948] dark:text-[#a7d9b5]" /> : null}
-              <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider bg-muted/40">
-                Agency
-              </Badge>
+              {role && (
+                <span className="rounded-full border border-[#1F5F3F]/35 bg-[#1F5F3F]/5 px-2.5 py-1 text-xs font-semibold text-[#1F5F3F] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]">
+                  {formatRole(role)}
+                </span>
+              )}
             </div>
             {profile.headline ? <p className="text-sm text-muted-foreground leading-normal">{profile.headline}</p> : null}
             <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-muted-foreground">
@@ -361,6 +378,54 @@ function AgencyProfileView({
                 Joined {formatMonthYear(profile.createdAt)}
               </span>
             </div>
+            {profile.socialLinks && (profile.socialLinks.instagram || profile.socialLinks.youtube || profile.socialLinks.linkedin || profile.socialLinks.website) ? (
+              <div className="flex items-center gap-4 pt-2.5" id="agency-social-links">
+                {profile.socialLinks.instagram && (
+                  <a
+                    href={profile.socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <FaInstagram className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.youtube && (
+                  <a
+                    href={profile.socialLinks.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="YouTube"
+                  >
+                    <FaYoutube className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.linkedin && (
+                  <a
+                    href={profile.socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <FaLinkedin className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.website && (
+                  <a
+                    href={profile.socialLinks.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="Website"
+                  >
+                    <Globe className="size-5" />
+                  </a>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -388,12 +453,57 @@ function AgencyProfileView({
 
       {/* Tab Switcher and Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="h-auto flex-wrap gap-2 rounded-none bg-transparent p-0 border-b border-border/40 pb-2 w-full justify-start">
-          <TabsTrigger value="overview" className={TAB_TRIGGER_CLASS}>Overview</TabsTrigger>
-          <TabsTrigger value="roster" className={TAB_TRIGGER_CLASS}>Roster (Public)</TabsTrigger>
-          <TabsTrigger value="case-studies" className={TAB_TRIGGER_CLASS}>Case Studies</TabsTrigger>
-          <TabsTrigger value="campaigns" className={TAB_TRIGGER_CLASS}>Campaigns</TabsTrigger>
-          <TabsTrigger value="reviews" className={TAB_TRIGGER_CLASS}>Reviews</TabsTrigger>
+        <TabsList variant="line" className="h-auto flex w-full justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
+          <TabsTrigger value="overview" className={NEW_TAB_TRIGGER_CLASS}>
+            <span>Overview</span>
+            {activeTab === "overview" && (
+              <motion.div
+                layoutId="agency-underline"
+                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+              />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="roster" className={NEW_TAB_TRIGGER_CLASS}>
+            <span>Roster (Public)</span>
+            {activeTab === "roster" && (
+              <motion.div
+                layoutId="agency-underline"
+                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+              />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="case-studies" className={NEW_TAB_TRIGGER_CLASS}>
+            <span>Case Studies</span>
+            {activeTab === "case-studies" && (
+              <motion.div
+                layoutId="agency-underline"
+                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+              />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="campaigns" className={NEW_TAB_TRIGGER_CLASS}>
+            <span>Campaigns</span>
+            {activeTab === "campaigns" && (
+              <motion.div
+                layoutId="agency-underline"
+                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+              />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="reviews" className={NEW_TAB_TRIGGER_CLASS}>
+            <span>Reviews</span>
+            {activeTab === "reviews" && (
+              <motion.div
+                layoutId="agency-underline"
+                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+              />
+            )}
+          </TabsTrigger>
         </TabsList>
 
         {/* ------------------------------------------------------------------
@@ -1019,6 +1129,7 @@ function StandardProfileView({
   const {
     profile,
     isVerified,
+    role,
     trustScore,
     reviewSummary,
     responseTime,
@@ -1046,6 +1157,29 @@ function StandardProfileView({
   const { data: reviewsData } = useGetReviewsForUserQuery(profile.userId);
   const { data: dashboard } = useGetDashboardQuery(undefined, { skip: !isOwnProfile });
   const { data: ownProfile } = useGetOwnProfileQuery(undefined, { skip: !isOwnProfile });
+
+  const [activeTab, setActiveTab] = useState("overview");
+  const isTalent = role === "CREATOR" || role === "FREELANCER";
+
+  const standardTabs = [
+    { value: "overview", label: "Overview" },
+    { value: "portfolio", label: "Portfolio" },
+    { value: "experience", label: "Experience" },
+    { value: "reviews", label: "Reviews" },
+  ];
+  if (isTalent) {
+    standardTabs.push({ value: "analytics", label: "Analytics" });
+  } else {
+    if (profile.rateCardItems.length > 0 || profile.minRate || profile.maxRate) {
+      standardTabs.push({ value: "rates", label: "Rates" });
+    }
+    if (profile.caseStudies.length > 0) {
+      standardTabs.push({ value: "case-studies", label: "Case Studies" });
+    }
+    if (openOpportunities.length > 0) {
+      standardTabs.push({ value: "opportunities", label: "Opportunities" });
+    }
+  }
 
   async function handleMessage() {
     const conversation = await startConversation(profile.userId).unwrap();
@@ -1170,6 +1304,11 @@ function StandardProfileView({
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">{profile.name}</h1>
               {isVerified ? <BadgeCheck className="size-5 text-[#476948] dark:text-[#a7d9b5]" /> : null}
+              {role && (
+                <span className="rounded-full border border-[#1F5F3F]/35 bg-[#1F5F3F]/5 px-2.5 py-1 text-xs font-semibold text-[#1F5F3F] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]">
+                  {formatRole(role)}
+                </span>
+              )}
               {profile.availableForWork ? (
                 <span className="rounded-full bg-[#e6f4ea] px-2.5 py-1 text-xs font-semibold text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]">
                   Open to Work
@@ -1192,6 +1331,54 @@ function StandardProfileView({
                 Joined {formatMonthYear(profile.createdAt)}
               </span>
             </div>
+            {profile.socialLinks && (profile.socialLinks.instagram || profile.socialLinks.youtube || profile.socialLinks.linkedin || profile.socialLinks.website) ? (
+              <div className="flex items-center gap-4 pt-2.5" id="standard-social-links">
+                {profile.socialLinks.instagram && (
+                  <a
+                    href={profile.socialLinks.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <FaInstagram className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.youtube && (
+                  <a
+                    href={profile.socialLinks.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="YouTube"
+                  >
+                    <FaYoutube className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.linkedin && (
+                  <a
+                    href={profile.socialLinks.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <FaLinkedin className="size-5" />
+                  </a>
+                )}
+                {profile.socialLinks.website && (
+                  <a
+                    href={profile.socialLinks.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-[#1F5F3F] transition-colors"
+                    aria-label="Website"
+                  >
+                    <Globe className="size-5" />
+                  </a>
+                )}
+              </div>
+            ) : null}
             {managedByAgency ? (
               <p className="text-xs text-muted-foreground">
                 Managed by{" "}
@@ -1244,21 +1431,20 @@ function StandardProfileView({
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview">
-        <TabsList className="h-auto flex-wrap gap-2 rounded-none bg-transparent p-0">
-          <TabsTrigger value="overview" className={TAB_TRIGGER_CLASS}>Overview</TabsTrigger>
-          <TabsTrigger value="portfolio" className={TAB_TRIGGER_CLASS}>Portfolio</TabsTrigger>
-          <TabsTrigger value="experience" className={TAB_TRIGGER_CLASS}>Experience</TabsTrigger>
-          <TabsTrigger value="reviews" className={TAB_TRIGGER_CLASS}>Reviews</TabsTrigger>
-          {profile.rateCardItems.length > 0 || profile.minRate || profile.maxRate ? (
-            <TabsTrigger value="rates" className={TAB_TRIGGER_CLASS}>Rates</TabsTrigger>
-          ) : null}
-          {profile.caseStudies.length > 0 ? (
-            <TabsTrigger value="case-studies" className={TAB_TRIGGER_CLASS}>Case Studies</TabsTrigger>
-          ) : null}
-          {openOpportunities.length > 0 ? (
-            <TabsTrigger value="opportunities" className={TAB_TRIGGER_CLASS}>Opportunities</TabsTrigger>
-          ) : null}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList variant="line" className="h-auto flex w-full justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
+          {standardTabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className={NEW_TAB_TRIGGER_CLASS}>
+              <span>{tab.label}</span>
+              {activeTab === tab.value && (
+                <motion.div
+                  layoutId="standard-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="overview" className="mt-5">
@@ -1372,7 +1558,7 @@ function StandardProfileView({
         </TabsContent>
 
         <TabsContent value="portfolio" className="mt-5">
-          {profile.portfolioItems.length > 0 || isOwnProfile ? (
+          {profile.portfolioItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {profile.portfolioItems.map((item: any) => {
                 const isImage = isImageUrl(item.imageUrl);
@@ -1408,9 +1594,18 @@ function StandardProfileView({
               })}
             </div>
           ) : (
-            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-              No portfolio items yet.
-            </p>
+            <div className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-4">
+              <span>No portfolio items yet.</span>
+              {isOwnProfile && (
+                <Link
+                  href="/profile/edit#portfolio-section"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5F3F] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1A4F35] transition-colors"
+                >
+                  <Plus className="size-4" />
+                  Add Portfolio Item
+                </Link>
+              )}
+            </div>
           )}
         </TabsContent>
 
@@ -1454,6 +1649,112 @@ function StandardProfileView({
             </>
           )}
         </TabsContent>
+
+        {isTalent && (
+          <TabsContent value="analytics" className="mt-5 space-y-5">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2 mb-2">
+              <AlertCircle className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Demonstration Mode</span>
+                <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
+                  Live social platform analytics integration is currently pending. Displaying demonstration mock data below alongside real platform engagement metrics.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
+                  <Globe className="size-5 text-[#1F5F3F]" />
+                  Connected Platforms
+                </h2>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <FaYoutube className="size-4 text-red-600" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">YouTube</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground leading-tight">120K</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Subscribers (Demo)</p>
+                  </div>
+
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <FaInstagram className="size-4 text-pink-600" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Instagram</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground leading-tight">85K</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Followers (Demo)</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Est. Reach</span>
+                    <p className="text-xl font-bold text-foreground mt-1">205K</p>
+                    <p className="text-[10px] text-muted-foreground">Combined Monthly (Demo)</p>
+                  </div>
+
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Engagement</span>
+                    <p className="text-xl font-bold text-foreground mt-1">4.2%</p>
+                    <p className="text-[10px] text-muted-foreground">Average Rate (Demo)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
+                  <Award className="size-5 text-[#1F5F3F]" />
+                  Castway Performance
+                </h2>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <Rss className="size-4 text-[#476948]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Posts</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground leading-tight">{postStats.postsCount}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Published Content</p>
+                  </div>
+
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <Plus className="size-4 text-[#476948]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Endorsements</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground leading-tight">
+                      {Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Skills Endorsed</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <Heart className="size-4 text-[#476948]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Likes Received</span>
+                    </div>
+                    <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalLikes}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
+                  </div>
+
+                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                      <MessageCircle className="size-4 text-[#476948]" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Comments</span>
+                    </div>
+                    <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalComments}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

@@ -29,6 +29,7 @@ interface ProfileMeResponse {
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
+  role?: string;
 }
 
 export const profileApi = api.injectEndpoints({
