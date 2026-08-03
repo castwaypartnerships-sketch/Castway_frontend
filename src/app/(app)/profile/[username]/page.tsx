@@ -23,6 +23,8 @@ import {
   Star,
   TrendingUp,
   Users,
+  ArrowUp,
+  ArrowDown,
   Video,
   AlertCircle,
   Compass,
@@ -1193,7 +1195,13 @@ function StandardProfileView({
       ? "—"
       : `${(((postStats.totalLikes + postStats.totalComments) / postStats.postsCount / followerCount) * 100).toFixed(1)}%`;
 
-  const stats: { icon: typeof Users; label: string; value: string | number }[] = isTalent
+  const stats: { 
+    icon: typeof Users; 
+    label: string; 
+    value: string | number; 
+    trend?: "up" | "down"; 
+    trendValue?: string;
+  }[] = isTalent
     ? [
         { icon: Users, label: "Followers", value: followerCount.toLocaleString() },
         { icon: Eye, label: "Average Views", value: postStats.averageViews.toLocaleString() },
@@ -1434,6 +1442,15 @@ function StandardProfileView({
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
             <div className="flex items-center gap-1.5">
               <h3 className="text-xl font-bold font-mono text-foreground leading-none">{stat.value}</h3>
+              {stat.trend && stat.trendValue && (
+                <span className={cn(
+                  "ml-auto text-xs font-bold flex items-center gap-0.5",
+                  stat.trend === "up" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                )}>
+                  {stat.trend === "up" ? <ArrowUp className="size-3 stroke-[3]" /> : <ArrowDown className="size-3 stroke-[3]" />}
+                  {stat.trendValue}
+                </span>
+              )}
             </div>
           </div>
         ))}
@@ -1866,6 +1883,9 @@ function ExperienceTimeline({ entries }: { entries: Experience[] }) {
               {" – "}
               {entry.current ? "Present" : entry.endDate ? formatMonthYear(entry.endDate) : "Present"}
             </p>
+            {entry.description && (
+              <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">{entry.description}</p>
+            )}
           </div>
         </li>
       ))}
@@ -1884,7 +1904,19 @@ function EducationList({ entries }: { entries: Education[] }) {
       <ul className="mt-4 space-y-3">
         {entries.map((entry) => (
           <li key={entry.id}>
-            <p className="text-sm font-semibold text-foreground">{entry.school}</p>
+            <p className="text-sm font-bold text-foreground">{entry.school}</p>
+            {(entry.degree || entry.fieldOfStudy) && (
+              <p className="text-sm text-foreground mt-0.5">
+                {[entry.degree, entry.fieldOfStudy].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {(entry.startDate || entry.endDate) && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {entry.startDate ? formatMonthYear(entry.startDate) : ""}
+                {entry.startDate && entry.endDate ? " – " : ""}
+                {entry.endDate ? formatMonthYear(entry.endDate) : ""}
+              </p>
+            )}
           </li>
         ))}
       </ul>

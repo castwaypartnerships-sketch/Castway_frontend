@@ -42,12 +42,12 @@ export const profileApi = api.injectEndpoints({
     updateProfile: builder.mutation<ProfileMeResponse, ProfileUpdateInput>({
       query: (body) => ({ url: "/profile/me", method: "PATCH", body }),
       transformResponse: (response: { data: ProfileMeResponse }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addPortfolioItem: builder.mutation<{ profile: Profile }, PortfolioItemInput>({
       query: (body) => ({ url: "/profile/portfolio", method: "POST", body }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updatePortfolioItem: builder.mutation<
       { profile: Profile },
@@ -59,17 +59,17 @@ export const profileApi = api.injectEndpoints({
         body: patch,
       }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removePortfolioItem: builder.mutation<{ profile: Profile }, string>({
       query: (itemId) => ({ url: `/profile/portfolio/${itemId}`, method: "DELETE" }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addRateCardItem: builder.mutation<{ profile: Profile }, RateCardItemInput>({
       query: (body) => ({ url: "/profile/rate-card", method: "POST", body }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateRateCardItem: builder.mutation<
       { profile: Profile },
@@ -81,22 +81,22 @@ export const profileApi = api.injectEndpoints({
         body: patch,
       }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removeRateCardItem: builder.mutation<{ profile: Profile }, string>({
       query: (itemId) => ({ url: `/profile/rate-card/${itemId}`, method: "DELETE" }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     setRateCardVisibility: builder.mutation<{ profile: Profile }, boolean>({
       query: (visible) => ({ url: "/profile/rate-card/visibility", method: "PATCH", body: { visible } }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addCaseStudy: builder.mutation<{ profile: Profile }, CaseStudyInput>({
       query: (body) => ({ url: "/profile/case-studies", method: "POST", body }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateCaseStudy: builder.mutation<
       { profile: Profile },
@@ -108,37 +108,37 @@ export const profileApi = api.injectEndpoints({
         body: patch,
       }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removeCaseStudy: builder.mutation<{ profile: Profile }, string>({
       query: (itemId) => ({ url: `/profile/case-studies/${itemId}`, method: "DELETE" }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateSubSpecializations: builder.mutation<{ profile: Profile }, string[]>({
       query: (tags) => ({ url: "/profile/sub-specializations", method: "PATCH", body: { tags } }),
       transformResponse: (response: { data: Profile }) => ({ profile: response.data }),
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addUnavailableRange: builder.mutation<{ profile: Profile }, UnavailableRangeInput>({
       query: (body) => ({ url: "/profile/me/unavailable-ranges", method: "POST", body }),
       transformResponse: (response: { data: { profile: Profile } }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removeUnavailableRange: builder.mutation<{ profile: Profile }, string>({
       query: (rangeId) => ({ url: `/profile/me/unavailable-ranges/${rangeId}`, method: "DELETE" }),
       transformResponse: (response: { data: { profile: Profile } }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateSocialLinks: builder.mutation<Profile, SocialLinks>({
       query: (body) => ({ url: "/profile/me/social-links", method: "PATCH", body }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addExperience: builder.mutation<Profile, ExperienceInput>({
       query: (body) => ({ url: "/profile/me/experience", method: "POST", body }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateExperience: builder.mutation<Profile, { entryId: string; patch: Partial<ExperienceInput> }>({
       query: ({ entryId, patch }) => ({
@@ -147,17 +147,17 @@ export const profileApi = api.injectEndpoints({
         body: patch,
       }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removeExperience: builder.mutation<Profile, string>({
       query: (entryId) => ({ url: `/profile/me/experience/${entryId}`, method: "DELETE" }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     addEducation: builder.mutation<Profile, EducationInput>({
       query: (body) => ({ url: "/profile/me/education", method: "POST", body }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     updateEducation: builder.mutation<Profile, { entryId: string; patch: Partial<EducationInput> }>({
       query: ({ entryId, patch }) => ({
@@ -166,12 +166,12 @@ export const profileApi = api.injectEndpoints({
         body: patch,
       }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     removeEducation: builder.mutation<Profile, string>({
       query: (entryId) => ({ url: `/profile/me/education/${entryId}`, method: "DELETE" }),
       transformResponse: (response: { data: Profile }) => response.data,
-      invalidatesTags: ["Dashboard"],
+      invalidatesTags: ["Dashboard", "PublicProfile"],
     }),
     getTrendingSkills: builder.query<{ items: { skill: string; count: number }[] }, void>({
       query: () => "/profile/trending-skills",

@@ -71,7 +71,10 @@ export const searchApi = api.injectEndpoints({
     getPublicProfile: builder.query<PublicProfileResponse, string>({
       query: (username) => `/profile/public/${username}`,
       transformResponse: (response: { data: PublicProfileResponse }) => response.data,
-      providesTags: (_result, _error, username) => [{ type: "Endorsements", id: username }],
+      providesTags: (_result, _error, username) => [
+        { type: "Endorsements", id: username },
+        { type: "PublicProfile", id: username },
+      ],
     }),
     getMediaKit: builder.query<MediaKitResponse, string>({
       query: (username) => `/profile/${username}/media-kit`,

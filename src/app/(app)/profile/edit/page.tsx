@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { FileText, Plus, Trash2 } from "lucide-react";
+import { FileText, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -19,6 +19,7 @@ import {
   useRemoveRateCardItemMutation,
   useRemoveUnavailableRangeMutation,
   useSetRateCardVisibilityMutation,
+  useUpdateExperienceMutation,
   useUpdateProfileMutation,
   useUpdateSocialLinksMutation,
   useUpdateSubSpecializationsMutation,
@@ -418,8 +419,10 @@ function SocialLinksSection({ socialLinks }: { socialLinks: SocialLinks | null }
 
 function ExperienceSection({ entries }: { entries: Experience[] }) {
   const [addEntry, { isLoading: isAdding }] = useAddExperienceMutation();
+  const [updateEntry, { isLoading: isUpdating }] = useUpdateExperienceMutation();
   const [removeEntry] = useRemoveExperienceMutation();
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -427,16 +430,7 @@ function ExperienceSection({ entries }: { entries: Experience[] }) {
   const [current, setCurrent] = useState(false);
   const [description, setDescription] = useState("");
 
-  async function handleAdd(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await addEntry({
-      title,
-      company,
-      startDate,
-      endDate: current ? undefined : endDate || undefined,
-      current,
-      description: description || undefined,
-    }).unwrap();
+  function resetForm() {
     setTitle("");
     setCompany("");
     setStartDate("");
@@ -444,20 +438,64 @@ function ExperienceSection({ entries }: { entries: Experience[] }) {
     setCurrent(false);
     setDescription("");
     setShowForm(false);
+    setEditingId(null);
   }
+
+  function startEdit(entry: Experience) {
+    setEditingId(entry.id);
+    setTitle(entry.title);
+    setCompany(entry.company);
+    setStartDate(entry.startDate.slice(0, 10));
+    setEndDate(entry.endDate ? entry.endDate.slice(0, 10) : "");
+    setCurrent(entry.current);
+    setDescription(entry.description ?? "");
+    setShowForm(false);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const payload = {
+      title,
+      company,
+      startDate,
+      endDate: current ? undefined : endDate || undefined,
+      current,
+      description: description || undefined,
+    };
+    if (editingId) {
+      await updateEntry({ entryId: editingId, patch: payload }).unwrap();
+      toast.success("Experience updated");
+    } else {
+      await addEntry(payload).unwrap();
+      toast.success("Experience added");
+    }
+    resetForm();
+  }
+
+  const isFormOpen = showForm || editingId !== null;
 
   return (
     <section id="experience-section" className="scroll-mt-6 rounded-2xl border border-border bg-card p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Experience</h2>
-        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowForm((v) => !v)}>
-          <Plus className="size-4" />
-          Add
-        </Button>
+        {!isFormOpen && (
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => { resetForm(); setShowForm(true); }}>
+            <Plus className="size-4" />
+            Add
+          </Button>
+        )}
       </div>
 
-      {showForm ? (
-        <form onSubmit={handleAdd} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+      {isFormOpen ? (
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3 rounded-xl border border-border p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {editingId ? "Edit Experience" : "Add Experience"}
+            </p>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Cancel" onClick={resetForm}>
+              <X className="size-4" />
+            </Button>
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="exp-title">Title</Label>
@@ -498,9 +536,14 @@ function ExperienceSection({ entries }: { entries: Experience[] }) {
             <Label htmlFor="exp-description">Description (optional)</Label>
             <Textarea id="exp-description" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
-          <Button type="submit" size="sm" disabled={isAdding}>
-            {isAdding ? "Adding…" : "Add"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button type="submit" size="sm" disabled={isAdding || isUpdating}>
+              {editingId ? (isUpdating ? "Saving…" : "Save Changes") : (isAdding ? "Adding…" : "Add")}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={resetForm}>
+              Cancel
+            </Button>
+          </div>
         </form>
       ) : null}
 
@@ -527,9 +570,14 @@ function ExperienceSection({ entries }: { entries: Experience[] }) {
                   <p className="mt-1 truncate text-xs text-muted-foreground">{entry.description}</p>
                 ) : null}
               </div>
-              <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeEntry(entry.id)}>
-                <Trash2 className="size-3.5" />
-              </Button>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button variant="ghost" size="icon-sm" aria-label="Edit" onClick={() => startEdit(entry)}>
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon-sm" aria-label="Remove" onClick={() => removeEntry(entry.id)}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
             </li>
           ))}
         </ul>

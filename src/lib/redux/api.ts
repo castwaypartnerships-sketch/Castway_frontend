@@ -122,6 +122,7 @@ export const api = createApi({
     "BrandTeam",
     "ShortlistComments",
     "ManagedTalent",
+    "PublicProfile",
   ],
   endpoints: () => ({}),
 });
