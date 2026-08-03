@@ -24,9 +24,7 @@ import {
   TrendingUp,
   Users,
   Video,
-  AlertCircle,
   Compass,
-  StarHalf,
   Award,
   FileText,
   Heart,
@@ -45,7 +43,7 @@ import { useGetRepresentingAgenciesQuery, useSetPubliclyListedMutation, useGetMy
 import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
 import { useGetReviewsForUserQuery } from "@/lib/redux/endpoints/reviews-api";
 import { useGetClientCampaignsQuery, useGetCampaignsQuery, useAddToShortlistMutation } from "@/lib/redux/endpoints/campaigns-api";
-import type { DateRange, Education, Experience, Profile } from "@/lib/types/profile";
+import type { AgencySize, DateRange, Education, Experience, Profile } from "@/lib/types/profile";
 import type { RosterEntryDto } from "@/lib/types/roster";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -58,23 +56,6 @@ import { initialsFromName, formatRelativeTime } from "@/lib/format";
 import { isImageUrl } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 import { isHiringRole } from "@/lib/rbac";
-
-// Import visual placeholders
-import {
-  MOCK_PROFILE_STATS,
-  MOCK_COMPANY_ABOUT,
-  MOCK_SPECIALTIES,
-  MOCK_INDUSTRIES_SERVED,
-  MOCK_PROFILE_STRENGTH_ITEMS,
-  MOCK_COMPANY_INFO,
-  MOCK_SOCIAL_PRESENCE,
-  MOCK_PUBLIC_ROSTER,
-  MOCK_SIMILAR_AGENCIES,
-  MOCK_CASE_STUDIES,
-  MOCK_REVIEWS_SUMMARY,
-  MOCK_REVIEWS_LIST,
-} from "@/lib/mocks/profile-data";
-import { MOCK_LISTED_CAMPAIGNS } from "@/lib/mocks/campaigns-data";
 
 function formatMonthYear(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -95,6 +76,13 @@ const TAB_TRIGGER_CLASS =
 
 const NEW_TAB_TRIGGER_CLASS =
   "relative py-3.5 px-4 text-sm font-normal text-muted-foreground data-[state=active]:text-[#1F5F3F] data-[state=active]:font-medium bg-transparent border-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 select-none cursor-pointer data-active:bg-transparent data-active:border-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent after:hidden";
+
+const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
+  SOLO: "Just me",
+  SMALL: "2-10 people",
+  MEDIUM: "11-50 people",
+  LARGE: "51+ people",
+};
 
 export default function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
@@ -166,19 +154,14 @@ function AgencyProfileView({
   // Header Stats Selection
   // --------------------------------------------------------------------------
   const getHeaderStats = () => {
-    // Roster count
-    let rosterSizeText = MOCK_PROFILE_STATS[0].value;
+    // Only real data we have is the accepted roster count, and only for the
+    // owner viewing their own dashboard (no public roster-size query exists).
+    const stats: { label: string; value: string; showStars?: boolean }[] = [];
     if (isOwnProfile && roster?.items) {
       const acceptedCount = roster.items.filter((r) => r.status === "ACCEPTED").length;
-      rosterSizeText = `${acceptedCount} Talent`;
+      stats.push({ label: "Roster Size", value: `${acceptedCount} Talent` });
     }
-
-    return [
-      { label: "Roster Size", value: rosterSizeText },
-      { label: "Active Campaigns", value: MOCK_PROFILE_STATS[1].value },
-      { label: "Client Satisfaction", value: MOCK_PROFILE_STATS[2].value, showStars: true },
-      { label: "Years on Castway", value: MOCK_PROFILE_STATS[3].value },
-    ];
+    return stats;
   };
 
   const headerStatsList = getHeaderStats();
@@ -187,10 +170,10 @@ function AgencyProfileView({
   // specialties / industries checks
   // --------------------------------------------------------------------------
   const hasRealBio = !!profile.bio;
-  const specialties = profile.skills.length > 0 ? profile.skills : MOCK_SPECIALTIES;
+  const specialties = profile.skills;
   const hasRealSpecialties = profile.skills.length > 0;
 
-  const industries = profile.subSpecializations.length > 0 ? profile.subSpecializations : MOCK_INDUSTRIES_SERVED;
+  const industries = profile.subSpecializations;
   const hasRealIndustries = profile.subSpecializations.length > 0;
 
   // --------------------------------------------------------------------------
@@ -213,20 +196,14 @@ function AgencyProfileView({
   };
 
   const realPublicRoster = getPublicRosterItems();
-  const showMockRoster = realPublicRoster.length === 0;
-  const displayRoster = showMockRoster ? MOCK_PUBLIC_ROSTER : realPublicRoster;
+  const hasPublicRoster = realPublicRoster.length > 0;
+  const displayRoster = realPublicRoster;
 
   // --------------------------------------------------------------------------
   // Case Studies filtering
   // --------------------------------------------------------------------------
   const hasRealCaseStudies = profile.caseStudies && profile.caseStudies.length > 0;
-  const displayCaseStudies = hasRealCaseStudies ? profile.caseStudies : MOCK_CASE_STUDIES;
-
-  // --------------------------------------------------------------------------
-  // Campaigns list checks
-  // --------------------------------------------------------------------------
-  const showMockCampaigns = true; // Wait: Profile campaign showcase is visual mockup for profile page
-  const displayCampaigns = MOCK_LISTED_CAMPAIGNS;
+  const displayCaseStudies = profile.caseStudies;
 
   // --------------------------------------------------------------------------
   // Reviews filtering
@@ -250,7 +227,17 @@ function AgencyProfileView({
         ],
       };
     }
-    return MOCK_REVIEWS_SUMMARY;
+    return {
+      averageRating: 0,
+      reviewCount: 0,
+      distribution: [
+        { stars: 5, percentage: 0 },
+        { stars: 4, percentage: 0 },
+        { stars: 3, percentage: 0 },
+        { stars: 2, percentage: 0 },
+        { stars: 1, percentage: 0 },
+      ],
+    };
   };
 
   const getReviewsList = () => {
@@ -266,7 +253,7 @@ function AgencyProfileView({
         helpfulCount: 0,
       }));
     }
-    return MOCK_REVIEWS_LIST;
+    return [];
   };
 
   const reviewsSummary = getReviewsSummary();
@@ -431,25 +418,16 @@ function AgencyProfileView({
       </div>
 
       {/* Header Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {headerStatsList.map((stat, idx) => (
-          <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-            <div className="flex items-center gap-1.5">
+      {headerStatsList.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {headerStatsList.map((stat, idx) => (
+            <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
               <h3 className="text-xl font-bold font-mono text-foreground leading-none">{stat.value}</h3>
-              {stat.showStars && (
-                <div className="flex items-center gap-0.5 text-amber-500">
-                  <Star className="size-3.5 fill-[#fbbf24] text-[#fbbf24]" />
-                  <Star className="size-3.5 fill-[#fbbf24] text-[#fbbf24]" />
-                  <Star className="size-3.5 fill-[#fbbf24] text-[#fbbf24]" />
-                  <Star className="size-3.5 fill-[#fbbf24] text-[#fbbf24]" />
-                  <StarHalf className="size-3.5 fill-[#fbbf24] text-[#fbbf24]" />
-                </div>
-              )}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Tab Switcher and Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -516,63 +494,90 @@ function AgencyProfileView({
             <div className="space-y-5">
               
               {/* About Card */}
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3 relative">
-                {!hasRealBio && (
-                  <Badge variant="outline" className="absolute top-4 right-4 text-[9px] font-bold text-amber-600 border-amber-300 bg-amber-50/50 uppercase tracking-wider">
-                    Demo About — Add your bio
-                  </Badge>
-                )}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">About Company</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {hasRealBio ? profile.bio : MOCK_COMPANY_ABOUT}
-                </p>
+                {hasRealBio ? (
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{profile.bio}</p>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+                    <span>No company bio yet.</span>
+                    {isOwnProfile && (
+                      <Link
+                        href="/profile/edit#bio"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5F3F] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1A4F35] transition-colors"
+                      >
+                        <Plus className="size-4" />
+                        Add Bio
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Specialties Card */}
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3.5 relative">
-                {!hasRealSpecialties && (
-                  <Badge variant="outline" className="absolute top-4 right-4 text-[9px] font-bold text-amber-600 border-amber-300 bg-amber-50/50 uppercase tracking-wider">
-                    Demo Specialties — Add your skills
-                  </Badge>
-                )}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3.5">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Specialties</h2>
-                <div className="flex flex-wrap gap-2">
-                  {specialties.map((item: string) => (
-                    <span
-                      key={item}
-                      className="rounded-lg border border-[#a3d1c1] bg-[#e6f4ea] px-3.5 py-1.5 text-xs font-semibold text-[#2d4a35] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
+                {hasRealSpecialties ? (
+                  <div className="flex flex-wrap gap-2">
+                    {specialties.map((item: string) => (
+                      <span
+                        key={item}
+                        className="rounded-lg border border-[#a3d1c1] bg-[#e6f4ea] px-3.5 py-1.5 text-xs font-semibold text-[#2d4a35] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+                    <span>No specialties yet.</span>
+                    {isOwnProfile && (
+                      <Link
+                        href="/profile/edit#skills"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5F3F] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1A4F35] transition-colors"
+                      >
+                        <Plus className="size-4" />
+                        Add Specialties
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Industries Served */}
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3.5 relative">
-                {!hasRealIndustries && (
-                  <Badge variant="outline" className="absolute top-4 right-4 text-[9px] font-bold text-amber-600 border-amber-300 bg-amber-50/50 uppercase tracking-wider">
-                    Demo Industries — Add your niches
-                  </Badge>
-                )}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3.5">
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Industries Served</h2>
-                <div className="flex flex-wrap gap-2">
-                  {industries.map((item: string) => (
-                    <span
-                      key={item}
-                      className="rounded-lg border border-border bg-muted/65 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
+                {hasRealIndustries ? (
+                  <div className="flex flex-wrap gap-2">
+                    {industries.map((item: string) => (
+                      <span
+                        key={item}
+                        className="rounded-lg border border-border bg-muted/65 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+                    <span>No industries yet.</span>
+                    {isOwnProfile && (
+                      <Link
+                        href="/profile/edit#sub-specializations-section"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#1F5F3F] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1A4F35] transition-colors"
+                      >
+                        <Plus className="size-4" />
+                        Add Industries
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
 
             </div>
 
             {/* Right Sidebar Area */}
             <div className="space-y-5">
-              <ProfileStrengthWidget />
               <CompanyInfoWidget profile={profile} />
               <SocialPresenceWidget profile={profile} />
             </div>
@@ -584,84 +589,68 @@ function AgencyProfileView({
             TAB 2: PUBLIC ROSTER
             ------------------------------------------------------------------ */}
         <TabsContent value="roster" className="outline-none mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            
-            {/* Grid Area */}
-            <div className="space-y-5">
-              {showMockRoster ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Demonstration Roster</span>
-                    <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
-                      No public roster members have opted in yet. Showcasing layout placeholders below.
-                    </p>
-                  </div>
-                </div>
-              ) : (
+          <div className="space-y-5">
+            {hasPublicRoster ? (
+              <>
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
                   Full roster is private — only opted-in talent shown here.
                 </div>
-              )}
 
-              {/* Roster Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {displayRoster.map((talent: any) => (
-                  <div key={talent.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-                    
-                    {/* Visual Photo Block */}
-                    <div className="aspect-[4/3] w-full rounded-xl bg-muted overflow-hidden relative border border-border/60">
-                      {talent.isTopTier && (
-                        <Badge className="absolute top-2.5 left-2.5 bg-yellow-400 text-yellow-950 hover:bg-yellow-400 border-0 text-[8px] font-bold tracking-widest uppercase">
-                          Top Tier
-                        </Badge>
-                      )}
-                      {talent.imageUrl ? (
-                        <img src={talent.imageUrl} alt={talent.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="size-full flex items-center justify-center font-bold text-muted-foreground/60 text-lg uppercase bg-muted">
-                          {initialsFromName(talent.name)}
-                        </div>
-                      )}
+                {/* Roster Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {displayRoster.map((talent: any) => (
+                    <div key={talent.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+
+                      {/* Visual Photo Block */}
+                      <div className="aspect-[4/3] w-full rounded-xl bg-muted overflow-hidden relative border border-border/60">
+                        {talent.isTopTier && (
+                          <Badge className="absolute top-2.5 left-2.5 bg-yellow-400 text-yellow-950 hover:bg-yellow-400 border-0 text-[8px] font-bold tracking-widest uppercase">
+                            Top Tier
+                          </Badge>
+                        )}
+                        {talent.imageUrl ? (
+                          <img src={talent.imageUrl} alt={talent.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center font-bold text-muted-foreground/60 text-lg uppercase bg-muted">
+                            {initialsFromName(talent.name)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Talent Bio Details */}
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground leading-normal">{talent.name}</h4>
+                        <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{talent.niche}</p>
+                      </div>
+
+                      {/* Social Stats indicators */}
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {talent.followerStats.map((stat: any, idx: number) => (
+                          <Badge key={idx} variant="secondary" className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                            {stat.platform}: {stat.count}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <Link
+                        href={`/profile/${talent.name.toLowerCase().replace(" ", "")}`}
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "sm" }),
+                          "w-full text-xs font-semibold h-8.5 rounded-lg"
+                        )}
+                      >
+                        View Profile
+                      </Link>
+
                     </div>
-
-                    {/* Talent Bio Details */}
-                    <div>
-                      <h4 className="text-sm font-bold text-foreground leading-normal">{talent.name}</h4>
-                      <p className="text-[10px] text-muted-foreground leading-none mt-0.5">{talent.niche}</p>
-                    </div>
-
-                    {/* Social Stats indicators */}
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {talent.followerStats.map((stat: any, idx: number) => (
-                        <Badge key={idx} variant="secondary" className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
-                          {stat.platform}: {stat.count}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <Link
-                      href={showMockRoster ? "#" : `/profile/${talent.name.toLowerCase().replace(" ", "")}`}
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "w-full text-xs font-semibold h-8.5 rounded-lg"
-                      )}
-                    >
-                      View Profile
-                    </Link>
-
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-            {/* Sidebar widgets */}
-            <div className="space-y-5">
-              <ProfileStrengthWidget />
-              <SimilarAgenciesWidget />
-            </div>
-
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                No public roster members yet.
+              </p>
+            )}
           </div>
         </TabsContent>
 
@@ -669,26 +658,10 @@ function AgencyProfileView({
             TAB 3: CASE STUDIES
             ------------------------------------------------------------------ */}
         <TabsContent value="case-studies" className="outline-none mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            
-            {/* Grid Area */}
-            <div className="space-y-5">
-              
-              {!hasRealCaseStudies && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Demonstration Case Studies</span>
-                    <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
-                      No case studies published yet. Showcasing demo project items below.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Case Studies Lists */}
+          <div className="space-y-5">
+            {hasRealCaseStudies || isOwnProfile ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
+
                 {/* Add New Case Study CTA Trigger card */}
                 {isOwnProfile && (
                   <button
@@ -708,7 +681,7 @@ function AgencyProfileView({
                 {/* Case Study Cards */}
                 {displayCaseStudies.map((study: any) => (
                   <div key={study.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-                    
+
                     {/* Header Image class */}
                     <div className={cn("aspect-video w-full relative flex items-center justify-center", (study as any).imageClass || "bg-muted")}>
                       <Badge className="absolute top-2.5 left-2.5 bg-[#1c3322] text-white hover:bg-[#1c3322] border-0 text-[8px] font-bold tracking-widest uppercase">
@@ -751,15 +724,11 @@ function AgencyProfileView({
                   </div>
                 ))}
               </div>
-
-            </div>
-
-            {/* Sidebar widgets */}
-            <div className="space-y-5">
-              <ProfileStrengthWidget />
-              <SimilarAgenciesWidget />
-            </div>
-
+            ) : (
+              <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                No case studies yet.
+              </p>
+            )}
           </div>
         </TabsContent>
 
@@ -767,92 +736,24 @@ function AgencyProfileView({
             TAB 4: CAMPAIGNS
             ------------------------------------------------------------------ */}
         <TabsContent value="campaigns" className="outline-none mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            
-            {/* Grid Area */}
-            <div className="space-y-5">
-              {showMockCampaigns && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Demonstration Campaigns</span>
-                    <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
-                      No client campaigns published on this profile yet. Showcasing demo campaigns list below.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Brief Cards List */}
-              <ul className="space-y-4">
-                {displayCampaigns.map((campaign) => (
-                  <li key={campaign.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                    
-                    {/* Header info */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <Avatar size="sm" className="size-7 bg-muted border border-border/80">
-                          <AvatarFallback className="text-[9px] font-bold">{campaign.logoText}</AvatarFallback>
-                        </Avatar>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{campaign.client}</span>
-                      </div>
-                      <Badge className="text-[9px] font-bold uppercase tracking-wider rounded px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300">
-                        {campaign.status}
-                      </Badge>
-                    </div>
-
-                    {/* Title */}
-                    <h4 className="text-sm font-bold text-foreground leading-snug mt-2">
-                      {campaign.title}
-                    </h4>
-
-                    {/* Metadata specs */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-xs text-muted-foreground font-semibold">
-                      <span>{campaign.budget}</span>
-                      <span>•</span>
-                      <span>{campaign.category}</span>
-                      <span>•</span>
-                      <span>{campaign.closesIn}</span>
-                    </div>
-
-                  </li>
-                ))}
-              </ul>
-
-            </div>
-
-            {/* Sidebar widgets */}
-            <div className="space-y-5">
-              <ProfileStrengthWidget />
-              <SimilarAgenciesWidget />
-            </div>
-
-          </div>
+          <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+            No campaigns yet.
+          </p>
         </TabsContent>
 
         {/* ------------------------------------------------------------------
             TAB 5: REVIEWS
             ------------------------------------------------------------------ */}
         <TabsContent value="reviews" className="outline-none mt-0">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-            
-            {/* Grid Area */}
+          {!hasRealReviews ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No reviews yet.
+            </p>
+          ) : (
             <div className="space-y-5">
-              {!hasRealReviews && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2">
-                  <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Demonstration Reviews</span>
-                    <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
-                      No client reviews collected yet. Showcasing demo ratings and testimonials below.
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* Rating summary cards */}
               <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-6 justify-between">
-                
+
                 {/* Score */}
                 <div className="text-center sm:text-left space-y-1.5 sm:border-r sm:border-border/60 sm:pr-8">
                   <div className="flex items-center justify-center sm:justify-start gap-1 text-3xl font-extrabold text-foreground">
@@ -886,11 +787,11 @@ function AgencyProfileView({
               {/* Public Feedback lists */}
               <div className="space-y-3.5">
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Public Feedback</h3>
-                
+
                 <ul className="space-y-3.5">
                   {reviewsList.map((rev) => (
                     <li key={rev.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3 hover:shadow-md transition-shadow">
-                      
+
                       {/* Reviewer Header */}
                       <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3">
                         <div className="flex items-center gap-2.5">
@@ -957,16 +858,8 @@ function AgencyProfileView({
                   </Button>
                 </div>
               </div>
-
             </div>
-
-            {/* Sidebar widgets */}
-            <div className="space-y-5">
-              <ProfileStrengthWidget />
-              <SimilarAgenciesWidget />
-            </div>
-
-          </div>
+          )}
         </TabsContent>
 
       </Tabs>
@@ -977,140 +870,69 @@ function AgencyProfileView({
 /* ==========================================================================
    SIDEBAR REUSABLE WIDGETS
    ========================================================================== */
-function ProfileStrengthWidget() {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
-        Profile Strength
-      </h4>
-
-      <div className="flex items-center gap-4 py-1.5">
-        {/* Visual Progress ring circle */}
-        <div className="relative size-16 shrink-0 flex items-center justify-center rounded-full border-4 border-muted">
-          <div className="absolute inset-0 rounded-full border-4 border-green-700 dark:border-green-600 border-t-transparent border-l-transparent" />
-          <span className="text-sm font-bold font-mono">85%</span>
-        </div>
-        <div>
-          <p className="text-xs font-bold text-foreground">Good Profile Strength</p>
-          <p className="text-[10px] text-muted-foreground leading-normal mt-0.5">
-            Complete the remaining item to showcase case achievements to top client brands.
-          </p>
-        </div>
-      </div>
-
-      <ul className="space-y-2 pt-1 border-t border-border/40">
-        {MOCK_PROFILE_STRENGTH_ITEMS.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <span className={cn(
-              "size-4 rounded-full border flex items-center justify-center shrink-0 text-[9px] font-bold font-mono",
-              item.completed
-                ? "bg-[#e6f4ea] text-[#2d4a35] border-[#a3d1c1] dark:bg-green-950/30 dark:text-green-300"
-                : "border-border"
-            )}>
-              {item.completed ? "✓" : ""}
-            </span>
-            <span className={cn(item.completed && "line-through opacity-70")}>{item.label}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function CompanyInfoWidget({ profile }: { profile: Profile }) {
-  const hasRealInfo = !!profile.location;
+  const rows: { label: string; value: string }[] = [];
+  if (profile.agencySize) {
+    rows.push({ label: "Team Size", value: AGENCY_SIZE_LABEL[profile.agencySize] });
+  }
+  if (profile.location) {
+    rows.push({ label: "Headquarters", value: profile.location });
+  }
+  if (profile.businessEmail) {
+    rows.push({ label: "Email", value: profile.businessEmail });
+  }
+  if (profile.contactNumber) {
+    rows.push({ label: "Phone", value: profile.contactNumber });
+  }
+
+  if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3 relative">
-      {!hasRealInfo && (
-        <Badge variant="outline" className="absolute top-4 right-4 text-[8px] font-bold text-amber-600 border-amber-300 bg-amber-50/50 uppercase tracking-wider">
-          Demo Info
-        </Badge>
-      )}
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
       <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
         Company Info
       </h4>
 
       <ul className="space-y-2 text-xs">
-        {MOCK_COMPANY_INFO.map((info, idx) => (
-          <li key={idx} className="flex justify-between items-center py-0.5">
-            <span className="text-muted-foreground">{info.label}</span>
-            <span className="font-semibold text-foreground">{info.value}</span>
+        {rows.map((info) => (
+          <li key={info.label} className="flex justify-between items-center py-0.5 gap-3">
+            <span className="text-muted-foreground shrink-0">{info.label}</span>
+            <span className="font-semibold text-foreground truncate max-w-[150px]">{info.value}</span>
           </li>
         ))}
-        <li className="flex justify-between items-center py-0.5">
-          <span className="text-muted-foreground">Headquarters</span>
-          <span className="font-semibold text-foreground truncate max-w-[150px]">
-            {profile.location || "Los Angeles, CA"}
-          </span>
-        </li>
       </ul>
     </div>
   );
 }
 
 function SocialPresenceWidget({ profile }: { profile: Profile }) {
-  const hasSocials = profile.socialLinks && Object.values(profile.socialLinks).some(Boolean);
+  const links = [
+    profile.socialLinks?.instagram ? { label: "Instagram", href: profile.socialLinks.instagram, Icon: FaInstagram } : null,
+    profile.socialLinks?.youtube ? { label: "YouTube", href: profile.socialLinks.youtube, Icon: FaYoutube } : null,
+    profile.socialLinks?.linkedin ? { label: "LinkedIn", href: profile.socialLinks.linkedin, Icon: FaLinkedin } : null,
+    profile.socialLinks?.website ? { label: "Website", href: profile.socialLinks.website, Icon: Globe } : null,
+  ].filter((link): link is { label: string; href: string; Icon: typeof Globe } => link !== null);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3 relative">
-      {!hasSocials && (
-        <Badge variant="outline" className="absolute top-4 right-4 text-[8px] font-bold text-amber-600 border-amber-300 bg-amber-50/50 uppercase tracking-wider">
-          Demo Socials
-        </Badge>
-      )}
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
       <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
         Social Presence
       </h4>
 
-      <ul className="space-y-2 text-xs">
-        {MOCK_SOCIAL_PRESENCE.map((soc, idx) => (
-          <li key={idx} className="flex items-center gap-2">
-            <Globe className="size-4 text-muted-foreground/60 shrink-0" />
-            <a href={soc.href} target="_blank" rel="noreferrer" className="font-semibold text-[#476948] dark:text-[#a7d9b5] hover:underline truncate">
-              {soc.handle}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function SimilarAgenciesWidget() {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2">
-        Similar Agencies
-      </h4>
-
-      <ul className="space-y-3">
-        {MOCK_SIMILAR_AGENCIES.map((agency) => (
-          <li key={agency.id} className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <Avatar size="sm" className="size-7.5">
-                <AvatarFallback className="text-[9px] bg-muted/80">{agency.logoText}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-foreground truncate leading-normal">{agency.name}</p>
-                <p className="text-[9px] text-muted-foreground truncate leading-none mt-0.5">{agency.niche}</p>
-              </div>
-            </div>
-            <span className="text-[9px] font-bold text-muted-foreground/75 bg-muted px-2 py-0.5 rounded shrink-0">
-              {agency.talentCount} Talent
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="text-center pt-1 border-t border-border/40">
-        <button
-          onClick={() => toast.info("Discovery mode directory search is disabled in layout validation.")}
-          className="text-[10px] font-bold text-[#476948] dark:text-[#a7d9b5] uppercase tracking-wider hover:underline"
-        >
-          View Discovery Mode
-        </button>
-      </div>
+      {links.length > 0 ? (
+        <ul className="space-y-2 text-xs">
+          {links.map((link) => (
+            <li key={link.label} className="flex items-center gap-2">
+              <link.Icon className="size-4 text-muted-foreground/60 shrink-0" />
+              <a href={link.href} target="_blank" rel="noreferrer" className="font-semibold text-[#476948] dark:text-[#a7d9b5] hover:underline truncate">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">No social links yet.</p>
+      )}
     </div>
   );
 }
