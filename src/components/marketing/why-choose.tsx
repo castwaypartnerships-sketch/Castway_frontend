@@ -50,7 +50,7 @@ export function WhyChoose() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         
         {/* Card 1: Verified Profiles (col-span-4) */}
-        <TiltCard className="md:col-span-4 rounded-3xl p-6 bg-[#e6efe7] border border-[#d2e3d4] dark:bg-[#111f14] dark:border-[#1d3322] flex flex-col justify-between min-h-[260px] text-left">
+        <TiltCard className="md:col-span-4 rounded-3xl p-6 bg-[var(--verified-profile-bg)] border border-[#d2e3d4] dark:border-[#1d3322] flex flex-col justify-between min-h-[260px] text-left">
           <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
             <div className="flex items-center gap-2">
               <span className="relative flex size-8">

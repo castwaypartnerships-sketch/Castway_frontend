@@ -17,17 +17,11 @@ export function MarketingNav() {
 
         {/* Center Nav Links */}
         <nav className="hidden items-center gap-8 text-[13px] font-medium text-muted-foreground md:flex">
-          <Link href="/opportunities" className="transition-colors hover:text-foreground">
+          <a href="#what-is-castway" className="transition-colors hover:text-foreground">
             Product
-          </Link>
+          </a>
           <a href="#how-it-works" className="transition-colors hover:text-foreground">
             How it works
-          </a>
-          <a href="#who-its-for" className="transition-colors hover:text-foreground">
-            For creators
-          </a>
-          <a href="#who-its-for" className="transition-colors hover:text-foreground">
-            For brands
           </a>
         </nav>
 

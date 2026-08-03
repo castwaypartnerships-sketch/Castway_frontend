@@ -49,7 +49,7 @@ const word: Variants = {
 
 export function WhatIsCastway() {
   return (
-    <section className="mx-auto max-w-7xl px-6 md:px-8 py-24 mt-12 md:py-32 border-t border-border/30 bg-muted/10">
+    <section id="what-is-castway" className="mx-auto max-w-7xl px-6 md:px-8 py-24 mt-12 md:py-32 border-t border-border/30 bg-muted/10">
       <motion.div
         initial="hidden"
         whileInView="visible"
