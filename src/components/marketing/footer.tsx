@@ -8,17 +8,17 @@ const PLATFORM_LINKS = [
 ];
 
 const RESOURCE_LINKS = [
-  { label: "Guides & Docs", href: "#" },
-  { label: "Blog", href: "#" },
-  { label: "Help Center", href: "#" },
-  { label: "Creator Community", href: "#" },
+  { label: "Guides & Docs", href: "/guides" },
+  { label: "Blog", href: "/blog" },
+  { label: "Help Center", href: "/help" },
+  { label: "Creator Community", href: "/community" },
 ];
 
 const LEGAL_LINKS = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Cookie Policy", href: "#" },
-  { label: "Trust & Safety", href: "#" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Cookie Policy", href: "/cookies" },
+  { label: "Trust & Safety", href: "/trust" },
 ];
 
 export function MarketingFooter() {
@@ -84,9 +84,9 @@ export function MarketingFooter() {
             <ul className="space-y-3">
               {RESOURCE_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -96,9 +96,9 @@ export function MarketingFooter() {
             <ul className="space-y-3">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -112,8 +112,8 @@ export function MarketingFooter() {
         <div className="mx-auto max-w-7xl px-6 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Castway Inc. All rights reserved.</p>
           <div className="flex gap-4">
-            <a href="#" className="hover:underline">Privacy Options</a>
-            <a href="#" className="hover:underline">Terms & Conditions</a>
+            <Link href="/privacy" className="hover:underline">Privacy Options</Link>
+            <Link href="/terms" className="hover:underline">Terms & Conditions</Link>
           </div>
         </div>
       </div>
