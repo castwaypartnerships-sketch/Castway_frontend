@@ -273,7 +273,7 @@ function AgencyProfileView({
   const reviewsList = getReviewsList();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+    <div className="mx-auto max-w-6xl space-y-6 px-6 py-8 break-words">
       {/* Banner / Cover and Profile Identity Block */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div
@@ -523,7 +523,7 @@ function AgencyProfileView({
                   </Badge>
                 )}
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">About Company</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {hasRealBio ? profile.bio : MOCK_COMPANY_ABOUT}
                 </p>
               </div>
@@ -1209,7 +1209,7 @@ function StandardProfileView({
     : [{ icon: Users, label: "Followers", value: followerCount.toLocaleString() }];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 px-6 py-8">
+    <div className="mx-auto max-w-5xl space-y-5 px-6 py-8 break-words">
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div
           className="relative flex h-[200px] items-start justify-end bg-gradient-to-r from-[#1c3322] to-[#111827] p-5"
@@ -1465,7 +1465,7 @@ function StandardProfileView({
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                 <h2 className="font-heading text-lg font-bold text-foreground">About</h2>
                 {profile.bio ? (
-                  <p className="mt-3 text-sm text-muted-foreground">{profile.bio}</p>
+                  <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">{profile.bio}</p>
                 ) : (
                   <p className="mt-3 text-sm text-muted-foreground">No bio added yet.</p>
                 )}
@@ -1664,104 +1664,51 @@ function StandardProfileView({
 
         {isTalent && (
           <TabsContent value="analytics" className="mt-5 space-y-5">
-            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-xs font-medium text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 flex items-start gap-2 mb-2">
-              <AlertCircle className="size-4 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Demonstration Mode</span>
-                <p className="text-[11px] text-amber-700/90 dark:text-amber-400 mt-0.5">
-                  Live social platform analytics integration is currently pending. Displaying demonstration mock data below alongside real platform engagement metrics.
-                </p>
-              </div>
-            </div>
+            <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+              <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
+                <Award className="size-5 text-[#1F5F3F]" />
+                Castway Performance
+              </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-                <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
-                  <Globe className="size-5 text-[#1F5F3F]" />
-                  Connected Platforms
-                </h2>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <FaYoutube className="size-4 text-red-600" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">YouTube</span>
-                    </div>
-                    <p className="text-2xl font-bold text-foreground leading-tight">120K</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Subscribers (Demo)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Rss className="size-4 text-[#476948]" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Posts</span>
                   </div>
-
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <FaInstagram className="size-4 text-pink-600" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Instagram</span>
-                    </div>
-                    <p className="text-2xl font-bold text-foreground leading-tight">85K</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Followers (Demo)</p>
-                  </div>
+                  <p className="text-2xl font-bold text-foreground leading-tight">{postStats.postsCount}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Published Content</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Est. Reach</span>
-                    <p className="text-xl font-bold text-foreground mt-1">205K</p>
-                    <p className="text-[10px] text-muted-foreground">Combined Monthly (Demo)</p>
+                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Plus className="size-4 text-[#476948]" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Endorsements</span>
                   </div>
-
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Engagement</span>
-                    <p className="text-xl font-bold text-foreground mt-1">4.2%</p>
-                    <p className="text-[10px] text-muted-foreground">Average Rate (Demo)</p>
-                  </div>
+                  <p className="text-2xl font-bold text-foreground leading-tight">
+                    {Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Skills Endorsed</p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-                <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
-                  <Award className="size-5 text-[#1F5F3F]" />
-                  Castway Performance
-                </h2>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <Rss className="size-4 text-[#476948]" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Posts</span>
-                    </div>
-                    <p className="text-2xl font-bold text-foreground leading-tight">{postStats.postsCount}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Published Content</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Heart className="size-4 text-[#476948]" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Likes Received</span>
                   </div>
-
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <Plus className="size-4 text-[#476948]" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Endorsements</span>
-                    </div>
-                    <p className="text-2xl font-bold text-foreground leading-tight">
-                      {Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Skills Endorsed</p>
-                  </div>
+                  <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalLikes}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <Heart className="size-4 text-[#476948]" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Likes Received</span>
-                    </div>
-                    <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalLikes}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
+                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <MessageCircle className="size-4 text-[#476948]" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Comments</span>
                   </div>
-
-                  <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                      <MessageCircle className="size-4 text-[#476948]" />
-                      <span className="text-[11px] font-bold uppercase tracking-wider">Comments</span>
-                    </div>
-                    <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalComments}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
-                  </div>
+                  <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalComments}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
                 </div>
               </div>
             </div>
