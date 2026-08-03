@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock,
   Eye,
+  FolderPlus,
   GraduationCap,
   Globe,
   ImageIcon,
@@ -43,7 +44,7 @@ import { useEndorseSkillMutation } from "@/lib/redux/endpoints/endorsements-api"
 import { useGetRepresentingAgenciesQuery, useSetPubliclyListedMutation, useGetMyRosterQuery } from "@/lib/redux/endpoints/roster-api";
 import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
 import { useGetReviewsForUserQuery } from "@/lib/redux/endpoints/reviews-api";
-import { useGetClientCampaignsQuery } from "@/lib/redux/endpoints/campaigns-api";
+import { useGetClientCampaignsQuery, useGetCampaignsQuery, useAddToShortlistMutation } from "@/lib/redux/endpoints/campaigns-api";
 import type { DateRange, Education, Experience, Profile } from "@/lib/types/profile";
 import type { RosterEntryDto } from "@/lib/types/roster";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,10 +52,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 import { initialsFromName, formatRelativeTime } from "@/lib/format";
 import { isImageUrl } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
+import { isHiringRole } from "@/lib/rbac";
 
 // Import visual placeholders
 import {
@@ -1270,6 +1273,16 @@ function StandardProfileView({
                   <Pencil className="size-4" />
                   Edit Profile
                 </Link>
+              ) : isHiringRole(session?.user?.role) ? (
+                <>
+                  <Button size="sm" disabled={isMessaging} onClick={handleMessage} className="gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]">
+                    Hire Creator
+                  </Button>
+                  <InviteToCampaignMenu creatorUserId={profile.userId} />
+                  <Button size="sm" variant="outline" disabled={isMessaging} onClick={handleMessage}>
+                    Message
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button
@@ -1755,6 +1768,48 @@ function StandardProfileView({
         )}
       </Tabs>
     </div>
+  );
+}
+
+function InviteToCampaignMenu({ creatorUserId }: { creatorUserId: string }) {
+  const { data } = useGetCampaignsQuery();
+  const [addToShortlist, { isLoading }] = useAddToShortlistMutation();
+
+  async function handleInvite(campaignId: string, campaignName: string) {
+    try {
+      await addToShortlist({ campaignId, creatorUserId }).unwrap();
+      toast.success(`Added to shortlist for "${campaignName}"`);
+    } catch {
+      toast.error("Couldn't add to that campaign's shortlist. Please try again.");
+    }
+  }
+
+  if (!data || data.items.length === 0) {
+    return (
+      <Button size="sm" variant="outline" disabled>
+        Invite to Campaign
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button size="sm" variant="outline" disabled={isLoading} className="gap-1.5">
+            <FolderPlus className="size-4" />
+            Invite to Campaign
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end">
+        {data.items.map((campaign) => (
+          <DropdownMenuItem key={campaign.id} onClick={() => handleInvite(campaign.id, campaign.name)}>
+            {campaign.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
