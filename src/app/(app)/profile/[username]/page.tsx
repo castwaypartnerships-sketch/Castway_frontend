@@ -9,6 +9,8 @@ import {
   Briefcase,
   Calendar,
   Camera,
+  CheckCircle2,
+  Clock,
   Eye,
   FileCheck,
   GraduationCap,
@@ -20,6 +22,7 @@ import {
   Share2,
   ShieldCheck,
   Star,
+  TrendingUp,
   Users,
   Video,
   AlertCircle,
@@ -1133,6 +1136,7 @@ function StandardProfileView({
     trustScore,
     reviewSummary,
     responseTime,
+    responseRate,
     openOpportunities,
     availability,
     endorsementCounts,
@@ -1141,6 +1145,7 @@ function StandardProfileView({
     followingCount,
     viewerIsFollowing,
     managedByAgency,
+    completedCollaborationsCount,
   } = profileData;
 
   const { data: session } = useGetSessionQuery();
@@ -1192,19 +1197,23 @@ function StandardProfileView({
     toast.success("Profile link copied to clipboard");
   }
 
+  const engagementRate =
+    followerCount === 0
+      ? "—"
+      : `${(((postStats.totalLikes + postStats.totalComments) / followerCount) * 100).toFixed(1)}%`;
+
   const stats: { icon: typeof Users; label: string; value: string | number }[] = [
-    { icon: Users, label: "Connections", value: followerCount.toLocaleString() },
+    { icon: Users, label: "Followers", value: followerCount.toLocaleString() },
+    { icon: Eye, label: "Average Views", value: postStats.averageViews.toLocaleString() },
+    { icon: TrendingUp, label: "Engagement Rate", value: engagementRate },
+    { icon: CheckCircle2, label: "Completed Collaborations", value: completedCollaborationsCount.toLocaleString() },
+    { icon: Briefcase, label: "Portfolio Projects", value: profile.portfolioItems.length },
+    {
+      icon: Clock,
+      label: "Response Rate",
+      value: responseRate?.ratePercent != null ? `${responseRate.ratePercent}%` : "—",
+    },
   ];
-  if (isOwnProfile) {
-    if (dashboard) stats.push({ icon: Eye, label: "Portfolio Views", value: dashboard.profileViewsCount.toLocaleString() });
-    if (canApply && myApplications) {
-      stats.push({ icon: FileCheck, label: "Applications", value: myApplications.items.length });
-    }
-    if (ownProfile) stats.push({ icon: ShieldCheck, label: "Profile Strength", value: `${ownProfile.completion.percent}%` });
-  } else {
-    stats.push({ icon: Users, label: "Following", value: followingCount.toLocaleString() });
-    stats.push({ icon: Star, label: "Reviews", value: reviewSummary.reviewCount });
-  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 px-6 py-8">
