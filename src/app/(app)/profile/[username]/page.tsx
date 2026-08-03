@@ -1189,9 +1189,9 @@ function StandardProfileView({
   }
 
   const engagementRate =
-    followerCount === 0
+    followerCount === 0 || postStats.postsCount === 0
       ? "—"
-      : `${(((postStats.totalLikes + postStats.totalComments) / followerCount) * 100).toFixed(1)}%`;
+      : `${(((postStats.totalLikes + postStats.totalComments) / postStats.postsCount / followerCount) * 100).toFixed(1)}%`;
 
   const stats: { icon: typeof Users; label: string; value: string | number }[] = isTalent
     ? [
@@ -1428,22 +1428,19 @@ function StandardProfileView({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
-              <stat.icon className="size-5 text-[#2d4a35] dark:text-[#daf0dd]" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-              <p className="text-xl font-bold text-foreground">{stat.value}</p>
+          <div key={stat.label} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xl font-bold font-mono text-foreground leading-none">{stat.value}</h3>
             </div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList variant="line" className="h-auto flex w-full justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
           {standardTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className={NEW_TAB_TRIGGER_CLASS}>
@@ -1459,11 +1456,11 @@ function StandardProfileView({
           ))}
         </TabsList>
 
-        <TabsContent value="overview" className="mt-5">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-5">
+        <TabsContent value="overview" className="outline-none mt-0">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-6">
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h2 className="font-heading text-lg font-bold text-foreground">About</h2>
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">About</h2>
                 {profile.bio ? (
                   <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">{profile.bio}</p>
                 ) : (
@@ -1472,7 +1469,7 @@ function StandardProfileView({
               </section>
 
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h2 className="font-heading text-lg font-bold text-foreground">Skills</h2>
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Skills</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {profile.skills.map((skill: string) => {
                     const count = endorsementCounts[skill] ?? 0;
@@ -1510,7 +1507,7 @@ function StandardProfileView({
 
               {profile.subSpecializations.length > 0 ? (
                 <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <h2 className="font-heading text-lg font-bold text-foreground">Niches &amp; Categories</h2>
+                  <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Niches &amp; Categories</h2>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {profile.subSpecializations.map((tag: string) => (
                       <span
@@ -1526,7 +1523,7 @@ function StandardProfileView({
 
               {profile.socialLinks && Object.values(profile.socialLinks).some(Boolean) ? (
                 <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <h2 className="font-heading text-lg font-bold text-foreground">Social Links</h2>
+                  <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Social Links</h2>
                   <div className="mt-3 flex flex-wrap gap-3">
                     {profile.socialLinks.instagram ? (
                       <SocialLinkCard href={profile.socialLinks.instagram} icon={Camera} label="Instagram" />
@@ -1545,7 +1542,7 @@ function StandardProfileView({
               ) : null}
 
               <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h2 className="font-heading text-lg font-bold text-foreground">Analytics</h2>
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Analytics</h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Engagement from posts and endorsements on Castway.{" "}
                   {isOwnProfile ? "Live metrics from connected platforms aren't synced yet." : ""}
@@ -1569,7 +1566,7 @@ function StandardProfileView({
           </div>
         </TabsContent>
 
-        <TabsContent value="portfolio" className="mt-5">
+        <TabsContent value="portfolio" className="outline-none mt-0">
           {profile.portfolioItems.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {profile.portfolioItems.map((item: any) => {
@@ -1621,15 +1618,15 @@ function StandardProfileView({
           )}
         </TabsContent>
 
-        <TabsContent value="experience" className="mt-5 space-y-5">
+        <TabsContent value="experience" className="outline-none mt-0 space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="font-heading text-lg font-bold text-foreground">Work History</h2>
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Work History</h2>
             <ExperienceTimeline entries={profile.experience} />
           </div>
           <EducationList entries={profile.education} />
         </TabsContent>
 
-        <TabsContent value="reviews" className="mt-5 space-y-4">
+        <TabsContent value="reviews" className="outline-none mt-0 space-y-4">
           {!reviewsData || reviewsData.items.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
               No reviews yet.
@@ -1663,9 +1660,9 @@ function StandardProfileView({
         </TabsContent>
 
         {isTalent && (
-          <TabsContent value="analytics" className="mt-5 space-y-5">
+          <TabsContent value="analytics" className="outline-none mt-0 space-y-6">
             <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <h2 className="font-heading text-lg font-bold text-foreground flex items-center gap-2">
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Award className="size-5 text-[#1F5F3F]" />
                 Castway Performance
               </h2>
@@ -1861,7 +1858,7 @@ function EducationList({ entries }: { entries: Education[] }) {
   if (entries.length === 0) return null;
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <h2 className="flex items-center gap-1.5 font-heading text-lg font-bold text-foreground">
+      <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
         <GraduationCap className="size-4" />
         Education
       </h2>
