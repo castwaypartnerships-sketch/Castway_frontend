@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { cn } from "@/lib/utils";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { useCompleteOnboardingMutation } from "@/lib/redux/endpoints/onboarding-api";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,51 @@ export default function OnboardingProfilePage() {
   const [companyDomain, setCompanyDomain] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  const handleBlur = (field: string) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const isFormComplete = (() => {
+    if (!session?.user?.role) return false;
+    const baseComplete = username.trim() !== "" && name.trim() !== "" && bio.trim() !== "";
+    if (!baseComplete) return false;
+
+    if (session.user.role === "CREATOR") {
+      return category.trim() !== "";
+    }
+    if (session.user.role === "FREELANCER") {
+      return skills.trim() !== "";
+    }
+    if (session.user.role === "BRAND" || session.user.role === "AGENCY") {
+      return businessEmail.trim() !== "";
+    }
+    return true;
+  })();
+
+  const getValidationBorderClass = (val: string, isRequired: boolean, fieldKey: string) => {
+    if (!isRequired) return "";
+    const isFilled = val && val.trim() !== "";
+    if (isFilled) {
+      return "border-green-500 focus-visible:border-green-500 focus-visible:ring-green-500/20";
+    }
+    const isTouched = touchedFields[fieldKey] || submitAttempted;
+    if (isTouched) {
+      return "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20";
+    }
+    return "";
+  };
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitAttempted(true);
     setError(null);
+
+    if (!isFormComplete) {
+      return;
+    }
 
     const socialLinks = {
       website: companyDomain.trim() || undefined,
@@ -116,7 +159,7 @@ export default function OnboardingProfilePage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Username <span className="text-red-500 ml-0.5">*</span></Label>
             <Input
               id="username"
               required
@@ -125,27 +168,42 @@ export default function OnboardingProfilePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
               placeholder="jane_doe"
+              onBlur={() => handleBlur("username")}
+              className={getValidationBorderClass(username, true, "username")}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="name">Full name</Label>
-            <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
+            <Label htmlFor="name">Full name <span className="text-red-500 ml-0.5">*</span></Label>
+            <Input
+              id="name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => handleBlur("name")}
+              className={getValidationBorderClass(name, true, "name")}
+            />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="bio">Bio / role</Label>
+            <Label htmlFor="bio">Bio / role <span className="text-red-500 ml-0.5">*</span></Label>
             <Textarea
               id="bio"
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Senior Product Designer at..."
+              onBlur={() => handleBlur("bio")}
+              className={getValidationBorderClass(bio, true, "bio")}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Category {session?.user?.role === "CREATOR" && <span className="text-red-500 ml-0.5">*</span>}</Label>
               <Select value={category || undefined} onValueChange={(value) => setCategory(value ?? "")}>
-                <SelectTrigger id="category" className="w-full">
+                <SelectTrigger
+                  id="category"
+                  className={cn("w-full", getValidationBorderClass(category, session?.user?.role === "CREATOR", "category"))}
+                  onBlur={() => handleBlur("category")}
+                >
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -163,8 +221,14 @@ export default function OnboardingProfilePage() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="skills">Skills (comma-separated)</Label>
-            <Input id="skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            <Label htmlFor="skills">Skills (comma-separated) {session?.user?.role === "FREELANCER" && <span className="text-red-500 ml-0.5">*</span>}</Label>
+            <Input
+              id="skills"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              onBlur={() => handleBlur("skills")}
+              className={getValidationBorderClass(skills, session?.user?.role === "FREELANCER", "skills")}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -213,7 +277,7 @@ export default function OnboardingProfilePage() {
           {requiresBusinessEmail ? (
             <>
               <div className="space-y-1.5">
-                <Label htmlFor="businessEmail">Business email</Label>
+                <Label htmlFor="businessEmail">Business email <span className="text-red-500 ml-0.5">*</span></Label>
                 <Input
                   id="businessEmail"
                   type="email"
@@ -221,6 +285,8 @@ export default function OnboardingProfilePage() {
                   value={businessEmail}
                   onChange={(e) => setBusinessEmail(e.target.value)}
                   placeholder="team@yourcompany.com"
+                  onBlur={() => handleBlur("businessEmail")}
+                  className={getValidationBorderClass(businessEmail, requiresBusinessEmail, "businessEmail")}
                 />
               </div>
               <div className="space-y-1.5">

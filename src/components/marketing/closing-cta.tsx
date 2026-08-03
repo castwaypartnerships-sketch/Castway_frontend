@@ -30,7 +30,7 @@ export function ClosingCta() {
           variants={settleIn}
           className="max-w-2xl text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-balance font-serif leading-tight"
         >
-          Your professional home in the creator economy starts here.
+          Your professional home starts here.
         </motion.h2>
         <motion.p variants={settleIn} className="max-w-md text-muted-foreground text-xs sm:text-sm leading-relaxed">
           Join thousands of creators, brands, and agencies building their businesses on Castway.

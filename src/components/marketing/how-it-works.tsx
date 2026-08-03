@@ -11,13 +11,13 @@ const STEPS = [
   },
   {
     number: "02",
-    title: "Send & accept proposals",
-    description: "Apply directly to active campaign briefs, or send custom collaboration proposals to the exact creators you want to hire.",
+    title: "Connect & Discover",
+    description: "Find brands, agencies, freelancers, and creators who match your goals. Browse active listings, filter by niche and budget, and reach out directly to the right people.",
   },
   {
     number: "03",
-    title: "Get paid instantly",
-    description: "Submit deliverables, verify campaign milestones, and trigger secure escrow payouts the moment your submission is approved.",
+    title: "Collaborate & Grow",
+    description: "Manage opportunities, conversations, and projects from one place. Track progress, stay aligned with your collaborators, and keep every deal moving forward.",
   },
 ];
 
