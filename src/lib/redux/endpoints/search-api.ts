@@ -34,7 +34,13 @@ export interface PublicProfileResponse {
   openOpportunities: ProfileOpenOpportunity[];
   availability: Availability;
   endorsementCounts: EndorsementCounts;
-  postStats: { postsCount: number; totalLikes: number; totalComments: number };
+  postStats: {
+    postsCount: number;
+    totalLikes: number;
+    totalComments: number;
+    totalViews: number;
+    averageViews: number;
+  };
   followerCount: number;
   followingCount: number;
   completedCollaborationsCount: number;

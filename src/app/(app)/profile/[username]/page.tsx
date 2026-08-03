@@ -36,7 +36,7 @@ import {
 import { FaInstagram, FaYoutube, FaLinkedin } from "react-icons/fa6";
 import { motion } from "framer-motion";
 
-import { useGetPublicProfileQuery } from "@/lib/redux/endpoints/search-api";
+import { useGetPublicProfileQuery, type PublicProfileResponse } from "@/lib/redux/endpoints/search-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { useSendConnectionRequestMutation } from "@/lib/redux/endpoints/connections-api";
 import { useStartConversationMutation } from "@/lib/redux/endpoints/messages-api";
@@ -1122,7 +1122,7 @@ function StandardProfileView({
   profileData,
   isOwnProfile,
 }: {
-  profileData: NonNullable<ReturnType<typeof useGetPublicProfileQuery>["data"]>;
+  profileData: PublicProfileResponse;
   isOwnProfile: boolean;
 }) {
   const router = useRouter();
@@ -1131,7 +1131,6 @@ function StandardProfileView({
     isVerified,
     role,
     trustScore,
-    reviewSummary,
     responseTime,
     responseRate,
     openOpportunities,
@@ -1194,18 +1193,20 @@ function StandardProfileView({
       ? "—"
       : `${(((postStats.totalLikes + postStats.totalComments) / followerCount) * 100).toFixed(1)}%`;
 
-  const stats: { icon: typeof Users; label: string; value: string | number }[] = [
-    { icon: Users, label: "Followers", value: followerCount.toLocaleString() },
-    { icon: Eye, label: "Average Views", value: postStats.averageViews.toLocaleString() },
-    { icon: TrendingUp, label: "Engagement Rate", value: engagementRate },
-    { icon: CheckCircle2, label: "Completed Collaborations", value: completedCollaborationsCount.toLocaleString() },
-    { icon: Briefcase, label: "Portfolio Projects", value: profile.portfolioItems.length },
-    {
-      icon: Clock,
-      label: "Response Rate",
-      value: responseRate?.ratePercent != null ? `${responseRate.ratePercent}%` : "—",
-    },
-  ];
+  const stats: { icon: typeof Users; label: string; value: string | number }[] = isTalent
+    ? [
+        { icon: Users, label: "Followers", value: followerCount.toLocaleString() },
+        { icon: Eye, label: "Average Views", value: postStats.averageViews.toLocaleString() },
+        { icon: TrendingUp, label: "Engagement Rate", value: engagementRate },
+        { icon: CheckCircle2, label: "Completed Collaborations", value: completedCollaborationsCount.toLocaleString() },
+        { icon: Briefcase, label: "Portfolio Projects", value: profile.portfolioItems.length },
+        {
+          icon: Clock,
+          label: "Response Rate",
+          value: responseRate?.ratePercent != null ? `${responseRate.ratePercent}%` : "—",
+        },
+      ]
+    : [{ icon: Users, label: "Followers", value: followerCount.toLocaleString() }];
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 px-6 py-8">
@@ -1273,7 +1274,7 @@ function StandardProfileView({
                   <Pencil className="size-4" />
                   Edit Profile
                 </Link>
-              ) : isHiringRole(session?.user?.role) ? (
+              ) : isHiringRole(session?.user?.role) && isTalent ? (
                 <>
                   <Button size="sm" disabled={isMessaging} onClick={handleMessage} className="gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]">
                     Hire Creator
@@ -1427,9 +1428,9 @@ function StandardProfileView({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="flex flex-1 items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div key={stat.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
               <stat.icon className="size-5 text-[#2d4a35] dark:text-[#daf0dd]" />
             </div>
@@ -1772,7 +1773,7 @@ function StandardProfileView({
 }
 
 function InviteToCampaignMenu({ creatorUserId }: { creatorUserId: string }) {
-  const { data } = useGetCampaignsQuery();
+  const { data, isLoading: isLoadingCampaigns } = useGetCampaignsQuery();
   const [addToShortlist, { isLoading }] = useAddToShortlistMutation();
 
   async function handleInvite(campaignId: string, campaignName: string) {
@@ -1782,6 +1783,14 @@ function InviteToCampaignMenu({ creatorUserId }: { creatorUserId: string }) {
     } catch {
       toast.error("Couldn't add to that campaign's shortlist. Please try again.");
     }
+  }
+
+  if (isLoadingCampaigns) {
+    return (
+      <Button size="sm" variant="outline" disabled>
+        Loading…
+      </Button>
+    );
   }
 
   if (!data || data.items.length === 0) {
