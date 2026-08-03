@@ -1661,51 +1661,70 @@ function StandardProfileView({
 
         {isTalent && (
           <TabsContent value="analytics" className="outline-none mt-0 space-y-6">
-            <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <Award className="size-5 text-[#1F5F3F]" />
-                Castway Performance
-              </h2>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <Rss className="size-4 text-[#476948]" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Posts</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground leading-tight">{postStats.postsCount}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Published Content</p>
-                </div>
-
-                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <Plus className="size-4 text-[#476948]" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Endorsements</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground leading-tight">
-                    {Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Skills Endorsed</p>
-                </div>
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Award className="size-5 text-[#1F5F3F]" />
+                  Castway Performance
+                </h2>
+                <span className="rounded-full bg-muted/50 px-3 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase border border-border/50">
+                  Updated Live
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <Heart className="size-4 text-[#476948]" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Likes Received</span>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Posts Card */}
+                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                  <div className="absolute -right-4 -top-4 size-24 rounded-full bg-[#1F5F3F] opacity-[0.08] blur-2xl transition-all duration-500 group-hover:opacity-[0.15] group-hover:scale-110 dark:opacity-[0.12] dark:group-hover:opacity-[0.2]" />
+                  <div className="flex items-center gap-2.5 text-muted-foreground mb-4">
+                    <div className="flex size-9 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
+                      <Rss className="size-4 text-[#2d4a35] dark:text-[#daf0dd]" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Posts</span>
                   </div>
-                  <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalLikes}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
+                  <p className="font-mono text-3xl font-bold text-foreground tracking-tight">{postStats.postsCount}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">Published Content</p>
                 </div>
 
-                <div className="rounded-xl bg-muted/40 p-4 border border-border/40">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <MessageCircle className="size-4 text-[#476948]" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Comments</span>
+                {/* Endorsements Card */}
+                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                  <div className="absolute -right-4 -top-4 size-24 rounded-full bg-[#1F5F3F] opacity-[0.08] blur-2xl transition-all duration-500 group-hover:opacity-[0.15] group-hover:scale-110 dark:opacity-[0.12] dark:group-hover:opacity-[0.2]" />
+                  <div className="flex items-center gap-2.5 text-muted-foreground mb-4">
+                    <div className="flex size-9 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
+                      <Plus className="size-4 text-[#2d4a35] dark:text-[#daf0dd]" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Endorsements</span>
                   </div>
-                  <p className="text-xl font-bold text-foreground leading-tight">{postStats.totalComments}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Castway Platform</p>
+                  <p className="font-mono text-3xl font-bold text-foreground tracking-tight">
+                    {Object.values<number>(endorsementCounts).reduce((sum, count) => sum + count, 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">Skills Endorsed</p>
+                </div>
+
+                {/* Likes Received */}
+                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                  <div className="absolute -right-4 -top-4 size-24 rounded-full bg-[#1F5F3F] opacity-[0.08] blur-2xl transition-all duration-500 group-hover:opacity-[0.15] group-hover:scale-110 dark:opacity-[0.12] dark:group-hover:opacity-[0.2]" />
+                  <div className="flex items-center gap-2.5 text-muted-foreground mb-4">
+                    <div className="flex size-9 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
+                      <Heart className="size-4 text-[#2d4a35] dark:text-[#daf0dd]" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Likes Received</span>
+                  </div>
+                  <p className="font-mono text-3xl font-bold text-foreground tracking-tight">{postStats.totalLikes}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">Castway Platform</p>
+                </div>
+
+                {/* Comments */}
+                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                  <div className="absolute -right-4 -top-4 size-24 rounded-full bg-[#1F5F3F] opacity-[0.08] blur-2xl transition-all duration-500 group-hover:opacity-[0.15] group-hover:scale-110 dark:opacity-[0.12] dark:group-hover:opacity-[0.2]" />
+                  <div className="flex items-center gap-2.5 text-muted-foreground mb-4">
+                    <div className="flex size-9 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
+                      <MessageCircle className="size-4 text-[#2d4a35] dark:text-[#daf0dd]" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Comments</span>
+                  </div>
+                  <p className="font-mono text-3xl font-bold text-foreground tracking-tight">{postStats.totalComments}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 font-medium">Castway Platform</p>
                 </div>
               </div>
             </div>

@@ -108,7 +108,9 @@ export default function MyPostsPage() {
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{post.title}</p>
+                  <Link href={`/home/${post.id}`} className="truncate text-sm font-medium text-foreground hover:underline">
+                    {post.title}
+                  </Link>
                   <Badge variant={STATUS_VARIANT[post.status]}>{STATUS_LABEL[post.status]}</Badge>
                   {post.visibility === "CONNECTIONS_ONLY" ? (
                     <Badge variant="outline">Connections only</Badge>
