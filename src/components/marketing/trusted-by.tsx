@@ -43,8 +43,8 @@ export function TrustedBy() {
     backgroundPosition: "left center",
     backgroundSize: isSweepActive ? "100% 100%" : "0% 100%",
     transition: prefersReducedMotion ? "none" : "background-size 1.1s cubic-bezier(0.65, 0, 0.35, 1)",
-    padding: "8px 16px",
-    borderRadius: "10px",
+    padding: "2px 6px",
+    borderRadius: "4px",
   };
 
   return (
@@ -53,7 +53,7 @@ export function TrustedBy() {
 
         {/* Main Tagline */}
         <h2
-          className="text-[28px] sm:text-[30px] font-bold tracking-[-0.02em] text-foreground leading-[1.3]"
+          className="text-xl sm:text-2xl font-normal font-serif italic text-foreground leading-[1.4]"
         >
           <span style={highlightStyle}>
             {"\"Built for the next generation of creators.\""}
