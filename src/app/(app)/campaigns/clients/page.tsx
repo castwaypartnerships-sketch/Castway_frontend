@@ -8,7 +8,6 @@ import {
   Plus,
   Search,
   Filter,
-  TrendingUp,
   AlertCircle,
   FileText,
   MessageSquare,
@@ -45,16 +44,6 @@ import { initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
 
-// Import visual placeholders
-import {
-  MOCK_CAMPAIGN_STATS,
-  MOCK_CLIENT_OVERVIEW,
-  MOCK_DEADLINES,
-  MOCK_TOP_PERFORMING,
-  MOCK_LISTED_CAMPAIGNS,
-  MOCK_SKILLS,
-} from "@/lib/mocks/campaigns-data";
-
 export default function AgencyClientsPage() {
   const { data: session } = useGetSessionQuery();
   const role = session?.user?.role;
@@ -90,9 +79,9 @@ function AgencyCampaignsDashboard() {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formBudget, setFormBudget] = useState("");
-  const [formDeadline, setFormDeadline] = useState("Aug 24, 2024 - Aug 31, 2024");
+  const [formDeadline, setFormDeadline] = useState("");
   const [formVisibility, setFormVisibility] = useState<"public" | "private">("public");
-  const [skillsList, setSkillsList] = useState<string[]>(MOCK_SKILLS.slice(0, 3));
+  const [skillsList, setSkillsList] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
 
   const [createCampaign, { isLoading: isCreating }] = useCreateCampaignOnBehalfMutation();
@@ -107,7 +96,9 @@ function AgencyCampaignsDashboard() {
     { skip: isAllSelected }
   );
 
-  // Blending live and mocked campaigns
+  // Live campaigns for the currently selected client only — there is no
+  // backend query that aggregates campaigns across all of an agency's
+  // clients at once, so the "all" selection legitimately has nothing to show.
   const getCombinedCampaigns = () => {
     const list: Array<{
       id: string;
@@ -124,15 +115,6 @@ function AgencyCampaignsDashboard() {
       isLive?: boolean;
     }> = [];
 
-    // 1. Add mock briefs if "all" or specific mock brands are targeted
-    if (isAllSelected || selectedBrandUserId === "mock-nike") {
-      list.push(MOCK_LISTED_CAMPAIGNS[0]);
-    }
-    if (isAllSelected || selectedBrandUserId === "mock-yt") {
-      list.push(MOCK_LISTED_CAMPAIGNS[1]);
-    }
-
-    // 2. Add live query briefs
     if (!isAllSelected && liveBrandCampaigns?.items) {
       // Find client brand info
       const brandLink = activeClientBrands.find((c) => c.brand?.userId === selectedBrandUserId);
@@ -212,7 +194,7 @@ function AgencyCampaignsDashboard() {
       setFormTitle("");
       setFormDescription("");
       setFormBudget("");
-      setSkillsList(MOCK_SKILLS.slice(0, 3));
+      setSkillsList([]);
     } catch {
       toast.error("Failed to create campaign brief on behalf of client.");
     }
@@ -260,13 +242,6 @@ function AgencyCampaignsDashboard() {
                           {link.brand?.name}
                         </SelectItem>
                       ))}
-                      {/* Fallback mockup values if no brand co-management links exist */}
-                      {activeClientBrands.length === 0 && (
-                        <>
-                          <SelectItem value="mock-nike" className="text-xs">Nike (Mock)</SelectItem>
-                          <SelectItem value="mock-yt" className="text-xs">YouTube Music (Mock)</SelectItem>
-                        </>
-                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -552,20 +527,12 @@ function AgencyCampaignsDashboard() {
             </Button>
           </div>
 
-          {/* Stats Cards Row */}
+          {/* Stats Cards Row — only stats genuinely computable from real data are shown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {MOCK_CAMPAIGN_STATS.map((stat, idx) => (
-              <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                <h3 className="text-2xl font-bold font-mono text-foreground">{stat.value}</h3>
-                {stat.trend && (
-                  <p className={cn("text-[10px] font-bold", stat.isPositive ? "text-success" : "text-muted-foreground")}>
-                    <TrendingUp className="size-3 inline mr-0.5" />
-                    {stat.trend} vs last month
-                  </p>
-                )}
-              </div>
-            ))}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Clients</p>
+              <h3 className="text-2xl font-bold font-mono text-foreground">{activeClientBrands.length}</h3>
+            </div>
           </div>
 
           {/* Main List Layout & Right Sidebar Grid */}
@@ -607,12 +574,6 @@ function AgencyCampaignsDashboard() {
                           {link.brand?.name}
                         </SelectItem>
                       ))}
-                      {activeClientBrands.length === 0 && (
-                        <>
-                          <SelectItem value="mock-nike" className="text-xs">Nike (Mock)</SelectItem>
-                          <SelectItem value="mock-yt" className="text-xs">YouTube Music (Mock)</SelectItem>
-                        </>
-                      )}
                     </SelectContent>
                   </Select>
 
@@ -631,7 +592,9 @@ function AgencyCampaignsDashboard() {
                 </div>
               ) : currentBriefsList.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-                  No co-managed campaign briefs match these filters.
+                  {isAllSelected
+                    ? "Select a client to view their campaigns."
+                    : "No co-managed campaign briefs match these filters."}
                 </p>
               ) : (
                 <ul className="space-y-4">
@@ -746,42 +709,29 @@ function AgencyCampaignsDashboard() {
                 </h4>
                 
                 <ul className="space-y-3">
-                  {/* Blending co-managed clients with mockup details */}
-                  {activeClientBrands.map((link) => (
-                    <li key={link.id} className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <Avatar size="sm" className="size-8">
-                          <AvatarImage src={link.brand?.avatarUrl ?? undefined} />
-                          <AvatarFallback>{initialsFromName(link.brand?.name ?? "?")}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">{link.brand?.name}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">Co-managing</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
-                        Active Client
-                      </Badge>
+                  {activeClientBrands.length === 0 ? (
+                    <li className="rounded-xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+                      No clients yet.
                     </li>
-                  ))}
-
-                  {/* High-fidelity visual fallback entries */}
-                  {MOCK_CLIENT_OVERVIEW.map((client) => (
-                    <li key={client.id} className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <Avatar size="sm" className="size-8 bg-muted">
-                          <AvatarFallback className="text-[10px] font-bold">{client.logoText}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">{client.name}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">{client.category}</p>
+                  ) : (
+                    activeClientBrands.map((link) => (
+                      <li key={link.id} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar size="sm" className="size-8">
+                            <AvatarImage src={link.brand?.avatarUrl ?? undefined} />
+                            <AvatarFallback>{initialsFromName(link.brand?.name ?? "?")}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-foreground truncate">{link.brand?.name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">Co-managing</p>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                        {client.activeCount} Active
-                      </span>
-                    </li>
-                  ))}
+                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5">
+                          Active Client
+                        </Badge>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </div>
 
@@ -795,27 +745,9 @@ function AgencyCampaignsDashboard() {
                   />
                 </h4>
 
-                <ul className="space-y-2.5">
-                  {MOCK_DEADLINES.map((dl) => (
-                    <li key={dl.id} className="rounded-xl border border-border p-3 space-y-1.5 hover:bg-muted/20 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <span className={cn(
-                          "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded",
-                          dl.urgency === "Tomorrow"
-                            ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
-                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                        )}>
-                          {dl.day}
-                        </span>
-                        <Calendar className="size-3.5 text-muted-foreground/60" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-foreground leading-snug">{dl.title}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{dl.client}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <p className="rounded-xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+                  No deadlines this week.
+                </p>
               </div>
 
               {/* Widget 3: Top Performing */}
@@ -828,22 +760,9 @@ function AgencyCampaignsDashboard() {
                   />
                 </h4>
 
-                <ul className="space-y-3">
-                  {MOCK_TOP_PERFORMING.map((perf, index) => (
-                    <li key={perf.id} className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                      <span className="size-5 rounded-full bg-[#476948]/10 text-[#476948] dark:bg-green-950/30 dark:text-green-300 font-bold flex items-center justify-center text-[10px] shrink-0">
-                        {index + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-foreground font-semibold leading-normal truncate">{perf.title}</p>
-                        <p className="text-[10px] text-muted-foreground/80 mt-0.5">{perf.client}</p>
-                        <p className="text-[10px] font-bold text-[#476948] dark:text-[#a7d9b5] mt-1 uppercase tracking-wider">
-                          {perf.metric}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <p className="rounded-xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+                  No campaign performance data yet.
+                </p>
               </div>
 
             </div>
