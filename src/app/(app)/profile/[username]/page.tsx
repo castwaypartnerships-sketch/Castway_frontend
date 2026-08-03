@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Clock,
   Eye,
-  FileCheck,
   GraduationCap,
   Globe,
   ImageIcon,
@@ -20,7 +19,6 @@ import {
   Pencil,
   Plus,
   Share2,
-  ShieldCheck,
   Star,
   TrendingUp,
   Users,
@@ -44,14 +42,10 @@ import { useStartConversationMutation } from "@/lib/redux/endpoints/messages-api
 import { useEndorseSkillMutation } from "@/lib/redux/endpoints/endorsements-api";
 import { useGetRepresentingAgenciesQuery, useSetPubliclyListedMutation, useGetMyRosterQuery } from "@/lib/redux/endpoints/roster-api";
 import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
-import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
-import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
-import { useGetMyApplicationsQuery } from "@/lib/redux/endpoints/applications-api";
 import { useGetReviewsForUserQuery } from "@/lib/redux/endpoints/reviews-api";
 import { useGetClientCampaignsQuery } from "@/lib/redux/endpoints/campaigns-api";
 import type { DateRange, Education, Experience, Profile } from "@/lib/types/profile";
 import type { RosterEntryDto } from "@/lib/types/roster";
-import { canApplyToOpportunity } from "@/lib/rbac";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -1142,7 +1136,6 @@ function StandardProfileView({
     endorsementCounts,
     postStats,
     followerCount,
-    followingCount,
     viewerIsFollowing,
     managedByAgency,
     completedCollaborationsCount,
@@ -1157,11 +1150,7 @@ function StandardProfileView({
     skip: !profileData,
   });
 
-  const canApply = canApplyToOpportunity(session?.user?.role);
-  const { data: myApplications } = useGetMyApplicationsQuery(undefined, { skip: !isOwnProfile || !canApply });
   const { data: reviewsData } = useGetReviewsForUserQuery(profile.userId);
-  const { data: dashboard } = useGetDashboardQuery(undefined, { skip: !isOwnProfile });
-  const { data: ownProfile } = useGetOwnProfileQuery(undefined, { skip: !isOwnProfile });
 
   const [activeTab, setActiveTab] = useState("overview");
   const isTalent = role === "CREATOR" || role === "FREELANCER";
