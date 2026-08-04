@@ -96,7 +96,7 @@ const TAB_TRIGGER_CLASS =
   "rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-muted-foreground shadow-sm data-[state=active]:border-transparent data-[state=active]:bg-[#1c3322] data-[state=active]:text-white data-[state=active]:shadow-sm dark:data-[state=active]:bg-[#25422d]";
 
 const NEW_TAB_TRIGGER_CLASS =
-  "relative py-3.5 px-4 text-sm font-normal text-muted-foreground data-[state=active]:text-[#1F5F3F] data-[state=active]:font-medium bg-transparent border-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 select-none cursor-pointer data-active:bg-transparent data-active:border-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent after:hidden";
+  "relative py-3.5 px-4 text-sm font-normal text-muted-foreground data-[state=active]:text-[#1F5F3F] data-[state=active]:font-medium bg-transparent border-0 shadow-none rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 select-none cursor-pointer data-active:bg-transparent data-active:border-transparent data-active:shadow-none dark:data-active:bg-transparent dark:data-active:border-transparent after:hidden shrink-0";
 
 export default function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
@@ -298,7 +298,7 @@ function AgencyProfileView({
         </div>
 
         <div className="flex flex-col gap-4 px-8 pb-7">
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between w-full">
             <div className="relative -mt-[60px] size-[120px] shrink-0 rounded-full border-4 border-card">
               <Avatar className="size-full">
                 <AvatarImage src={profile.avatarUrl ?? undefined} />
@@ -455,58 +455,60 @@ function AgencyProfileView({
 
       {/* Tab Switcher and Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList variant="line" className="h-auto flex w-full justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
-          <TabsTrigger value="overview" className={NEW_TAB_TRIGGER_CLASS}>
-            <span>Overview</span>
-            {activeTab === "overview" && (
-              <motion.div
-                layoutId="agency-underline"
-                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-              />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="roster" className={NEW_TAB_TRIGGER_CLASS}>
-            <span>Roster (Public)</span>
-            {activeTab === "roster" && (
-              <motion.div
-                layoutId="agency-underline"
-                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-              />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="case-studies" className={NEW_TAB_TRIGGER_CLASS}>
-            <span>Case Studies</span>
-            {activeTab === "case-studies" && (
-              <motion.div
-                layoutId="agency-underline"
-                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-              />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="campaigns" className={NEW_TAB_TRIGGER_CLASS}>
-            <span>Campaigns</span>
-            {activeTab === "campaigns" && (
-              <motion.div
-                layoutId="agency-underline"
-                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-              />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="reviews" className={NEW_TAB_TRIGGER_CLASS}>
-            <span>Reviews</span>
-            {activeTab === "reviews" && (
-              <motion.div
-                layoutId="agency-underline"
-                className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-              />
-            )}
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsList variant="line" className="h-auto flex w-max justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
+            <TabsTrigger value="overview" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Overview</span>
+              {activeTab === "overview" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="roster" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Roster (Public)</span>
+              {activeTab === "roster" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="case-studies" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Case Studies</span>
+              {activeTab === "case-studies" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Campaigns</span>
+              {activeTab === "campaigns" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Reviews</span>
+              {activeTab === "reviews" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ------------------------------------------------------------------
             TAB 1: OVERVIEW
@@ -1239,7 +1241,7 @@ function StandardProfileView({
         </div>
 
         <div className="flex flex-col gap-4 px-8 pb-7">
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between w-full">
             <div className="relative -mt-[60px] size-[120px] shrink-0 rounded-full border-4 border-card">
               <Avatar className="size-full">
                 <AvatarImage src={profile.avatarUrl ?? undefined} />
@@ -1255,7 +1257,7 @@ function StandardProfileView({
                 </Link>
               ) : null}
             </div>
-            <div className="flex gap-2 pt-4">
+            <div className="flex flex-wrap gap-2 pt-4">
               <Link
                 href={`/media-kit/${profile.username}`}
                 className={cn(buttonVariants({ size: "sm", variant: "outline" }), "gap-1.5")}
@@ -1458,20 +1460,22 @@ function StandardProfileView({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList variant="line" className="h-auto flex w-full justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
-          {standardTabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className={NEW_TAB_TRIGGER_CLASS}>
-              <span>{tab.label}</span>
-              {activeTab === tab.value && (
-                <motion.div
-                  layoutId="standard-underline"
-                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
-                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
-                />
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsList variant="line" className="h-auto flex w-max justify-start border-b border-border/60 bg-transparent p-0 gap-1 rounded-none">
+            {standardTabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className={NEW_TAB_TRIGGER_CLASS}>
+                <span>{tab.label}</span>
+                {activeTab === tab.value && (
+                  <motion.div
+                    layoutId="standard-underline"
+                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                    transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                  />
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="outline-none mt-0">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">

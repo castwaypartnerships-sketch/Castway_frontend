@@ -577,21 +577,23 @@ function AgencyCampaignsDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-3">
                 
                 {/* Status Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5 bg-muted/65 p-1 rounded-xl border border-border/40 text-xs">
-                  {(["all", "active", "draft", "in-review", "completed"] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setStatusTab(tab)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg font-semibold uppercase tracking-wider text-[10px] transition-colors",
-                        statusTab === tab
-                          ? "bg-white text-foreground shadow-sm dark:bg-[#1f2937]"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sm:w-auto shrink-0">
+                  <div className="flex w-max items-center gap-1.5 bg-muted/65 p-1 rounded-xl border border-border/40 text-xs">
+                    {(["all", "active", "draft", "in-review", "completed"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setStatusTab(tab)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg font-semibold uppercase tracking-wider text-[10px] transition-colors shrink-0",
+                          statusTab === tab
+                            ? "bg-white text-foreground shadow-sm dark:bg-[#1f2937]"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Filters Trigger Dropdowns */}
