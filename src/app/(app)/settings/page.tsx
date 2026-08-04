@@ -767,7 +767,7 @@ function SecurityCard() {
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
       <h2 className="text-sm font-semibold text-foreground">Security</h2>
-      <div className="mt-4 flex items-start justify-between gap-4">
+      <div className="mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-medium text-foreground">Log out everywhere</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -777,7 +777,7 @@ function SecurityCard() {
         <Button
           variant="outline"
           size="sm"
-          className="shrink-0 gap-1.5"
+          className="w-full sm:w-auto shrink-0 gap-1.5 justify-center sm:justify-start"
           disabled={isLoading}
           onClick={() => void handleLogoutEverywhere()}
         >

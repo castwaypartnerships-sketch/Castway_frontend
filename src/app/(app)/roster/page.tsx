@@ -139,55 +139,57 @@ function AgencyRosterView() {
         </div>
 
         {/* Top-Right Tab Switcher */}
-        <div className="flex flex-wrap items-center gap-1.5 self-start shrink-0 bg-muted/65 p-1 rounded-xl border border-border/40">
-          <button
-            onClick={() => setActiveTab("view")}
-            className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-              activeTab === "view"
-                ? "bg-[#476948] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Inbox className="size-3.5" />
-            Roster View
-          </button>
-          <button
-            onClick={() => setActiveTab("applications")}
-            className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-              activeTab === "applications"
-                ? "bg-[#476948] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Briefcase className="size-3.5" />
-            Applications
-          </button>
-          <button
-            onClick={() => setActiveTab("pipeline")}
-            className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-              activeTab === "pipeline"
-                ? "bg-[#476948] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Kanban className="size-3.5" />
-            Pipeline
-          </button>
-          <button
-            onClick={() => setActiveTab("catalog")}
-            className={cn(
-              "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors",
-              activeTab === "catalog"
-                ? "bg-[#476948] text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Globe className="size-3.5" />
-            Public Catalog
-          </button>
+        <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] self-start shrink-0 sm:w-auto">
+          <div className="flex w-max items-center gap-1.5 bg-muted/65 p-1 rounded-xl border border-border/40">
+            <button
+              onClick={() => setActiveTab("view")}
+              className={cn(
+                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0",
+                activeTab === "view"
+                  ? "bg-[#476948] text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Inbox className="size-3.5" />
+              Roster View
+            </button>
+            <button
+              onClick={() => setActiveTab("applications")}
+              className={cn(
+                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0",
+                activeTab === "applications"
+                  ? "bg-[#476948] text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Briefcase className="size-3.5" />
+              Applications
+            </button>
+            <button
+              onClick={() => setActiveTab("pipeline")}
+              className={cn(
+                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0",
+                activeTab === "pipeline"
+                  ? "bg-[#476948] text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Kanban className="size-3.5" />
+              Pipeline
+            </button>
+            <button
+              onClick={() => setActiveTab("catalog")}
+              className={cn(
+                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0",
+                activeTab === "catalog"
+                  ? "bg-[#476948] text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Globe className="size-3.5" />
+              Public Catalog
+            </button>
+          </div>
         </div>
       </div>
 
@@ -277,8 +279,8 @@ function RosterItemRow({ entry, onRemove }: { entry: RosterEntryDto; onRemove: (
   if (!member) return null;
 
   return (
-    <li className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <li className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
         <Avatar size="lg">
           <AvatarImage src={member.avatarUrl ?? undefined} />
           <AvatarFallback>{initialsFromName(member.name)}</AvatarFallback>
@@ -289,7 +291,7 @@ function RosterItemRow({ entry, onRemove }: { entry: RosterEntryDto; onRemove: (
         </Link>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center justify-between w-full sm:w-auto gap-3 shrink-0">
         {/* Status Badge */}
         <Badge
           className={cn(

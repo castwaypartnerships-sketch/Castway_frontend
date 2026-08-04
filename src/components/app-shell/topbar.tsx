@@ -71,7 +71,7 @@ export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
         <nav aria-label="Breadcrumb" className="min-w-0 truncate text-sm text-muted-foreground">
           <span>Workspace</span>
           <span className="mx-1.5">/</span>
-          <span className="font-medium text-foreground">{breadcrumbLabel}</span>
+          <span className="font-medium text-foreground inline-block max-w-[120px] align-bottom truncate sm:max-w-none">{breadcrumbLabel}</span>
         </nav>
       </div>
 
