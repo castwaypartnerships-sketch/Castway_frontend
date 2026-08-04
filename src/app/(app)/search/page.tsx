@@ -34,9 +34,8 @@ const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
   LARGE: "51+ people",
 };
 
-type QuickFilter = "all" | "creators" | "agencies";
+type QuickFilter = "all" | "CREATOR" | "FREELANCER" | "AGENCY" | "BRAND";
 
-const TALENT_ROLES = new Set(["CREATOR", "FREELANCER"]);
 const HIRING_ROLES = new Set(["AGENCY", "BRAND"]);
 
 export default function SearchPage() {
@@ -81,9 +80,8 @@ export default function SearchPage() {
 
   const items = useMemo(() => {
     if (!data) return [];
-    if (quickFilter === "creators") return data.items.filter((p) => TALENT_ROLES.has(p.accountRole));
-    if (quickFilter === "agencies") return data.items.filter((p) => HIRING_ROLES.has(p.accountRole));
-    return data.items;
+    if (quickFilter === "all") return data.items;
+    return data.items.filter((p) => p.accountRole === quickFilter);
   }, [data, quickFilter]);
 
   return (
@@ -114,8 +112,10 @@ export default function SearchPage() {
           {(
             [
               { value: "all", label: "All" },
-              { value: "creators", label: "Creators" },
-              { value: "agencies", label: "Agencies" },
+              { value: "CREATOR", label: "Creator" },
+              { value: "FREELANCER", label: "Freelancer" },
+              { value: "AGENCY", label: "Agency" },
+              { value: "BRAND", label: "Brand" },
             ] as { value: QuickFilter; label: string }[]
           ).map((tab) => {
             const isActive = tab.value === quickFilter;
