@@ -26,6 +26,7 @@ import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
 import { useGetMyRosterQuery, useGetManagersQuery } from "@/lib/redux/endpoints/roster-api";
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
 import { useComposer } from "@/components/feed/composer-context";
+import { FeedView } from "@/app/(app)/home/feed-view";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { buttonVariants } from "@/components/ui/button";
@@ -254,6 +255,11 @@ export function AgencyHomeView() {
 
         {/* Dynamic Feed List */}
         <div className="space-y-5">
+          {/* Real post feed — same data every other role sees on Home, previously
+              missing entirely for agencies since this view replaced <FeedView />
+              outright instead of including it. */}
+          {activeTab === "for-you" && <FeedView />}
+
           {/* 1. Campaign Card (For You, Campaigns) */}
           {(activeTab === "for-you" || activeTab === "campaigns") && (
             <article className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">

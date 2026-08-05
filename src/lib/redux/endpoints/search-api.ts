@@ -45,6 +45,7 @@ export interface PublicProfileResponse {
   followingCount: number;
   completedCollaborationsCount: number;
   viewerIsFollowing: boolean;
+  viewerConnectionStatus: "none" | "self" | "pending_outgoing" | "pending_incoming" | "connected";
   role: string;
   /** Set only when this profile is a managed-talent sub-account (see
    * `ManagedTalentService`) — distinct from Roster's "Represented by". */

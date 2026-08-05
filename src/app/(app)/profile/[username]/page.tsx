@@ -147,7 +147,6 @@ function AgencyProfileView({
 
   const { data: session } = useGetSessionQuery();
   const { data: roster } = useGetMyRosterQuery(undefined, { skip: !isOwnProfile });
-  const [sendRequest, { isLoading: isConnecting, isSuccess: connected }] = useSendConnectionRequestMutation();
   const [startConversation, { isLoading: isMessaging }] = useStartConversationMutation();
   const [toggleFollow, { isLoading: isTogglingFollow }] = useToggleFollowMutation();
 
@@ -1143,12 +1142,13 @@ function StandardProfileView({
     postStats,
     followerCount,
     viewerIsFollowing,
+    viewerConnectionStatus,
     managedByAgency,
     completedCollaborationsCount,
   } = profileData;
 
   const { data: session } = useGetSessionQuery();
-  const [sendRequest, { isLoading: isConnecting, isSuccess: connected }] = useSendConnectionRequestMutation();
+  const [sendRequest, { isLoading: isConnecting }] = useSendConnectionRequestMutation();
   const [startConversation, { isLoading: isMessaging }] = useStartConversationMutation();
   const [endorseSkill, { isLoading: isEndorsing }] = useEndorseSkillMutation();
   const [toggleFollow, { isLoading: isTogglingFollow }] = useToggleFollowMutation();
@@ -1184,6 +1184,17 @@ function StandardProfileView({
   async function handleMessage() {
     const conversation = await startConversation(profile.userId).unwrap();
     router.push(`/messages?conversationId=${conversation.id}`);
+  }
+
+  async function handleConnect() {
+    try {
+      await sendRequest(profile.userId).unwrap();
+      toast.success("Connection request sent");
+    } catch (err) {
+      const message =
+        (err as { data?: { error?: string } })?.data?.error ?? "Couldn't send that connection request.";
+      toast.error(message);
+    }
   }
 
   async function handleShareProfile() {
@@ -1305,15 +1316,31 @@ function StandardProfileView({
                   >
                     {viewerIsFollowing ? "Following" : "Follow"}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant={connected ? "outline" : "default"}
-                    disabled={isConnecting || connected}
-                    className={!connected ? "bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]" : undefined}
-                    onClick={() => sendRequest(profile.userId)}
-                  >
-                    {connected ? "Requested" : isConnecting ? "Requesting…" : "Connect"}
-                  </Button>
+                  {viewerConnectionStatus === "pending_incoming" ? (
+                    <Link href="/connections" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>
+                      Respond to request
+                    </Link>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant={viewerConnectionStatus === "none" ? "default" : "outline"}
+                      disabled={isConnecting || viewerConnectionStatus !== "none"}
+                      className={
+                        viewerConnectionStatus === "none"
+                          ? "bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+                          : undefined
+                      }
+                      onClick={handleConnect}
+                    >
+                      {isConnecting
+                        ? "Requesting…"
+                        : viewerConnectionStatus === "connected"
+                          ? "Connected"
+                          : viewerConnectionStatus === "pending_outgoing"
+                            ? "Requested"
+                            : "Connect"}
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" disabled={isMessaging} onClick={handleMessage}>
                     Message
                   </Button>

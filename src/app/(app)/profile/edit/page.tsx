@@ -185,12 +185,12 @@ function ProfileForm({
     return () => clearTimeout(timeout);
   }, [saved]);
 
-  async function handleAvatarUploaded(avatarUrl: string) {
+  async function handleAvatarUploaded(avatarUrl: string | null) {
     try {
       await updatePhoto({ avatarUrl }).unwrap();
-      toast.success("Profile photo updated");
+      toast.success(avatarUrl ? "Profile photo updated" : "Profile photo removed");
     } catch {
-      toast.error("Couldn't save your new profile photo. Please try again.");
+      toast.error("Couldn't save your profile photo. Please try again.");
     }
   }
 
