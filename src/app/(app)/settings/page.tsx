@@ -1075,6 +1075,24 @@ function NotificationsPanel() {
                     </td>
                   </tr>
                 ))}
+                <tr className="border-b border-border last:border-0">
+                  <td className="py-3">
+                    <p className="font-medium text-foreground">Roster invites</p>
+                    <p className="text-xs text-muted-foreground">
+                      When an agency invites you, or a creator accepts your invite. Always shown in-app —
+                      email is optional.
+                    </p>
+                  </td>
+                  <td className="py-3 text-center text-muted-foreground">—</td>
+                  <td className="py-3 text-center">
+                    <Switch
+                      className={cn(GREEN_SWITCH, "align-middle")}
+                      size="sm"
+                      checked={preferences.rosterInvitesEmail}
+                      onCheckedChange={(checked) => handleToggle("rosterInvitesEmail", checked)}
+                    />
+                  </td>
+                </tr>
                 <tr>
                   <td className="py-3">
                     <p className="font-medium text-foreground">Weekly digest</p>
