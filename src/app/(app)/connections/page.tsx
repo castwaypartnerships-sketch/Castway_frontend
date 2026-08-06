@@ -503,6 +503,16 @@ function SuggestedRow({
 }) {
   const [sendRequest, { isLoading, isSuccess }] = useSendConnectionRequestMutation();
 
+  async function handleConnect() {
+    try {
+      await sendRequest(suggestion.userId).unwrap();
+    } catch (err) {
+      const message =
+        (err as { data?: { error?: string } })?.data?.error ?? "Couldn't send that connection request.";
+      toast.error(message);
+    }
+  }
+
   return (
     <li className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
@@ -546,7 +556,7 @@ function SuggestedRow({
           size="sm"
           variant={isSuccess ? "outline" : "default"}
           disabled={isLoading || isSuccess}
-          onClick={() => sendRequest(suggestion.userId)}
+          onClick={handleConnect}
         >
           {isSuccess ? "Requested" : isLoading ? "Requesting…" : "Connect"}
         </Button>

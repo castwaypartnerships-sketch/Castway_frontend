@@ -11,6 +11,7 @@ export interface NotificationPreferences {
   applicationUpdatesEmail: boolean;
   postActivityEmail: boolean;
   reviewsAndEndorsementsEmail: boolean;
+  rosterInvitesEmail: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;

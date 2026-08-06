@@ -36,6 +36,14 @@ const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
 
 type QuickFilter = "all" | "CREATOR" | "FREELANCER" | "AGENCY" | "BRAND";
 
+const QUICK_FILTERS = [
+  { value: "all", label: "All" },
+  { value: "CREATOR", label: "Creator" },
+  { value: "FREELANCER", label: "Freelancer" },
+  { value: "AGENCY", label: "Agency" },
+  { value: "BRAND", label: "Brand" },
+] as const satisfies { value: QuickFilter; label: string }[];
+
 const HIRING_ROLES = new Set(["AGENCY", "BRAND"]);
 
 export default function SearchPage() {
@@ -108,33 +116,27 @@ export default function SearchPage() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center gap-2">
-          {(
-            [
-              { value: "all", label: "All" },
-              { value: "CREATOR", label: "Creator" },
-              { value: "FREELANCER", label: "Freelancer" },
-              { value: "AGENCY", label: "Agency" },
-              { value: "BRAND", label: "Brand" },
-            ] as { value: QuickFilter; label: string }[]
-          ).map((tab) => {
-            const isActive = tab.value === quickFilter;
-            return (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => setQuickFilter(tab.value)}
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-                  isActive
-                    ? "border-transparent bg-[#2d4a35] text-white dark:bg-[#25422d]"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="mt-6 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex w-max items-center gap-2 pb-1">
+            {QUICK_FILTERS.map((tab) => {
+              const isActive = tab.value === quickFilter;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => setQuickFilter(tab.value)}
+                  className={cn(
+                    "rounded-full border px-4 py-2 text-sm font-semibold transition-colors shrink-0",
+                    isActive
+                      ? "border-transparent bg-[#2d4a35] text-white dark:bg-[#25422d]"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
