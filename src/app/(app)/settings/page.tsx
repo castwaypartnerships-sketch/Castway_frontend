@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Bell,
   Lock,
+  Loader2,
   Monitor,
   Moon,
   Plus,
@@ -67,6 +68,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { isTalentRole } from "@/lib/rbac";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useImageUpload } from "@/lib/hooks/use-image-upload";
 
 // Scoped to this page — the shared `Switch` component defaults its checked
 // state to the site-wide purple `--primary`, but every other accent on
@@ -334,6 +336,33 @@ function ProfilePanel() {
   const [updateSubSpecializations] = useUpdateSubSpecializationsMutation();
   const [updateSocialLinks, { isLoading: isSavingSocial }] = useUpdateSocialLinksMutation();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading: isUploadingAvatar } = useImageUpload("avatars");
+
+  async function handleAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const url = await upload(file);
+      if (url) {
+        await updateProfile({ avatarUrl: url }).unwrap();
+        toast.success("Profile photo updated.");
+      }
+    } catch {
+      toast.error("Couldn't upload your profile photo. Please try again.");
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    try {
+      await updateProfile({ avatarUrl: null }).unwrap();
+      toast.success("Profile photo removed.");
+    } catch {
+      toast.error("Couldn't remove your profile photo. Please try again.");
+    }
+  }
+
   const [bio, setBio] = useState("");
   const [nicheInput, setNicheInput] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -400,27 +429,50 @@ function ProfilePanel() {
       <h2 className="text-sm font-semibold text-foreground">Profile Settings</h2>
       <p className="text-xs text-muted-foreground">How you appear to others on Castway.</p>
 
-      <div className="mt-4 flex items-start gap-5">
-        <div className="flex flex-col items-center gap-1 shrink-0">
+      <div className="mt-4 flex items-center gap-4">
+        <div className="relative shrink-0">
           <Avatar size="lg" className="size-16">
             <AvatarImage src={profile.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
           </Avatar>
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Current</span>
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-sm font-medium text-foreground">Profile Photo</p>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <InlineImageUpload
-                kind="avatars"
-                imageUrl={profile.avatarUrl ?? ""}
-                onUploaded={(url) => updateProfile({ avatarUrl: url })}
-                className="size-16 aspect-square rounded-xl"
-              />
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Upload new</span>
+          {isUploadingAvatar && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+              <Loader2 className="size-5 animate-spin text-white" />
             </div>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Profile Photo</p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={isUploadingAvatar}
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs font-semibold text-[#476948] hover:underline disabled:opacity-50 dark:text-[#a7d9b5]"
+            >
+              Upload new
+            </button>
+            {profile.avatarUrl && (
+              <>
+                <span className="text-xs text-muted-foreground">•</span>
+                <button
+                  type="button"
+                  disabled={isUploadingAvatar}
+                  onClick={() => void handleRemoveAvatar()}
+                  className="text-xs font-semibold text-destructive hover:underline disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              </>
+            )}
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={handleAvatarFileChange}
+          />
         </div>
       </div>
 
