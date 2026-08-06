@@ -80,9 +80,9 @@ export default function VerifyEmailPage() {
         <div className="space-y-1 text-center">
           <Link
             href="/"
-            className="mx-auto flex size-10 items-center justify-center rounded-full bg-black text-sm font-bold text-white transition-transform hover:scale-105 dark:bg-white dark:text-black"
+            className="mx-auto flex size-10 items-center justify-center overflow-hidden rounded-xl transition-transform hover:scale-105"
           >
-            C
+            <img src="/logo.jpg" alt="Castway" className="size-full object-cover" />
           </Link>
           <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">Verify your email</h1>
           <p className="text-sm text-muted-foreground">
