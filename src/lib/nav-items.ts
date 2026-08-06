@@ -9,7 +9,6 @@ import {
   Megaphone,
   MessageSquare,
   Settings,
-  UserCog,
   UserPlus,
   Users,
   Briefcase,
@@ -32,14 +31,13 @@ const MESSAGES: NavItem = { label: "Messages", href: "/messages", icon: MessageS
 const MY_APPLICATIONS: NavItem = { label: "My Applications", href: "/applications", icon: ListChecks };
 const SAVED: NavItem = { label: "Saved Board", href: "/saved", icon: Bookmark };
 const SETTINGS: NavItem = { label: "Settings", href: "/settings", icon: Settings };
-const ROSTER: NavItem = { label: "Roster", href: "/roster", icon: UserPlus };
+const ROSTER: NavItem = { label: "Talent", href: "/roster", icon: UserPlus };
 const CAMPAIGNS: NavItem = { label: "Campaigns", href: "/campaigns", icon: Megaphone };
 const SHORTLISTS: NavItem = { label: "Shortlists", href: "/shortlists", icon: ListChecks };
 const CRM: NavItem = { label: "Brand CRM", href: "/crm", icon: Handshake };
 const CLIENT_CAMPAIGNS: NavItem = { label: "Client Campaigns", href: "/campaigns/clients", icon: Megaphone };
 const ASSIGNED_ROSTER: NavItem = { label: "My Assigned Roster", href: "/roster/assigned", icon: UserPlus };
 const TEAM: NavItem = { label: "Team", href: "/roster/team", icon: Users };
-const MANAGED_TALENT: NavItem = { label: "Managed Talent", href: "/roster/managed", icon: UserCog };
 const BRAND_TEAM: NavItem = { label: "Team", href: "/brand-team", icon: Users };
 
 /** Superset used only for breadcrumb/pathname lookups (`findNavItemByPathname`) —
@@ -104,9 +102,8 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
     MESSAGES,
     MY_APPLICATIONS,
     SAVED,
-    ROSTER,
     TEAM,
-    MANAGED_TALENT,
+    ROSTER,
     CLIENT_CAMPAIGNS,
     SETTINGS,
   ],
@@ -127,10 +124,16 @@ export function getNavItemsForRole(role: string | null | undefined): NavItem[] {
   return NAV_ITEMS_BY_ROLE[isRole(role) ? role : "CREATOR"];
 }
 
+/** Picks the *longest* matching href, not the first one found — order in
+ * `NAV_ITEMS` must not matter. A first-match version broke the moment two
+ * entries nested (e.g. `/roster` "Talent" vs. `/roster/team` "Team"): any
+ * pathname under `/roster/team` matched the shorter `/roster` prefix first
+ * and showed the wrong breadcrumb, regardless of array order. */
 export function findNavItemByPathname(pathname: string): NavItem | undefined {
-  return NAV_ITEMS.find(
+  const matches = NAV_ITEMS.filter(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
+  return matches.sort((a, b) => b.href.length - a.href.length)[0];
 }
 
 export const LAYOUT_GRID_ICON = LayoutGrid;

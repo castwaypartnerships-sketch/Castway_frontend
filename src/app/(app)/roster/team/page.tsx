@@ -141,15 +141,15 @@ function AgencyTeamView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
               <div className="space-y-1.5 md:col-span-1.5">
                 <Label htmlFor="invite-input" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Invite by email or username
+                  Invite by email
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
                   <Input
                     id="invite-input"
-                    type="text"
+                    type="email"
                     required
-                    placeholder="Enter email or username..."
+                    placeholder="Enter email address..."
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     className="pl-9 text-sm"
@@ -167,11 +167,10 @@ function AgencyTeamView() {
               </Button>
             </div>
 
-            {/* Optional parameters for live API matching */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
               <div className="space-y-1">
                 <Label htmlFor="invite-name" className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Full Name (Optional for API)
+                  Full name
                 </Label>
                 <Input
                   id="invite-name"
@@ -184,7 +183,7 @@ function AgencyTeamView() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="invite-username" className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Username (Optional for API)
+                  Username
                 </Label>
                 <Input
                   id="invite-username"
@@ -196,6 +195,9 @@ function AgencyTeamView() {
                 />
               </div>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              Leave name/username blank to auto-fill from the email above.
+            </p>
           </form>
 
           {/* Just Created Temp Password Banner */}

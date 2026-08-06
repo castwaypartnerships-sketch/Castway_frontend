@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
+import { TalentSectionTabs } from "@/components/roster/talent-section-tabs";
 import { cn } from "@/lib/utils";
 
 type RosterTab = "view" | "applications" | "pipeline" | "catalog";
@@ -121,7 +122,8 @@ function AgencyRosterView() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-6 py-6">
-      
+      <TalentSectionTabs />
+
       {/* Redesigned Header: Title + Switcher */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b border-border/60 pb-5">
         <div>

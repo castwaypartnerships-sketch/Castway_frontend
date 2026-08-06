@@ -4,12 +4,18 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 
 /** Real, platform-wide "opportunities posted in the last 7 days" count —
  * talent roles only (Brand/Agency post opportunities rather than browse
  * them, so `newOpportunitiesCount` isn't in their dashboard summary). */
 export function NewOpportunitiesCard() {
-  const { data: dashboard, isLoading } = useGetDashboardQuery();
+  const { data: session } = useGetSessionQuery();
+  // AGENCY_MANAGER has no dashboard of its own (see dashboard.service.ts) —
+  // skip so this doesn't 403 on every page load for that role.
+  const { data: dashboard, isLoading } = useGetDashboardQuery(undefined, {
+    skip: session?.user?.role === "AGENCY_MANAGER",
+  });
 
   if (isLoading) return <div className="h-32 animate-pulse rounded-2xl border border-border bg-muted" />;
   if (!dashboard || !("newOpportunitiesCount" in dashboard)) return null;

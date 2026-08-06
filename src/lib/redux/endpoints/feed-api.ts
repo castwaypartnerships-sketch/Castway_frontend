@@ -30,6 +30,22 @@ export interface CreatePostInput {
   scheduledFor?: string;
 }
 
+/** Same fields as `CreatePostInput` minus the create-only `saveAsDraft`/
+ * `scheduledFor` — editing a post never changes its DRAFT/SCHEDULED/PUBLISHED
+ * status (that's Publish/Archive/Restore on the My Posts page), only its
+ * content. Backend's `postUpdateSchema` is `postWriteSchema.partial()`, so
+ * every field here is optional — send only what actually changed. */
+export interface UpdatePostInput {
+  content?: string;
+  imageUrl?: string;
+  category?: PostCategory;
+  visibility?: "PUBLIC" | "CONNECTIONS_ONLY";
+  title?: string;
+  tags?: string[];
+  budget?: string;
+  applicationDeadline?: string;
+}
+
 export const feedApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // Infinite-scroll pagination: the cache key ignores `page` (see
@@ -63,6 +79,14 @@ export const feedApi = api.injectEndpoints({
     createPost: builder.mutation<void, CreatePostInput>({
       query: (body) => ({ url: "/feed", method: "POST", body }),
       invalidatesTags: [{ type: "Feed", id: "LIST" }, { type: "Feed", id: "MINE" }],
+    }),
+    updatePost: builder.mutation<void, { postId: string; input: UpdatePostInput }>({
+      query: ({ postId, input }) => ({ url: `/feed/${postId}`, method: "PATCH", body: input }),
+      invalidatesTags: (_result, _error, { postId }) => [
+        { type: "Feed", id: postId },
+        { type: "Feed", id: "MINE" },
+        { type: "Feed", id: "LIST" },
+      ],
     }),
     getMyPosts: builder.query<FeedResponse, void>({
       query: () => "/feed/mine",
@@ -235,6 +259,7 @@ export const feedApi = api.injectEndpoints({
 export const {
   useGetFeedQuery,
   useCreatePostMutation,
+  useUpdatePostMutation,
   useGetMyPostsQuery,
   usePublishPostMutation,
   useArchivePostMutation,

@@ -5,6 +5,7 @@ import { Briefcase, Eye, MessageCircle, Sparkles, Users } from "lucide-react";
 
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
 import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
+import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 
 function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number | string }) {
   return (
@@ -19,7 +20,12 @@ function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: strin
 }
 
 export function FeedStatsRow() {
-  const { data: dashboard, isLoading: dashboardLoading } = useGetDashboardQuery();
+  const { data: session } = useGetSessionQuery();
+  // AGENCY_MANAGER has no dashboard of its own (see dashboard.service.ts) —
+  // skip so this doesn't 403 on every page load for that role.
+  const { data: dashboard, isLoading: dashboardLoading } = useGetDashboardQuery(undefined, {
+    skip: session?.user?.role === "AGENCY_MANAGER",
+  });
   const { data: profileData, isLoading: profileLoading } = useGetOwnProfileQuery();
 
   if (dashboardLoading || profileLoading) {
