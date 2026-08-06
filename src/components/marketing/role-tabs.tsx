@@ -266,7 +266,7 @@ export function RoleTabs() {
                   </div>
 
                   {/* Right Column (Illustration Card) */}
-                  <div className="flex justify-center lg:justify-end w-full max-h-[22vh] lg:max-h-full">
+                  <div className="hidden sm:flex justify-center lg:justify-end w-full max-h-[22vh] lg:max-h-full">
                     <div className="w-full max-w-sm rounded-2xl border border-black/15 bg-white dark:bg-[#0c140e] shadow-lg aspect-[4/3] relative overflow-hidden transition-all hover:scale-[1.02] duration-300">
                       {/* TAB_MEDIA_PLACEHOLDER — swap with real illustration */}
                       <Image
