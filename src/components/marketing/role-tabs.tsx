@@ -224,7 +224,7 @@ export function RoleTabs() {
                 <motion.div
                   key={tab.id}
                   style={{ y: yVal, zIndex, willChange: "transform" }}
-                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-6 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
+                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-5 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-6 items-center overflow-y-auto lg:overflow-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
                 >
                   {/* Left Column (Details) */}
                   <div className="flex flex-col items-start text-left space-y-2.5">
@@ -237,14 +237,14 @@ export function RoleTabs() {
                       {tab.heading}
                     </h3>
 
-                    <p className="text-xs sm:text-sm leading-relaxed opacity-85 line-clamp-2">
+                    <p className="text-xs sm:text-sm leading-relaxed opacity-85 line-clamp-none lg:line-clamp-2">
                       {tab.description}
                     </p>
 
                     {/* Checklist — two columns so 5 items take 3 short rows
                         instead of 5 tall ones, the single biggest lever for
                         fitting inside a fixed-height pinned viewport. */}
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 w-full">
+                    <ul className="grid grid-cols-2 lg:grid-cols-2 gap-x-2 lg:gap-x-4 gap-y-1 lg:gap-y-1.5 w-full">
                       {tab.checklist.map((item, index) => (
                         <li key={index} className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
                           <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-white text-black border border-black/10">
@@ -266,8 +266,8 @@ export function RoleTabs() {
                   </div>
 
                   {/* Right Column (Illustration Card) */}
-                  <div className="flex justify-center lg:justify-end w-full max-h-[30vh] lg:max-h-full">
-                    <div className="w-full max-w-sm rounded-2xl border border-black/15 bg-white dark:bg-[#0c140e] shadow-lg aspect-[4/3] relative overflow-hidden transition-all hover:scale-[1.02] duration-300">
+                  <div className="flex justify-center lg:justify-end w-full max-h-[16vh] lg:max-h-full shrink-0">
+                    <div className="w-full max-w-[240px] lg:max-w-sm rounded-xl lg:rounded-2xl border border-black/15 bg-white dark:bg-[#0c140e] shadow-lg aspect-[4/3] relative overflow-hidden transition-all hover:scale-[1.02] duration-300">
                       {/* TAB_MEDIA_PLACEHOLDER — swap with real illustration */}
                       <Image
                         src={tab.illustration}
