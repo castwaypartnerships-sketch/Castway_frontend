@@ -30,7 +30,7 @@ export function MarketingFooter() {
         <div className="md:col-span-2 space-y-5 text-left">
           <Link href="/" className="flex items-center gap-2.5 group w-fit">
             <span className="flex size-7 items-center justify-center overflow-hidden rounded-lg transition-transform group-hover:scale-105">
-              <img src="/logo.jpg" alt="Castway" className="size-full object-cover" />
+              <img src="/logo.png" alt="Castway" className="size-full object-cover" />
             </span>
             <span className="font-semibold tracking-tight text-foreground">Castway</span>
           </Link>

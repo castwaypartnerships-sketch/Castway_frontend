@@ -82,7 +82,7 @@ export default function VerifyEmailPage() {
             href="/"
             className="mx-auto flex size-10 items-center justify-center overflow-hidden rounded-xl transition-transform hover:scale-105"
           >
-            <img src="/logo.jpg" alt="Castway" className="size-full object-cover" />
+            <img src="/logo.png" alt="Castway" className="size-full object-cover" />
           </Link>
           <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">Verify your email</h1>
           <p className="text-sm text-muted-foreground">
