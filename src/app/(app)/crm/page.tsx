@@ -124,22 +124,24 @@ export default function CrmPage() {
           </p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {FILTER_TABS.map((filterTab) => (
-            <button
-              key={filterTab.value}
-              type="button"
-              onClick={() => setTab(filterTab.value)}
-              className={cn(
-                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-                tab === filterTab.value
-                  ? "border-transparent bg-[#1c3322] text-white dark:bg-[#25422d]"
-                  : "border-border bg-card text-muted-foreground hover:bg-accent",
-              )}
-            >
-              {filterTab.label}
-            </button>
-          ))}
+        <div className="mt-6 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex w-max gap-2">
+            {FILTER_TABS.map((filterTab) => (
+              <button
+                key={filterTab.value}
+                type="button"
+                onClick={() => setTab(filterTab.value)}
+                className={cn(
+                  "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors shrink-0",
+                  tab === filterTab.value
+                    ? "border-transparent bg-[#1c3322] text-white dark:bg-[#25422d]"
+                    : "border-border bg-card text-muted-foreground hover:bg-accent",
+                )}
+              >
+                {filterTab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mt-5">

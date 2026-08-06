@@ -173,8 +173,8 @@ export function PostCard({ item }: { item: FeedItem }) {
         </div>
       ) : null}
 
-      <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-border pt-4">
+        <div className="flex w-full items-center justify-between gap-1.5 sm:w-auto sm:justify-start">
           <Button
             variant="ghost"
             size="sm"
@@ -210,7 +210,7 @@ export function PostCard({ item }: { item: FeedItem }) {
           <Button
             size="sm"
             disabled={isApplying || hasApplied}
-            className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+            className="w-full bg-[#476948] text-white hover:bg-[#3d5a3e] sm:w-auto dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
             onClick={() => {
               if (isFreelancer) setComposing(true);
               else void handleApply();
