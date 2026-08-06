@@ -400,18 +400,19 @@ function ProfilePanel() {
       <h2 className="text-sm font-semibold text-foreground">Profile Settings</h2>
       <p className="text-xs text-muted-foreground">How you appear to others on Castway.</p>
 
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+      <div className="mt-4 flex items-start gap-5">
         <Avatar size="lg" className="size-16 shrink-0">
           <AvatarImage src={profile.avatarUrl ?? undefined} />
           <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
         </Avatar>
         <div className="space-y-1.5">
           <p className="text-sm font-medium text-foreground">Profile Photo</p>
-          <div className="flex items-center gap-2 w-48 sm:w-52">
+          <div className="flex items-center gap-2">
             <InlineImageUpload
               kind="avatars"
               imageUrl={profile.avatarUrl ?? ""}
               onUploaded={(url) => updateProfile({ avatarUrl: url })}
+              className="size-16 aspect-square rounded-xl"
             />
           </div>
         </div>

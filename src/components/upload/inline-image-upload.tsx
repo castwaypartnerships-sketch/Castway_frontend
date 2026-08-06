@@ -18,11 +18,13 @@ export function InlineImageUpload({
   imageUrl,
   onUploaded,
   onRemove,
+  className,
 }: {
   kind: UploadKind;
   imageUrl: string;
   onUploaded: (url: string) => void;
   onRemove?: () => void;
+  className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { upload, isUploading } = useImageUpload(kind);
@@ -43,20 +45,23 @@ export function InlineImageUpload({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={isUploading}
-        className="group/item-image relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted bg-cover bg-center outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          "group/item-image relative flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted bg-cover bg-center outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
+          className || "aspect-video w-full"
+        )}
         style={imageUrl && isPreviewableImage ? { backgroundImage: `url(${imageUrl})` } : undefined}
         aria-label={imageUrl ? "Change file" : "Upload a file"}
       >
         {!imageUrl && !isUploading ? (
-          <span className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground">
-            <ImagePlus className="size-5" />
-            {kind === "portfolio" ? "Upload an image, PDF, or video" : "Upload an image"}
+          <span className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground text-center px-1">
+            <ImagePlus className={cn("size-5", kind === "avatars" && "size-4.5")} />
+            {kind === "avatars" ? null : kind === "portfolio" ? "Upload an image, PDF, or video" : "Upload an image"}
           </span>
         ) : null}
         {imageUrl && !isPreviewableImage && !isUploading ? (
-          <span className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground">
-            <FileText className="size-5" />
-            File uploaded
+          <span className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground text-center px-1">
+            <FileText className={cn("size-5", kind === "avatars" && "size-4.5")} />
+            {kind === "avatars" ? null : "File uploaded"}
           </span>
         ) : null}
         <span
@@ -71,7 +76,7 @@ export function InlineImageUpload({
           ) : imageUrl ? (
             <>
               <Camera className="size-4" />
-              {kind === "portfolio" ? "Change file" : "Change image"}
+              {kind === "avatars" ? null : kind === "portfolio" ? "Change file" : "Change image"}
             </>
           ) : null}
         </span>
