@@ -832,7 +832,7 @@ function PrivacyPanel() {
         <div className="mt-4 h-32 animate-pulse rounded-xl bg-muted" />
       ) : (
         <div className="mt-4 space-y-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <Label htmlFor="profile-visibility">Who can view your profile</Label>
               <p className="text-xs text-muted-foreground">
@@ -843,7 +843,7 @@ function PrivacyPanel() {
               value={settings.profileVisibility}
               onValueChange={(value) => handleChange({ ...settings, profileVisibility: value as Visibility })}
             >
-              <SelectTrigger id="profile-visibility" className="w-44 shrink-0">
+              <SelectTrigger id="profile-visibility" className="w-full sm:w-44 shrink-0">
                 <SelectValue>
                   {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
                 </SelectValue>
@@ -858,7 +858,7 @@ function PrivacyPanel() {
             </Select>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <Label htmlFor="message-permission">Who can message you</Label>
               <p className="text-xs text-muted-foreground">
@@ -869,7 +869,7 @@ function PrivacyPanel() {
               value={settings.messagePermission}
               onValueChange={(value) => handleChange({ ...settings, messagePermission: value as Visibility })}
             >
-              <SelectTrigger id="message-permission" className="w-44 shrink-0">
+              <SelectTrigger id="message-permission" className="w-full sm:w-44 shrink-0">
                 <SelectValue>
                   {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
                 </SelectValue>
