@@ -1028,7 +1028,10 @@ function StandardProfileView({
   const engagementRate =
     followerCount === 0 || postStats.postsCount === 0
       ? "—"
-      : `${(((postStats.totalLikes + postStats.totalComments) / postStats.postsCount / followerCount) * 100).toFixed(1)}%`;
+      : // Capped at 100% for display — the raw ratio can exceed it (e.g. a
+        // post reshared beyond the account's own follower count), which
+        // reads as broken rather than as a meaningful "over-engaged" signal.
+        `${Math.min(100, ((postStats.totalLikes + postStats.totalComments) / postStats.postsCount / followerCount) * 100).toFixed(1)}%`;
 
   const stats: { 
     icon: typeof Users; 
