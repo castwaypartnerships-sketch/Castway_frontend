@@ -224,7 +224,7 @@ export function RoleTabs() {
                 <motion.div
                   key={tab.id}
                   style={{ y: yVal, zIndex, willChange: "transform" }}
-                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3 lg:gap-6 items-center overflow-y-auto lg:overflow-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
+                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3 lg:gap-6 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
                 >
                   {/* Left Column (Details) */}
                   <div className="flex flex-col items-start text-left space-y-2 lg:space-y-2.5">
