@@ -148,8 +148,8 @@ export function CreatePostDialog({ open, onOpenChange }: { open: boolean; onOpen
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="post-title">Title (optional)</Label>
-            <Input id="post-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Headline for your post" />
+            <Label htmlFor="post-title">Heading (optional)</Label>
+            <Input id="post-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Heading for your post" />
           </div>
 
           <div className="space-y-1.5">

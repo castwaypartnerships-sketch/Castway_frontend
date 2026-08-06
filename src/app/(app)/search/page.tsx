@@ -34,17 +34,8 @@ const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
   LARGE: "51+ people",
 };
 
-type QuickFilter = "all" | "creators" | "freelancers" | "agencies" | "brand";
+type QuickFilter = "all" | "CREATOR" | "FREELANCER" | "AGENCY" | "BRAND";
 
-const QUICK_FILTERS = [
-  { value: "all", label: "All", locked: false },
-  { value: "creators", label: "Creators", locked: false },
-  { value: "freelancers", label: "Freelancers", locked: false },
-  { value: "agencies", label: "Agencies", locked: true },
-  { value: "brand", label: "Brand", locked: true },
-] as const;
-
-const TALENT_ROLES = new Set(["CREATOR", "FREELANCER"]);
 const HIRING_ROLES = new Set(["AGENCY", "BRAND"]);
 
 export default function SearchPage() {
@@ -64,7 +55,6 @@ export default function SearchPage() {
   const [rateMax, setRateMax] = useState("");
   const [agencySize, setAgencySize] = useState("");
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   const { data, isFetching, isError } = useSearchProfilesQuery({
     query: query.trim() || undefined,
@@ -90,23 +80,21 @@ export default function SearchPage() {
 
   const items = useMemo(() => {
     if (!data) return [];
-    if (quickFilter === "creators") return data.items.filter((p) => p.accountRole === "CREATOR");
-    if (quickFilter === "freelancers") return data.items.filter((p) => p.accountRole === "FREELANCER");
-    // "all" filters to Creators + Freelancers only (Agencies and Brands are locked)
-    return data.items.filter((p) => p.accountRole === "CREATOR" || p.accountRole === "FREELANCER");
+    if (quickFilter === "all") return data.items;
+    return data.items.filter((p) => p.accountRole === quickFilter);
   }, [data, quickFilter]);
 
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1fr_320px]">
       <div>
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Discover</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Find creators, agencies, and collaborators across the network.
             </p>
           </div>
-          <div className="flex w-full gap-3 justify-start sm:w-auto sm:justify-start shrink-0">
+          <div className="flex shrink-0 gap-3">
             <Link href="/saved" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
               Saved
             </Link>
@@ -120,49 +108,33 @@ export default function SearchPage() {
           </div>
         </div>
 
-        <div className="mt-6 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="flex w-max items-center gap-2 pb-1">
-            {QUICK_FILTERS.map((tab) => {
-              const isActive = tab.value === quickFilter;
-              return (
-                <div key={tab.value} className="group relative shrink-0">
-                  {tab.locked && (
-                    <div
-                      className={cn(
-                        "pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 scale-75 rounded px-2.5 py-1 text-[10px] font-bold opacity-0 transition-all whitespace-nowrap shadow-md z-50",
-                        "group-hover:scale-100 group-hover:opacity-100",
-                        activeTooltip === tab.value && "scale-100 opacity-100",
-                        "bg-popover text-popover-foreground border border-border"
-                      )}
-                    >
-                      Coming soon
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (tab.locked) {
-                        setActiveTooltip((prev) => (prev === tab.value ? null : tab.value));
-                      } else {
-                        setQuickFilter(tab.value);
-                        setActiveTooltip(null);
-                      }
-                    }}
-                    className={cn(
-                      "rounded-full border px-4 py-2 text-sm font-semibold transition-colors shrink-0",
-                      tab.locked
-                        ? "opacity-50 blur-[0.4px] border-border bg-card text-muted-foreground cursor-not-allowed"
-                        : isActive
-                        ? "border-transparent bg-[#2d4a35] text-white dark:bg-[#25422d]"
-                        : "border-border bg-card text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {tab.label}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+        <div className="mt-6 flex items-center gap-2">
+          {(
+            [
+              { value: "all", label: "All" },
+              { value: "CREATOR", label: "Creator" },
+              { value: "FREELANCER", label: "Freelancer" },
+              { value: "AGENCY", label: "Agency" },
+              { value: "BRAND", label: "Brand" },
+            ] as { value: QuickFilter; label: string }[]
+          ).map((tab) => {
+            const isActive = tab.value === quickFilter;
+            return (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setQuickFilter(tab.value)}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                  isActive
+                    ? "border-transparent bg-[#2d4a35] text-white dark:bg-[#25422d]"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-6 shadow-sm">

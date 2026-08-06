@@ -1,6 +1,4 @@
-// Shared with onboarding (creatorCategory), profile search, and opportunity
-// search — the same taxonomy backs `Profile.creatorCategory` and
-// `Opportunity.category`, both plain strings matched by exact equality on
+// test sdgf sdn gl sdljkm
 export const PROFILE_CATEGORY_OPTIONS = [
   "Design",
   "Technology",

@@ -1569,7 +1569,7 @@ function StandardProfileView({
                   {isOwnProfile ? "Live metrics from connected platforms aren't synced yet." : ""}
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <AnalyticsTile icon={Rss} label="Posts" value={postStats.postsCount} />
+                  <AnalyticsTile icon={Rss} label="Posts" value={postStats.postsCount} href="/home/mine" />
                   <AnalyticsTile icon={Heart} label="Post Likes" value={postStats.totalLikes} />
                   <AnalyticsTile icon={MessageCircle} label="Post Comments" value={postStats.totalComments} />
                   <AnalyticsTile
@@ -1695,7 +1695,8 @@ function StandardProfileView({
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Posts Card */}
-                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+                <Link href="/home/mine" className="block">
+                <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer">
                   <div className="absolute -right-4 -top-4 size-24 rounded-full bg-[#1F5F3F] opacity-[0.08] blur-2xl transition-all duration-500 group-hover:opacity-[0.15] group-hover:scale-110 dark:opacity-[0.12] dark:group-hover:opacity-[0.2]" />
                   <div className="flex items-center gap-2.5 text-muted-foreground mb-4">
                     <div className="flex size-9 items-center justify-center rounded-full bg-[#e6f4ea] dark:bg-[#1a261d]">
@@ -1706,6 +1707,7 @@ function StandardProfileView({
                   <p className="font-mono text-3xl font-bold text-foreground tracking-tight">{postStats.postsCount}</p>
                   <p className="text-xs text-muted-foreground mt-1.5 font-medium">Published Content</p>
                 </div>
+                </Link>
 
                 {/* Endorsements Card */}
                 <div className="group relative overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/20 p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
@@ -1837,13 +1839,15 @@ function AnalyticsTile({
   icon: Icon,
   label,
   value,
+  href,
 }: {
   icon: typeof Rss;
   label: string;
   value: number;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-lg bg-muted/50 p-3">
+  const content = (
+    <div className={cn("rounded-lg bg-muted/50 p-3", href && "cursor-pointer transition-colors hover:bg-muted")}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon className="size-3.5" />
         <p className="text-[11px] font-medium">{label}</p>
@@ -1853,6 +1857,11 @@ function AnalyticsTile({
       </p>
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+  return content;
 }
 
 function PublicListingToggle({ entry }: { entry: RosterEntryDto }) {

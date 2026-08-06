@@ -32,6 +32,9 @@ export function ProfileCompletionCard() {
   const { completion } = data;
   const isComplete = completion.percent >= 100;
 
+  // Hide the entire card once the profile is fully complete
+  if (isComplete) return null;
+
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center gap-4">

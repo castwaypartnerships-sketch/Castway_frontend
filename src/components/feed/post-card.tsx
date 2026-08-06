@@ -70,22 +70,22 @@ export function PostCard({ item }: { item: FeedItem }) {
   }
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-6 shadow-sm [content-visibility:auto] [contain-intrinsic-size:auto_420px]">
+    <article className="mx-auto w-full max-w-2xl rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6 [content-visibility:auto] [contain-intrinsic-size:auto_420px] break-words overflow-hidden">
       <div className="flex items-start justify-between gap-4">
-        <Link href={`/profile/${item.author.username}`} className="flex items-start gap-3">
-          <Avatar size="lg">
+        <Link href={`/profile/${item.author.username}`} className="flex min-w-0 flex-1 items-start gap-3">
+          <Avatar size="lg" className="shrink-0">
             <AvatarImage src={item.author.avatarUrl ?? undefined} />
             <AvatarFallback>{initialsFromName(item.author.name)}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="text-sm font-semibold text-foreground hover:underline">{item.author.name}</p>
+              <p className="truncate text-sm font-semibold text-foreground hover:underline">{item.author.name}</p>
               {item.author.verified ? (
-                <BadgeCheck className="size-4 text-[#476948] dark:text-[#a7d9b5]" aria-label="Verified" />
+                <BadgeCheck className="shrink-0 size-4 text-[#476948] dark:text-[#a7d9b5]" aria-label="Verified" />
               ) : null}
-              <CategoryBadge category={item.category} className="ml-1" />
+              <CategoryBadge category={item.category} className="ml-1 shrink-0" />
             </div>
-            <p className="text-sm text-muted-foreground">{item.author.role}</p>
+            <p className="truncate text-sm text-muted-foreground">{item.author.role}</p>
           </div>
         </Link>
         <time
@@ -108,12 +108,12 @@ export function PostCard({ item }: { item: FeedItem }) {
       />
 
       {item.imageUrl ? (
-        <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-xl bg-muted">
+        <div className="relative mt-4 aspect-video w-full max-h-[400px] overflow-hidden rounded-xl bg-muted">
           <Image
             src={item.imageUrl}
             alt=""
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="(min-width: 1024px) 640px, 100vw"
           />
         </div>
