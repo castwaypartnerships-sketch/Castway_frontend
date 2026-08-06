@@ -401,19 +401,25 @@ function ProfilePanel() {
       <p className="text-xs text-muted-foreground">How you appear to others on Castway.</p>
 
       <div className="mt-4 flex items-start gap-5">
-        <Avatar size="lg" className="size-16 shrink-0">
-          <AvatarImage src={profile.avatarUrl ?? undefined} />
-          <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
-        </Avatar>
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <Avatar size="lg" className="size-16">
+            <AvatarImage src={profile.avatarUrl ?? undefined} />
+            <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Current</span>
+        </div>
         <div className="space-y-1.5">
           <p className="text-sm font-medium text-foreground">Profile Photo</p>
           <div className="flex items-center gap-2">
-            <InlineImageUpload
-              kind="avatars"
-              imageUrl={profile.avatarUrl ?? ""}
-              onUploaded={(url) => updateProfile({ avatarUrl: url })}
-              className="size-16 aspect-square rounded-xl"
-            />
+            <div className="flex flex-col items-center gap-1">
+              <InlineImageUpload
+                kind="avatars"
+                imageUrl={profile.avatarUrl ?? ""}
+                onUploaded={(url) => updateProfile({ avatarUrl: url })}
+                className="size-16 aspect-square rounded-xl"
+              />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Upload new</span>
+            </div>
           </div>
         </div>
       </div>
