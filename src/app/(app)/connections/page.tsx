@@ -56,38 +56,40 @@ export default function ConnectionsPage() {
         <ConnectionsStatsRow />
 
         <Tabs defaultValue={initialTab} className="mt-6">
-          <TabsList className="h-auto max-w-full gap-2 overflow-x-auto rounded-none bg-transparent p-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <TabsTrigger
-              value="connections"
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d]"
-            >
-              All Connections
-            </TabsTrigger>
-            <TabsTrigger
-              value="requests"
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d]"
-            >
-              Requests
-            </TabsTrigger>
-            <TabsTrigger
-              value="sent"
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d]"
-            >
-              Sent
-            </TabsTrigger>
-            <TabsTrigger
-              value="suggested"
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d]"
-            >
-              Suggestions
-            </TabsTrigger>
-            <TabsTrigger
-              value="blocked"
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d]"
-            >
-              Blocked
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <TabsList className="h-auto flex w-max gap-2 rounded-none bg-transparent p-0">
+              <TabsTrigger
+                value="connections"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d] shrink-0"
+              >
+                All Connections
+              </TabsTrigger>
+              <TabsTrigger
+                value="requests"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d] shrink-0"
+              >
+                Requests
+              </TabsTrigger>
+              <TabsTrigger
+                value="sent"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d] shrink-0"
+              >
+                Sent
+              </TabsTrigger>
+              <TabsTrigger
+                value="suggested"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d] shrink-0"
+              >
+                Suggestions
+              </TabsTrigger>
+              <TabsTrigger
+                value="blocked"
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground shadow-none data-active:border-transparent data-active:bg-[#1c3322] data-active:text-white data-active:shadow-none dark:data-active:bg-[#25422d] shrink-0"
+              >
+                Blocked
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="connections" className="mt-5">
             <MyConnectionsTab />
