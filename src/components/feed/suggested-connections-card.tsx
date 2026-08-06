@@ -1,6 +1,7 @@
 "use client";
 
 import { BadgeCheck } from "lucide-react";
+import { toast } from "sonner";
 
 import type { SuggestedConnection } from "@/lib/types/feed";
 import { initialsFromName } from "@/lib/format";
@@ -41,6 +42,16 @@ export function SuggestedConnectionsCard() {
 function SuggestedConnectionRow({ connection }: { connection: SuggestedConnection }) {
   const [sendRequest, { isLoading, isSuccess }] = useSendConnectionRequestMutation();
 
+  async function handleConnect() {
+    try {
+      await sendRequest(connection.userId).unwrap();
+    } catch (err) {
+      const message =
+        (err as { data?: { error?: string } })?.data?.error ?? "Couldn't send that connection request.";
+      toast.error(message);
+    }
+  }
+
   return (
     <li className="flex items-start gap-3">
       <Avatar size="lg">
@@ -60,7 +71,7 @@ function SuggestedConnectionRow({ connection }: { connection: SuggestedConnectio
           size="sm"
           variant={isSuccess ? "outline" : "default"}
           disabled={isLoading || isSuccess}
-          onClick={() => sendRequest(connection.userId)}
+          onClick={handleConnect}
           className="mt-2 w-full"
         >
           {isSuccess ? "Requested" : isLoading ? "Requesting…" : "Connect"}

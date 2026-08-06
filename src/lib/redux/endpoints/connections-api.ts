@@ -30,21 +30,25 @@ export const connectionsApi = api.injectEndpoints({
         method: "POST",
         body: { addresseeId },
       }),
-      invalidatesTags: ["SuggestedConnections", "PendingConnections"],
+      // Untargeted "PublicProfile" invalidates every cached profile view
+      // (not just the addressee's, whose username isn't known here) so a
+      // profile page's Connect button reflects the new pending_outgoing
+      // state on next render instead of staying stuck on a stale "Connect".
+      invalidatesTags: ["SuggestedConnections", "PendingConnections", "PublicProfile"],
     }),
     acceptConnection: builder.mutation<void, string>({
       query: (connectionId) => ({ url: `/connections/${connectionId}/accept`, method: "POST" }),
-      invalidatesTags: ["Connections", "PendingConnections", "Dashboard"],
+      invalidatesTags: ["Connections", "PendingConnections", "Dashboard", "PublicProfile"],
     }),
     rejectConnection: builder.mutation<void, string>({
       query: (connectionId) => ({ url: `/connections/${connectionId}/reject`, method: "POST" }),
-      invalidatesTags: ["PendingConnections"],
+      invalidatesTags: ["PendingConnections", "PublicProfile"],
     }),
     removeConnection: builder.mutation<void, string>({
       query: (connectionId) => ({ url: `/connections/${connectionId}`, method: "DELETE" }),
       // Also removes a still-PENDING row (withdrawing an outgoing request
       // reuses this same endpoint), so PendingConnections needs invalidating too.
-      invalidatesTags: ["Connections", "PendingConnections", "Dashboard"],
+      invalidatesTags: ["Connections", "PendingConnections", "Dashboard", "PublicProfile"],
       // Drop the row from whichever cache it's actually in (an accepted
       // connection or a pending outgoing request) immediately, rather than
       // waiting on the invalidated refetch — same reasoning as blockUser above.

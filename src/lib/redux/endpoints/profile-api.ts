@@ -18,7 +18,7 @@ import type {
 } from "@/lib/types/profile";
 import type { ReviewSummary } from "@/lib/redux/endpoints/reviews-api";
 
-interface ProfileMeResponse {
+export interface ProfileMeResponse {
   profile: Profile | null;
   completion: ProfileCompletion;
   isVerified: boolean;

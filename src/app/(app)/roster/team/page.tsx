@@ -3,20 +3,12 @@
 import { useState, type FormEvent, useRef } from "react";
 import { toast } from "sonner";
 import {
-  Users,
   UserPlus,
   Mail,
-  ArrowUpRight,
-  TrendingUp,
   AlertCircle,
   Shield,
   HelpCircle,
   MoreVertical,
-  RefreshCw,
-  X,
-  Sparkles,
-  ArrowRight,
-  Clock,
 } from "lucide-react";
 
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
@@ -28,13 +20,13 @@ import {
   useUnassignManagerFromRosterEntryMutation,
 } from "@/lib/redux/endpoints/roster-api";
 import type { ManagerDto } from "@/lib/redux/endpoints/roster-api";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { RosterEntryDto } from "@/lib/types/roster";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,16 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
-import { cn } from "@/lib/utils";
-
-// Import visual placeholders/mocks
-import {
-  MOCK_ACTIVITIES,
-  MOCK_PENDING_INVITES,
-  MOCK_CAPACITY,
-  DISPLAY_ROLE_MAP,
-  type PendingInvite,
-} from "@/lib/mocks/team-data";
 
 export default function TeamPage() {
   const { data: session } = useGetSessionQuery();
@@ -75,13 +57,9 @@ function AgencyTeamView() {
   const [createManager, { isLoading: isCreating }] = useCreateManagerMutation();
 
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("Member");
   const [newManagerName, setNewManagerName] = useState("");
   const [newManagerUsername, setNewManagerUsername] = useState("");
   const [justCreated, setJustCreated] = useState<{ email: string; tempPassword: string } | null>(null);
-
-  // Local state for pending invites (to allow interactive resend/dismiss)
-  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>(MOCK_PENDING_INVITES);
 
   // Form reference for "+ Invite Team Member" CTA scroll
   const inviteFormRef = useRef<HTMLFormElement>(null);
@@ -119,87 +97,8 @@ function AgencyTeamView() {
     }
   }
 
-  const handleResendInvite = (app: PendingInvite) => {
-    toast.success(`Resent invitation to ${app.name} (${app.email})!`);
-  };
-
-  const handleDismissInvite = (id: string) => {
-    setPendingInvites((prev) => prev.filter((p) => p.id !== id));
-    toast.info("Invitation cancelled.");
-  };
-
-  // Blending live backend managers with visual mockup items for full demonstration
-  const getBlendedMembers = () => {
-    const list: Array<{
-      id: string;
-      name: string;
-      username: string;
-      role: "Admin" | "Manager" | "Member";
-      description: string;
-      lastActive: string;
-      isLive?: boolean;
-      managerObj?: ManagerDto;
-    }> = [];
-
-    // 1. Add visual mock members first (if they aren't somehow matched with live managers)
-    const mockMembersList = [
-      {
-        id: "mock-1",
-        name: "Sarah Jenkins",
-        username: "sjenkins",
-        role: "Admin" as const,
-        description: "Full access to billing, team, and campaigns",
-        lastActive: "Active now",
-      },
-      {
-        id: "mock-2",
-        name: "Marcus Chen",
-        username: "mchen",
-        role: "Manager" as const,
-        description: "Can manage roster and campaigns",
-        lastActive: "Last active 2h ago",
-      },
-      {
-        id: "mock-3",
-        name: "Elena Rodriguez",
-        username: "elena_r",
-        role: "Member" as const,
-        description: "View-only access to assigned campaigns",
-        lastActive: "Last active 1d ago",
-      },
-    ];
-
-    list.push(...mockMembersList);
-
-    // 2. Add live backend managers
-    if (managers?.items) {
-      managers.items.forEach((m) => {
-        // Prevent doubling if they share names
-        if (list.some((existing) => existing.name === m.name || existing.username === m.username)) {
-          return;
-        }
-
-        // Map live manager to a visual role/styling
-        const mapping = m.name ? DISPLAY_ROLE_MAP[m.name] : null;
-        list.push({
-          id: m.id,
-          name: m.name ?? m.email,
-          username: m.username ?? m.email.split("@")[0],
-          role: mapping?.role ?? "Manager",
-          description: mapping?.description ?? "Access to assigned roster profiles",
-          lastActive: mapping?.lastActive ?? "Active now",
-          isLive: true,
-          managerObj: m,
-        });
-      });
-    }
-
-    return list;
-  };
-
-  const blendedMembers = getBlendedMembers();
-  const totalTeamCount = blendedMembers.length + pendingInvites.length;
-  const adminCount = blendedMembers.filter((m) => m.role === "Admin").length;
+  const members = managers?.items ?? [];
+  const totalTeamCount = members.length;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
@@ -256,22 +155,6 @@ function AgencyTeamView() {
                     className="pl-9 text-sm"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-role" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Select Role
-                </Label>
-                <Select value={inviteRole} onValueChange={(val) => setInviteRole(val || "Member")}>
-                  <SelectTrigger id="invite-role" className="h-10 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Admin" className="text-sm">Admin</SelectItem>
-                    <SelectItem value="Manager" className="text-sm">Manager</SelectItem>
-                    <SelectItem value="Member" className="text-sm">Member</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <Button
@@ -337,231 +220,60 @@ function AgencyTeamView() {
           ) : null}
 
           {/* Stats Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Stat 1: Total Team */}
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1.5">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Team Members</p>
-              <h3 className="text-3xl font-bold font-mono text-foreground">{totalTeamCount}</h3>
-              <p className="flex items-center gap-1 text-[11px] font-bold text-success">
-                <TrendingUp className="size-3.5" />
-                +20% vs last month
-              </p>
-            </div>
-
-            {/* Stat 2: Pending Invites */}
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1.5">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Pending Invites</p>
-              <h3 className="text-3xl font-bold font-mono text-foreground">{pendingInvites.length}</h3>
-              <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-500">
-                <AlertCircle className="size-3.5" />
-                Needs attention
-              </p>
-            </div>
-
-            {/* Stat 3: Admins */}
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1.5">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Admins</p>
-              <h3 className="text-3xl font-bold font-mono text-foreground">{adminCount}</h3>
-              <p className="text-[11px] text-muted-foreground font-medium">Fully authorized users</p>
-            </div>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1.5 max-w-xs">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Team Members</p>
+            <h3 className="text-3xl font-bold font-mono text-foreground">{isLoadingManagers ? "—" : totalTeamCount}</h3>
           </div>
 
           {/* Team Members List Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border/40 pb-2">
               <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Team Members</h2>
-              <button onClick={() => toast.info("Viewing all members.")} className="text-xs font-bold text-[#476948] dark:text-[#a7d9b5] hover:underline uppercase tracking-wider">
-                View All
-              </button>
             </div>
 
             {isLoadingManagers ? (
               <div className="h-32 animate-pulse rounded-2xl border border-border bg-muted" />
             ) : (
               <ul className="space-y-3">
-                {/* 1. Blended Active/Live Members */}
-                {blendedMembers.map((member) => (
-                  <TeamMemberRow key={member.id} member={member} rosterEntries={acceptedMembers} />
-                ))}
-
-                {/* 2. Pending Invite Rows */}
-                {pendingInvites.map((invite) => (
-                  <li
-                    key={invite.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 opacity-80"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar size="lg" className="border-2 border-dashed border-border bg-muted">
-                        <AvatarFallback className="bg-transparent text-muted-foreground/60">
-                          {initialsFromName(invite.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-muted-foreground">{invite.name}</p>
-                          <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border border-dashed text-muted-foreground">
-                            INVITE PENDING
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground/80 mt-0.5">
-                          Invited as {invite.role} • Sent {invite.sentDaysAgo} days ago
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={() => handleResendInvite(invite)}
-                        className="text-xs font-semibold flex items-center gap-1 h-7 text-[#476948] border-[#476948] hover:bg-[#476948]/5 dark:text-[#a7d9b5]"
-                      >
-                        <RefreshCw className="size-3" />
-                        Resend
-                      </Button>
-                      <Button
-                        size="icon-xs"
-                        variant="ghost"
-                        onClick={() => handleDismissInvite(invite.id)}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7"
-                      >
-                        <X className="size-3.5" />
-                      </Button>
-                    </div>
-                  </li>
-                ))}
+                {members.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                    No managers yet.
+                  </p>
+                ) : (
+                  members.map((manager) => (
+                    <TeamMemberRow key={manager.id} manager={manager} rosterEntries={acceptedMembers} />
+                  ))
+                )}
               </ul>
             )}
-          </div>
-
-          {/* Recent Team Activity Section */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-bold text-foreground">Recent Team Activity</h3>
-                <SectionHelp
-                  title="Recent Team Activity"
-                  description="A running log of what your teammates have done — invites sent, campaigns started, roster changes. Export it to keep an audit trail."
-                />
-              </div>
-              <button
-                onClick={() => toast.success("Activity log exported successfully!")}
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline uppercase tracking-wider"
-              >
-                Export Log
-              </button>
-            </div>
-
-            <ul className="space-y-3 pt-1">
-              {MOCK_ACTIVITIES.map((act) => (
-                <li key={act.id} className="flex items-start gap-2.5 text-xs text-muted-foreground">
-                  <span className="size-1.5 rounded-full bg-[#476948] shrink-0 mt-1.5" />
-                  <div className="flex-1">
-                    <p className="text-foreground leading-normal">
-                      <span className="font-bold">{act.memberName}</span> {act.action}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground/80 mt-0.5">{act.timestamp}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
           </div>
 
         </div>
 
         {/* Right Column: Sidebar Widgets */}
         <div className="space-y-5">
-          
+
           {/* Permissions Guide Card (Dark Green background) */}
           <div className="rounded-2xl bg-[#476948] text-white p-5 shadow-sm space-y-4 dark:bg-[#1a2f1f] dark:border dark:border-border/60">
             <div className="flex items-center justify-between border-b border-white/20 pb-2">
               <div className="flex items-center gap-1.5">
-                <h4 className="text-sm font-bold">Permissions Guide</h4>
+                <h4 className="text-sm font-bold">About Managers</h4>
                 <SectionHelp
                   variant="dark"
-                  title="Permissions Guide"
-                  description="What each role can do when you invite a teammate. Pick the narrowest role that still lets them do their job."
+                  title="About Managers"
+                  description="What a talent manager sub-account can and can't do on your agency's behalf."
                 />
               </div>
               <Shield className="size-4 opacity-80" />
             </div>
 
             <div className="space-y-3.5 text-xs">
-              <div className="space-y-1">
-                <p className="font-bold tracking-wider text-[10px] uppercase text-green-300">ADMIN</p>
-                <p className="text-white/90 leading-relaxed">
-                  Full control. Can manage billing, export data, and delete the account.
-                </p>
-              </div>
-              <div className="space-y-1 border-t border-white/10 pt-2.5">
-                <p className="font-bold tracking-wider text-[10px] uppercase text-green-300">MANAGER</p>
-                <p className="text-white/90 leading-relaxed">
-                  Can manage rosters, start campaigns, and invite Members.
-                </p>
-              </div>
-              <div className="space-y-1 border-t border-white/10 pt-2.5">
-                <p className="font-bold tracking-wider text-[10px] uppercase text-green-300">MEMBER</p>
-                <p className="text-white/90 leading-relaxed">
-                  Standard access. Can view assigned campaigns and message creators.
-                </p>
-              </div>
+              <p className="text-white/90 leading-relaxed">
+                Managers get their own login, provisioned by you with a temporary password. They can only act
+                (apply, message) on behalf of roster members you explicitly assign to them — never your full
+                roster, and never billing or account settings.
+              </p>
             </div>
-          </div>
-
-          {/* Invite Reminder widget */}
-          {pendingInvites.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm flex items-start gap-3">
-              <div className="size-8 rounded-lg bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center text-amber-600 dark:text-amber-500 shrink-0 mt-0.5">
-                <AlertCircle className="size-4" />
-              </div>
-              <div className="space-y-1.5 min-w-0">
-                <h5 className="text-xs font-bold text-foreground">Invite Reminder</h5>
-                <p className="text-xs text-muted-foreground leading-normal">
-                  1 invite pending for 3 days. Marco Diaz hasn&apos;t joined yet.
-                </p>
-                <button
-                  onClick={() => toast.success("Invitation reminder email re-queued!")}
-                  className="text-[10px] font-bold text-[#476948] dark:text-[#a7d9b5] hover:underline uppercase tracking-wider flex items-center gap-1"
-                >
-                  Resend Invitation <ArrowRight className="size-3" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Team Capacity Progress widget */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3.5">
-            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              <span className="flex items-center gap-1.5">
-                Team Capacity
-                <SectionHelp
-                  title="Team Capacity"
-                  description="How many of your plan's team seats are in use. Once you hit the limit, remove an inactive teammate or upgrade to invite more."
-                />
-              </span>
-              <span className="font-mono text-foreground">{MOCK_CAPACITY.usagePercent}%</span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-[#476948] rounded-full"
-                style={{ width: `${MOCK_CAPACITY.usagePercent}%` }}
-              />
-            </div>
-
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              You have <span className="font-bold text-foreground">{MOCK_CAPACITY.slotsRemaining} slots remaining</span> on your current agency plan.
-            </p>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toast.info("Billing dashboard navigation is disabled.")}
-              className="w-full text-xs font-semibold"
-            >
-              View Billing Details
-            </Button>
           </div>
 
           {/* Support help widget */}
@@ -591,18 +303,7 @@ function AgencyTeamView() {
 /* ==========================================================================
    SUB-COMPONENT: Team Member Row
    ========================================================================== */
-interface BlendedMember {
-  id: string;
-  name: string;
-  username: string;
-  role: "Admin" | "Manager" | "Member";
-  description: string;
-  lastActive: string;
-  isLive?: boolean;
-  managerObj?: ManagerDto;
-}
-
-function TeamMemberRow({ member, rosterEntries }: { member: BlendedMember; rosterEntries: any[] }) {
+function TeamMemberRow({ manager, rosterEntries }: { manager: ManagerDto; rosterEntries: RosterEntryDto[] }) {
   const [expanded, setExpanded] = useState(false);
   const [assignedEntryIds, setAssignedEntryIds] = useState<Set<string>>(new Set());
   const [assign] = useAssignManagerToRosterEntryMutation();
@@ -615,86 +316,55 @@ function TeamMemberRow({ member, rosterEntries }: { member: BlendedMember; roste
       else next.delete(entryId);
       return next;
     });
-
-    if (member.isLive && member.managerObj) {
-      if (checked) assign({ managerId: member.id, entryId });
-      else unassign({ managerId: member.id, entryId });
-    } else {
-      toast.info(`Updated simulated permissions for ${member.name}`);
-    }
+    if (checked) assign({ managerId: manager.id, entryId });
+    else unassign({ managerId: manager.id, entryId });
   }
 
-  // Get style class for member role tags
-  const getRoleTagStyle = (role: string) => {
-    switch (role) {
-      case "Admin":
-        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-900/40";
-      case "Manager":
-        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
+  const displayName = manager.name ?? manager.email;
 
   return (
     <li className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col space-y-3">
       <div className="flex items-center justify-between gap-3">
-        
+
         {/* Avatar + Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <Avatar size="lg">
-            <AvatarFallback>{initialsFromName(member.name)}</AvatarFallback>
+            <AvatarFallback>{initialsFromName(displayName)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-bold text-foreground truncate">{member.name}</p>
-              <p className="text-xs text-muted-foreground/80 truncate">@{member.username}</p>
-              <Badge className={cn("text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded", getRoleTagStyle(member.role))}>
-                {member.role}
+              <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+              {manager.username ? (
+                <p className="text-xs text-muted-foreground/80 truncate">@{manager.username}</p>
+              ) : null}
+              <Badge className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40">
+                Manager
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed truncate">
-              {member.description}
+              {manager.email}
             </p>
           </div>
         </div>
 
-        {/* Status indicator on the right */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {member.lastActive === "Active now" ? (
-              <>
-                <span className="size-2 rounded-full bg-success shrink-0" />
-                <span className="text-success font-medium">Active now</span>
-              </>
-            ) : (
-              <span>{member.lastActive}</span>
-            )}
-          </div>
-
-          {/* Action trigger dropdown using DropdownMenu component */}
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" size="icon-sm" className="h-8 w-8 p-0 hover:bg-muted" aria-label="Open member actions menu">
+        {/* Action trigger dropdown using DropdownMenu component */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm" className="h-8 w-8 p-0 hover:bg-muted shrink-0" aria-label="Open member actions menu">
                 <MoreVertical className="size-4 text-muted-foreground" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => setExpanded((v) => !v)}
-                className="text-xs font-semibold"
-              >
-                {expanded ? "Hide Roster Access" : "Manage Roster Access"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.info(`Editing permissions for ${member.name}`)} className="text-xs">
-                Edit Permissions
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast.error(`Removing ${member.name} is disabled in layout validation.`)} className="text-xs text-destructive focus:bg-destructive/10 focus:text-destructive">
-                Remove Team Member
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => setExpanded((v) => !v)}
+              className="text-xs font-semibold"
+            >
+              {expanded ? "Hide Roster Access" : "Manage Roster Access"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
       </div>
 
@@ -712,11 +382,11 @@ function TeamMemberRow({ member, rosterEntries }: { member: BlendedMember; roste
                 entry.member ? (
                   <li key={entry.id} className="flex items-center gap-2">
                     <Checkbox
-                      id={`assign-${member.id}-${entry.id}`}
+                      id={`assign-${manager.id}-${entry.id}`}
                       checked={assignedEntryIds.has(entry.id)}
                       onCheckedChange={(checked) => toggle(entry.id, checked === true)}
                     />
-                    <Label htmlFor={`assign-${member.id}-${entry.id}`} className="text-xs text-foreground cursor-pointer font-medium">
+                    <Label htmlFor={`assign-${manager.id}-${entry.id}`} className="text-xs text-foreground cursor-pointer font-medium">
                       {entry.member.name}
                     </Label>
                   </li>
