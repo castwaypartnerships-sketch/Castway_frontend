@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
@@ -97,6 +98,10 @@ function ProfileForm({ talent }: { talent: ManagedTalentProfile }) {
   const [maxRate, setMaxRate] = useState(talent.maxRate?.toString() ?? "");
   const [openForCollaboration, setOpenForCollaboration] = useState(talent.openForCollaboration);
   const [availableForWork, setAvailableForWork] = useState(talent.availableForWork);
+  const [instagramFollowers, setInstagramFollowers] = useState(talent.instagramFollowers?.toString() ?? "");
+  const [youtubeFollowers, setYoutubeFollowers] = useState(talent.youtubeFollowers?.toString() ?? "");
+  const [twitchFollowers, setTwitchFollowers] = useState(talent.twitchFollowers?.toString() ?? "");
+  const [twitterFollowers, setTwitterFollowers] = useState(talent.twitterFollowers?.toString() ?? "");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -135,6 +140,10 @@ function ProfileForm({ talent }: { talent: ManagedTalentProfile }) {
           location,
           contactNumber,
           username,
+          instagramFollowers: instagramFollowers.trim() ? Number(instagramFollowers) : null,
+          youtubeFollowers: youtubeFollowers.trim() ? Number(youtubeFollowers) : null,
+          twitchFollowers: twitchFollowers.trim() ? Number(twitchFollowers) : null,
+          twitterFollowers: twitterFollowers.trim() ? Number(twitterFollowers) : null,
           languages: languages.split(",").map((s) => s.trim()).filter(Boolean),
           skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
           services: services.split(",").map((s) => s.trim()).filter(Boolean),
@@ -197,6 +206,22 @@ function ProfileForm({ talent }: { talent: ManagedTalentProfile }) {
         <div className="space-y-1.5">
           <Label htmlFor="mt-contact">Contact number</Label>
           <Input id="mt-contact" type="tel" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="mt-ig-followers">Instagram Followers</Label>
+          <Input id="mt-ig-followers" type="number" min={0} value={instagramFollowers} onChange={(e) => setInstagramFollowers(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="mt-yt-followers">YouTube Followers</Label>
+          <Input id="mt-yt-followers" type="number" min={0} value={youtubeFollowers} onChange={(e) => setYoutubeFollowers(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="mt-twitch-followers">Twitch Followers</Label>
+          <Input id="mt-twitch-followers" type="number" min={0} value={twitchFollowers} onChange={(e) => setTwitchFollowers(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="mt-twitter-followers">Twitter/X Followers</Label>
+          <Input id="mt-twitter-followers" type="number" min={0} value={twitterFollowers} onChange={(e) => setTwitterFollowers(e.target.value)} />
         </div>
       </div>
 

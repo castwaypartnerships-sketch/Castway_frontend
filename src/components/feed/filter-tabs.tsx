@@ -21,7 +21,7 @@ interface FeedFilterTabsProps {
 export function FeedFilterTabs({ value, onValueChange }: FeedFilterTabsProps) {
   return (
     <div className="flex flex-col gap-3 border-b border-border sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="flex items-center gap-6 overflow-x-auto sm:flex-1">
+      <div className="flex items-center gap-6 overflow-x-auto sm:flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {FILTERS.map((filter) => {
           const isActive = filter.value === value;
           return (

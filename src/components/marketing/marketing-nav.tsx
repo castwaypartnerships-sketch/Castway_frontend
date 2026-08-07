@@ -7,8 +7,8 @@ export function MarketingNav() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 md:px-8">
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5 group">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-black text-sm font-bold text-white transition-transform group-hover:scale-105 dark:bg-white dark:text-black">
-            C
+          <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg transition-transform group-hover:scale-105">
+            <img src="/logo.png" alt="Castway" className="size-full object-cover" />
           </span>
           <span className="hidden text-base font-semibold tracking-tight text-foreground sm:inline">
             Castway

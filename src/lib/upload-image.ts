@@ -34,3 +34,30 @@ export async function uploadImageToCloudinary(file: File, sig: UploadSignature):
   const data = (await response.json()) as { secure_url: string };
   return data.secure_url;
 }
+
+export interface CloudinaryUploadResponse {
+  secure_url: string;
+  public_id: string;
+  resource_type: string;
+}
+
+export async function uploadFileToCloudinary(file: File, sig: UploadSignature): Promise<CloudinaryUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", sig.apiKey);
+  formData.append("timestamp", String(sig.timestamp));
+  formData.append("signature", sig.signature);
+  formData.append("folder", sig.folder);
+  formData.append("allowed_formats", sig.allowed_formats);
+  if (sig.type) {
+    formData.append("type", sig.type);
+  }
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/${sig.resourceType}/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) throw new Error("Cloudinary upload failed");
+
+  return (await response.json()) as CloudinaryUploadResponse;
+}

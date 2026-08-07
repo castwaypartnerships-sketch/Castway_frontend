@@ -15,6 +15,7 @@ import {
   GripVertical,
   Plus,
 } from "lucide-react";
+import { FaInstagram, FaYoutube, FaTwitch, FaXTwitter } from "react-icons/fa6";
 import { toast } from "sonner";
 
 import { useGetOwnProfileQuery, type ProfileMeResponse } from "@/lib/redux/endpoints/profile-api";
@@ -271,6 +272,15 @@ function AgencyRosterView() {
   );
 }
 
+function getPlatformIcon(platform: string) {
+  const p = platform.toLowerCase();
+  if (p === "instagram") return <FaInstagram className="size-3.5 text-pink-500 shrink-0" />;
+  if (p === "youtube") return <FaYoutube className="size-3.5 text-red-500 shrink-0" />;
+  if (p === "twitch") return <FaTwitch className="size-3.5 text-purple-500 shrink-0" />;
+  if (p === "twitter" || p === "x") return <FaXTwitter className="size-3.5 text-sky-400 shrink-0" />;
+  return <Globe className="size-3.5 text-muted-foreground shrink-0" />;
+}
+
 /* ==========================================================================
    SUB-TAB: Roster Item Row
    ========================================================================== */
@@ -282,14 +292,48 @@ function RosterItemRow({ entry, onRemove }: { entry: RosterEntryDto; onRemove: (
   return (
     <li className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
-        <Avatar size="lg">
-          <AvatarImage src={member.avatarUrl ?? undefined} />
-          <AvatarFallback>{initialsFromName(member.name)}</AvatarFallback>
-        </Avatar>
-        <Link href={`/profile/${member.username}`} className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground hover:underline">{member.name}</p>
-          <p className="truncate text-xs text-muted-foreground">@{member.username}</p>
+        <Link href={`/roster/talent/${member.userId}`}>
+          <Avatar size="lg">
+            <AvatarImage src={member.avatarUrl ?? undefined} />
+            <AvatarFallback>{initialsFromName(member.name)}</AvatarFallback>
+          </Avatar>
         </Link>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <Link href={`/roster/talent/${member.userId}`} className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground hover:underline">{member.name}</p>
+            </Link>
+            <p className="truncate text-xs text-muted-foreground">@{member.username}</p>
+          </div>
+          
+          {/* New Metrics Row */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-muted-foreground">
+            {entry.primaryPlatform && (
+              <span className="flex items-center gap-1 shrink-0 font-medium">
+                {getPlatformIcon(entry.primaryPlatform)}
+                <span className="capitalize">{entry.primaryPlatform}</span>
+              </span>
+            )}
+            
+            {entry.followers && (
+              <span className="shrink-0 font-medium text-foreground">{entry.followers} followers</span>
+            )}
+
+            {entry.responseRate !== null && entry.responseRate !== undefined && (
+              <span className="shrink-0">{entry.responseRate}% response</span>
+            )}
+
+            {entry.revenue !== null && entry.revenue !== undefined && (
+              <span className="shrink-0 font-semibold text-[#476948] bg-[#476948]/10 px-1.5 py-0.5 rounded text-[10px] dark:text-[#a7d9b5] dark:bg-[#476948]/20 border border-[#476948]/10">
+                ₹{entry.revenue.toLocaleString("en-IN")} earnings
+              </span>
+            )}
+
+            <span className="shrink-0 text-[11px] text-muted-foreground/80 pl-2 border-l border-border/80 italic">
+              {entry.managedByName ? `Managed by: ${entry.managedByName}` : "Unassigned"}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-between w-full sm:w-auto gap-3 shrink-0">

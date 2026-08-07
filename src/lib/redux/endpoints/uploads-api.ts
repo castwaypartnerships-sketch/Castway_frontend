@@ -1,6 +1,6 @@
 import { api } from "@/lib/redux/api";
 
-export type UploadKind = "avatars" | "covers" | "portfolio" | "posts";
+export type UploadKind = "avatars" | "covers" | "portfolio" | "posts" | "documents" | "contracts" | "payments";
 
 export interface UploadSignature {
   folder: string;
@@ -9,6 +9,7 @@ export interface UploadSignature {
   signature: string;
   apiKey: string;
   cloudName: string;
+  type?: string;
   /** Informational only (not part of the signed request) — Cloudinary has no
    * per-request file-size parameter, so this is enforced client-side before
    * upload rather than by Cloudinary itself. */

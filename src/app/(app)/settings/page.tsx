@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   Bell,
   Lock,
+  Loader2,
   Monitor,
   Moon,
   Plus,
@@ -68,6 +69,7 @@ import { isTalentRole } from "@/lib/rbac";
 import { PERMISSION_CATEGORIES } from "@/lib/permissions";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useImageUpload } from "@/lib/hooks/use-image-upload";
 
 // Scoped to this page — the shared `Switch` component defaults its checked
 // state to the site-wide purple `--primary`, but every other accent on
@@ -339,6 +341,33 @@ function ProfilePanel() {
   const [updateSubSpecializations] = useUpdateSubSpecializationsMutation();
   const [updateSocialLinks, { isLoading: isSavingSocial }] = useUpdateSocialLinksMutation();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading: isUploadingAvatar } = useImageUpload("avatars");
+
+  async function handleAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const url = await upload(file);
+      if (url) {
+        await updateProfile({ avatarUrl: url }).unwrap();
+        toast.success("Profile photo updated.");
+      }
+    } catch {
+      toast.error("Couldn't upload your profile photo. Please try again.");
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    try {
+      await updateProfile({ avatarUrl: null }).unwrap();
+      toast.success("Profile photo removed.");
+    } catch {
+      toast.error("Couldn't remove your profile photo. Please try again.");
+    }
+  }
+
   const [bio, setBio] = useState("");
   const [nicheInput, setNicheInput] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -406,19 +435,49 @@ function ProfilePanel() {
       <p className="text-xs text-muted-foreground">How you appear to others on Castway.</p>
 
       <div className="mt-4 flex items-center gap-4">
-        <Avatar size="lg" className="size-16">
-          <AvatarImage src={profile.avatarUrl ?? undefined} />
-          <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
-        </Avatar>
-        <div>
+        <div className="relative shrink-0">
+          <Avatar size="lg" className="size-16">
+            <AvatarImage src={profile.avatarUrl ?? undefined} />
+            <AvatarFallback>{initialsFromName(profile.name)}</AvatarFallback>
+          </Avatar>
+          {isUploadingAvatar && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+              <Loader2 className="size-5 animate-spin text-white" />
+            </div>
+          )}
+        </div>
+        <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">Profile Photo</p>
-          <div className="mt-1 flex items-center gap-2">
-            <InlineImageUpload
-              kind="avatars"
-              imageUrl={profile.avatarUrl ?? ""}
-              onUploaded={(url) => updateProfile({ avatarUrl: url })}
-            />
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={isUploadingAvatar}
+              onClick={() => fileInputRef.current?.click()}
+              className="text-xs font-semibold text-[#476948] hover:underline disabled:opacity-50 dark:text-[#a7d9b5]"
+            >
+              Upload new
+            </button>
+            {profile.avatarUrl && (
+              <>
+                <span className="text-xs text-muted-foreground">•</span>
+                <button
+                  type="button"
+                  disabled={isUploadingAvatar}
+                  onClick={() => void handleRemoveAvatar()}
+                  className="text-xs font-semibold text-destructive hover:underline disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              </>
+            )}
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={handleAvatarFileChange}
+          />
         </div>
       </div>
 
@@ -884,7 +943,7 @@ function PrivacyPanel() {
         <div className="mt-4 h-32 animate-pulse rounded-xl bg-muted" />
       ) : (
         <div className="mt-4 space-y-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <Label htmlFor="profile-visibility">Who can view your profile</Label>
               <p className="text-xs text-muted-foreground">
@@ -895,7 +954,7 @@ function PrivacyPanel() {
               value={settings.profileVisibility}
               onValueChange={(value) => handleChange({ ...settings, profileVisibility: value as Visibility })}
             >
-              <SelectTrigger id="profile-visibility" className="w-44 shrink-0">
+              <SelectTrigger id="profile-visibility" className="w-full sm:w-44 shrink-0">
                 <SelectValue>
                   {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
                 </SelectValue>
@@ -910,7 +969,7 @@ function PrivacyPanel() {
             </Select>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div>
               <Label htmlFor="message-permission">Who can message you</Label>
               <p className="text-xs text-muted-foreground">
@@ -921,7 +980,7 @@ function PrivacyPanel() {
               value={settings.messagePermission}
               onValueChange={(value) => handleChange({ ...settings, messagePermission: value as Visibility })}
             >
-              <SelectTrigger id="message-permission" className="w-44 shrink-0">
+              <SelectTrigger id="message-permission" className="w-full sm:w-44 shrink-0">
                 <SelectValue>
                   {(value: Visibility) => VISIBILITY_OPTIONS.find((o) => o.value === value)?.label ?? value}
                 </SelectValue>

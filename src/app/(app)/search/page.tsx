@@ -95,24 +95,24 @@ export default function SearchPage() {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1fr_320px]">
       <div>
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Discover</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Find creators, agencies, and collaborators across the network.
             </p>
           </div>
-          <div className="flex w-full gap-3 justify-start sm:w-auto sm:justify-start shrink-0">
+          <div className="flex shrink-0 items-center gap-3">
             <Link href="/saved" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
               Saved
             </Link>
-            <button
-              type="button"
+            <Button
+              size="sm"
               onClick={openComposer}
-              className="flex items-center gap-1.5 rounded-lg bg-[#476948] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+              className="bg-[#476948] text-white hover:bg-[#3d5a3e] hover:text-white dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
             >
               Create Post
-            </button>
+            </Button>
           </div>
         </div>
 

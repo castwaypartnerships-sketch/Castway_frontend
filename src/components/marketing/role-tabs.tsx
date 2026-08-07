@@ -224,29 +224,29 @@ export function RoleTabs() {
                 <motion.div
                   key={tab.id}
                   style={{ y: yVal, zIndex, willChange: "transform" }}
-                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 lg:gap-6 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
+                  className={`absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 p-4 sm:p-6 lg:p-8 w-full grid grid-cols-1 sm:grid-cols-[1.1fr_0.9fr] gap-3 lg:gap-6 items-center overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.06)] ${tab.bgColor}`}
                 >
                   {/* Left Column (Details) */}
-                  <div className="flex flex-col items-start text-left space-y-2.5">
+                  <div className="flex flex-col items-start text-left space-y-2 lg:space-y-2.5">
                     {/* Badge with Tab-colored Shadow Offset */}
                     <span className={`inline-flex rounded-full bg-white text-black text-xs font-bold px-4 py-2 border border-black/10 transition-transform hover:-translate-y-0.5 ${tab.shadowColor}`}>
                       {tab.badgeText}
                     </span>
 
-                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight font-serif">
+                    <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight leading-tight font-serif">
                       {tab.heading}
                     </h3>
 
-                    <p className="text-xs sm:text-sm leading-relaxed opacity-85 line-clamp-2">
+                    <p className="text-[11px] sm:text-sm leading-relaxed opacity-85 lg:line-clamp-2">
                       {tab.description}
                     </p>
 
                     {/* Checklist — two columns so 5 items take 3 short rows
                         instead of 5 tall ones, the single biggest lever for
                         fitting inside a fixed-height pinned viewport. */}
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 w-full">
+                    <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-1 lg:gap-y-1.5 w-full">
                       {tab.checklist.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+                        <li key={index} className="flex items-center gap-2.5 text-[11px] sm:text-sm font-semibold">
                           <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-white text-black border border-black/10">
                             <Check className="size-2.5" />
                           </span>
@@ -266,7 +266,7 @@ export function RoleTabs() {
                   </div>
 
                   {/* Right Column (Illustration Card) */}
-                  <div className="flex justify-center lg:justify-end w-full max-h-[30vh] lg:max-h-full">
+                  <div className="hidden sm:flex justify-center sm:justify-end w-full sm:max-h-full">
                     <div className="w-full max-w-sm rounded-2xl border border-black/15 bg-white dark:bg-[#0c140e] shadow-lg aspect-[4/3] relative overflow-hidden transition-all hover:scale-[1.02] duration-300">
                       {/* TAB_MEDIA_PLACEHOLDER — swap with real illustration */}
                       <Image
@@ -284,8 +284,8 @@ export function RoleTabs() {
             })}
           </div>
 
-        </div>
       </div>
     </div>
+  </div>
   );
 }
