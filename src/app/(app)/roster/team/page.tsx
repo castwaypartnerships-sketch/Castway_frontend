@@ -1,31 +1,30 @@
 "use client";
 
-import { useState, type FormEvent, useRef } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  UserPlus,
-  Mail,
-  AlertCircle,
-  Shield,
-  HelpCircle,
-  MoreVertical,
-} from "lucide-react";
+import { ChevronDown, HelpCircle, Mail, MoreVertical, Shield } from "lucide-react";
 
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import {
   useAssignManagerToRosterEntryMutation,
-  useCreateManagerMutation,
-  useGetManagersQuery,
   useGetMyRosterQuery,
   useUnassignManagerFromRosterEntryMutation,
 } from "@/lib/redux/endpoints/roster-api";
-import type { ManagerDto } from "@/lib/redux/endpoints/roster-api";
+import {
+  useGetTeamInvitesQuery,
+  useGetTeamMembersQuery,
+  useRemoveTeamMemberMutation,
+  useRevokeTeamInviteMutation,
+  useUpdateTeamMemberPermissionsMutation,
+} from "@/lib/redux/endpoints/team-api";
+import type { TeamMemberDto } from "@/lib/redux/endpoints/team-api";
 import type { RosterEntryDto } from "@/lib/types/roster";
+import { PERMISSION_CATEGORIES, type Permission } from "@/lib/permissions";
+import { InviteTeamMemberDialog } from "@/components/team/invite-team-member-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
@@ -33,8 +32,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { initialsFromName } from "@/lib/format";
+import { formatRelativeTime, initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
+import { cn } from "@/lib/utils";
 
 export default function TeamPage() {
   const { data: session } = useGetSessionQuery();
@@ -45,259 +45,148 @@ export default function TeamPage() {
     return <AgencyTeamView />;
   }
 
-  return <StandardTeamView />;
+  return (
+    <div className="mx-auto max-w-2xl px-6 py-16 text-center text-sm text-muted-foreground">
+      Team management is only available for agency accounts.
+    </div>
+  );
 }
 
 /* ==========================================================================
-   AGENCY TEAM VIEW (Redesigned Layout)
+   AGENCY TEAM VIEW
    ========================================================================== */
 function AgencyTeamView() {
-  const { data: managers, isLoading: isLoadingManagers } = useGetManagersQuery();
+  const { data: members, isLoading: isLoadingMembers } = useGetTeamMembersQuery();
+  const { data: invites, isLoading: isLoadingInvites } = useGetTeamInvitesQuery();
   const { data: roster } = useGetMyRosterQuery();
-  const [createManager, { isLoading: isCreating }] = useCreateManagerMutation();
+  const [revokeInvite] = useRevokeTeamInviteMutation();
 
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [newManagerName, setNewManagerName] = useState("");
-  const [newManagerUsername, setNewManagerUsername] = useState("");
-  const [justCreated, setJustCreated] = useState<{ email: string; tempPassword: string } | null>(null);
+  const acceptedRoster = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
+  const memberItems = members?.items ?? [];
+  const inviteItems = invites?.items ?? [];
 
-  // Form reference for "+ Invite Team Member" CTA scroll
-  const inviteFormRef = useRef<HTMLFormElement>(null);
-
-  const acceptedMembers = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
-
-  const handleScrollToInvite = () => {
-    inviteFormRef.current?.scrollIntoView({ behavior: "smooth" });
-    inviteFormRef.current?.querySelector("input")?.focus();
-  };
-
-  async function handleInviteSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!inviteEmail.trim()) return;
-
-    // Split inviteEmail to get a name and username if they weren't input
-    const emailParts = inviteEmail.split("@");
-    const generatedUsername = newManagerUsername.trim() || emailParts[0] + "-" + Math.floor(Math.random() * 1000);
-    const displayName = newManagerName.trim() || emailParts[0];
-
+  async function handleRevoke(id: string) {
     try {
-      const result = await createManager({
-        email: inviteEmail.trim(),
-        username: generatedUsername,
-        name: displayName,
-      }).unwrap();
-
-      setJustCreated({ email: inviteEmail.trim(), tempPassword: result.tempPassword });
-      setInviteEmail("");
-      setNewManagerName("");
-      setNewManagerUsername("");
-      toast.success("Manager invited successfully!");
+      await revokeInvite(id).unwrap();
+      toast.success("Invite revoked");
     } catch {
-      toast.error("Couldn't invite manager. Please check inputs and try again.");
+      toast.error("Couldn't revoke that invite. Please try again.");
     }
   }
 
-  const members = managers?.items ?? [];
-  const totalTeamCount = members.length;
-
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
-      
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex flex-col gap-4 border-b border-border/60 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Team</h1>
             <SectionHelp
               title="Team"
-              description="Staff seats for your agency account — invite talent managers who can act on your roster's behalf (apply, message) without owning the account."
+              description="Staff seats for your agency account — invite teammates with exactly the permissions they need, scoped by category (Talent, Campaigns, Finance, Team, Reports, Settings)."
             />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage internal members who help run your agency&apos;s account.
           </p>
         </div>
-        <Button
-          onClick={handleScrollToInvite}
-          className="self-start sm:self-auto bg-[#476948] hover:bg-[#3d5a3e] text-white font-semibold text-xs py-2 px-4 rounded-xl shadow-sm flex items-center gap-1.5"
-        >
-          <UserPlus className="size-3.5" />
-          + Invite Team Member
-        </Button>
+        <InviteTeamMemberDialog />
       </div>
 
-      {/* Main Grid: Content (2 Columns) + Sidebar (1 Column) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
-        {/* Left Columns (Main Content) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Invite Form */}
-          <form
-            ref={inviteFormRef}
-            onSubmit={handleInviteSubmit}
-            className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-              <div className="space-y-1.5 md:col-span-1.5">
-                <Label htmlFor="invite-input" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Invite by email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
-                  <Input
-                    id="invite-input"
-                    type="email"
-                    required
-                    placeholder="Enter email address..."
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="pl-9 text-sm"
-                  />
-                </div>
-              </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div className="max-w-xs space-y-1.5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">Total Team Members</p>
+            <h3 className="font-mono text-3xl font-bold text-foreground">
+              {isLoadingMembers ? "—" : memberItems.length}
+            </h3>
+          </div>
 
-              <Button
-                type="submit"
-                disabled={isCreating}
-                className="h-10 bg-[#476948] hover:bg-[#3d5a3e] text-white font-semibold text-sm flex items-center justify-center gap-2"
-              >
-                <UserPlus className="size-4" />
-                {isCreating ? "Inviting…" : "Invite"}
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div className="space-y-1">
-                <Label htmlFor="invite-name" className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Full name
-                </Label>
-                <Input
-                  id="invite-name"
-                  type="text"
-                  placeholder="e.g. John Doe"
-                  value={newManagerName}
-                  onChange={(e) => setNewManagerName(e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="invite-username" className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Username
-                </Label>
-                <Input
-                  id="invite-username"
-                  type="text"
-                  placeholder="e.g. johndoe"
-                  value={newManagerUsername}
-                  onChange={(e) => setNewManagerUsername(e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Leave name/username blank to auto-fill from the email above.
-            </p>
-          </form>
-
-          {/* Just Created Temp Password Banner */}
-          {justCreated ? (
-            <div className="rounded-2xl border border-success bg-success/5 p-4 space-y-2.5">
-              <div className="flex items-start gap-2 text-success">
-                <AlertCircle className="size-5 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold">Account created for {justCreated.email}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Share this temporary password now — it won&apos;t be shown again.
-                  </p>
-                </div>
-              </div>
-              <code className="block rounded-lg bg-muted border border-border p-3 text-sm font-mono select-all">
-                {justCreated.tempPassword}
-              </code>
-              <Button size="sm" variant="outline" className="text-xs" onClick={() => setJustCreated(null)}>
-                Dismiss Banner
-              </Button>
+          {inviteItems.length > 0 ? (
+            <div className="space-y-3">
+              <h2 className="border-b border-border/40 pb-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                Pending Invites
+              </h2>
+              <ul className="space-y-2">
+                {inviteItems.map((invite) => (
+                  <li
+                    key={invite.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-border bg-card p-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <Mail className="size-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{invite.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {invite.roleLabel} · sent {formatRelativeTime(invite.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost" className="shrink-0 text-xs" onClick={() => handleRevoke(invite.id)}>
+                      Revoke
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
 
-          {/* Stats Cards Row */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-1.5 max-w-xs">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Team Members</p>
-            <h3 className="text-3xl font-bold font-mono text-foreground">{isLoadingManagers ? "—" : totalTeamCount}</h3>
-          </div>
-
-          {/* Team Members List Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Team Members</h2>
+              <h2 className="text-xs font-bold tracking-wider text-muted-foreground uppercase">Team Members</h2>
             </div>
 
-            {isLoadingManagers ? (
+            {isLoadingMembers || isLoadingInvites ? (
               <div className="h-32 animate-pulse rounded-2xl border border-border bg-muted" />
+            ) : memberItems.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                No team members yet.
+              </p>
             ) : (
               <ul className="space-y-3">
-                {members.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-                    No managers yet.
-                  </p>
-                ) : (
-                  members.map((manager) => (
-                    <TeamMemberRow key={manager.id} manager={manager} rosterEntries={acceptedMembers} />
-                  ))
-                )}
+                {memberItems.map((member) => (
+                  <TeamMemberRow key={member.id} member={member} rosterEntries={acceptedRoster} />
+                ))}
               </ul>
             )}
           </div>
-
         </div>
 
-        {/* Right Column: Sidebar Widgets */}
         <div className="space-y-5">
-
-          {/* Permissions Guide Card (Dark Green background) */}
-          <div className="rounded-2xl bg-[#476948] text-white p-5 shadow-sm space-y-4 dark:bg-[#1a2f1f] dark:border dark:border-border/60">
+          <div className="space-y-4 rounded-2xl bg-[#476948] p-5 text-white shadow-sm dark:border dark:border-border/60 dark:bg-[#1a2f1f]">
             <div className="flex items-center justify-between border-b border-white/20 pb-2">
               <div className="flex items-center gap-1.5">
-                <h4 className="text-sm font-bold">About Managers</h4>
+                <h4 className="text-sm font-bold">About Team Permissions</h4>
                 <SectionHelp
                   variant="dark"
-                  title="About Managers"
-                  description="What a talent manager sub-account can and can't do on your agency's behalf."
+                  title="About Team Permissions"
+                  description="What each permission category actually gates."
                 />
               </div>
               <Shield className="size-4 opacity-80" />
             </div>
-
-            <div className="space-y-3.5 text-xs">
-              <p className="text-white/90 leading-relaxed">
-                Managers get their own login, provisioned by you with a temporary password. They can only act
-                (apply, message) on behalf of roster members you explicitly assign to them — never your full
-                roster, and never billing or account settings.
-              </p>
-            </div>
+            <p className="text-xs leading-relaxed text-white/90">
+              Each teammate gets exactly the permissions you grant at invite time — nothing more. Only Talent, Team,
+              and Settings actions are enforced today; Campaigns/Finance/Reports permissions are saved for when those
+              features ship.
+            </p>
           </div>
 
-          {/* Support help widget */}
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3">
-            <div className="size-8 rounded-lg bg-green-50 dark:bg-green-950/20 flex items-center justify-center text-green-700 dark:text-green-500 shrink-0">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-500">
               <HelpCircle className="size-4.5" />
             </div>
             <div>
               <h5 className="text-xs font-bold text-foreground">Need help?</h5>
               <button
                 onClick={() => toast.success("Agency support chat opened!")}
-                className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline text-left mt-0.5"
+                className="mt-0.5 text-left text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
               >
                 Contact Agency Support
               </button>
             </div>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
@@ -305,250 +194,161 @@ function AgencyTeamView() {
 /* ==========================================================================
    SUB-COMPONENT: Team Member Row
    ========================================================================== */
-function TeamMemberRow({ manager, rosterEntries }: { manager: ManagerDto; rosterEntries: RosterEntryDto[] }) {
-  const [expanded, setExpanded] = useState(false);
+function TeamMemberRow({ member, rosterEntries }: { member: TeamMemberDto; rosterEntries: RosterEntryDto[] }) {
+  const [panel, setPanel] = useState<"none" | "roster" | "permissions">("none");
   const [assignedEntryIds, setAssignedEntryIds] = useState<Set<string>>(new Set());
+  const [permissions, setPermissions] = useState<Set<Permission>>(new Set(member.permissions as Permission[]));
   const [assign] = useAssignManagerToRosterEntryMutation();
   const [unassign] = useUnassignManagerFromRosterEntryMutation();
+  const [updatePermissions, { isLoading: isSavingPermissions }] = useUpdateTeamMemberPermissionsMutation();
+  const [removeMember] = useRemoveTeamMemberMutation();
 
-  function toggle(entryId: string, checked: boolean) {
+  function toggleRosterEntry(entryId: string, checked: boolean) {
     setAssignedEntryIds((prev) => {
       const next = new Set(prev);
       if (checked) next.add(entryId);
       else next.delete(entryId);
       return next;
     });
-    if (checked) assign({ managerId: manager.id, entryId });
-    else unassign({ managerId: manager.id, entryId });
+    if (checked) assign({ managerId: member.id, entryId });
+    else unassign({ managerId: member.id, entryId });
   }
 
-  const displayName = manager.name ?? manager.email;
+  function togglePermission(key: Permission, checked: boolean) {
+    setPermissions((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }
+
+  async function handleSavePermissions() {
+    try {
+      await updatePermissions({ memberId: member.id, permissions: [...permissions] }).unwrap();
+      toast.success("Permissions updated");
+      setPanel("none");
+    } catch {
+      toast.error("Couldn't save permissions. Please try again.");
+    }
+  }
+
+  async function handleRemove() {
+    try {
+      await removeMember(member.id).unwrap();
+      toast.success(`Removed ${displayName} from the team`);
+    } catch {
+      toast.error("Couldn't remove that member. Please try again.");
+    }
+  }
+
+  const displayName = member.name ?? member.email;
 
   return (
-    <li className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col space-y-3">
+    <li className="flex flex-col space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-
-        {/* Avatar + Info */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <Avatar size="lg">
             <AvatarFallback>{initialsFromName(displayName)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
-              {manager.username ? (
-                <p className="text-xs text-muted-foreground/80 truncate">@{manager.username}</p>
-              ) : null}
-              <Badge className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40">
-                Manager
+              <p className="truncate text-sm font-bold text-foreground">{displayName}</p>
+              {member.username ? <p className="truncate text-xs text-muted-foreground/80">@{member.username}</p> : null}
+              <Badge className="rounded border border-blue-200 bg-blue-100 px-2 py-0.5 text-[9px] font-bold tracking-wider text-blue-800 uppercase dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300">
+                {member.roleLabel ?? "Manager"}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed truncate">
-              {manager.email}
+            <p className="mt-0.5 truncate text-xs leading-relaxed text-muted-foreground">
+              {member.email} · {member.permissions.length} permission{member.permissions.length === 1 ? "" : "s"}
             </p>
           </div>
         </div>
 
-        {/* Action trigger dropdown using DropdownMenu component */}
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon-sm" className="h-8 w-8 p-0 hover:bg-muted shrink-0" aria-label="Open member actions menu">
+              <Button variant="ghost" size="icon-sm" className="h-8 w-8 shrink-0 p-0 hover:bg-muted" aria-label="Open member actions menu">
                 <MoreVertical className="size-4 text-muted-foreground" />
               </Button>
             }
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              onClick={() => setExpanded((v) => !v)}
+              onClick={() => setPanel((p) => (p === "permissions" ? "none" : "permissions"))}
               className="text-xs font-semibold"
             >
-              {expanded ? "Hide Roster Access" : "Manage Roster Access"}
+              {panel === "permissions" ? "Hide Permissions" : "Edit Permissions"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setPanel((p) => (p === "roster" ? "none" : "roster"))}
+              className="text-xs font-semibold"
+            >
+              {panel === "roster" ? "Hide Roster Access" : "Manage Roster Access"}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleRemove} className="text-xs font-semibold text-destructive">
+              Remove from team
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
       </div>
 
-      {/* Roster Assignment Sub-panel */}
-      {expanded && (
-        <div className="mt-2 border-t border-border pt-3 space-y-2.5">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            Assign Roster Access
-          </p>
+      {panel === "permissions" ? (
+        <div className="mt-2 space-y-2.5 border-t border-border pt-3">
+          <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border p-2">
+            {PERMISSION_CATEGORIES.map((category) => (
+              <div key={category.label}>
+                <p className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-foreground">
+                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                  {category.label}
+                </p>
+                <ul className="space-y-1 py-1 pl-7">
+                  {category.permissions.map((perm) => (
+                    <li key={perm.key} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`perm-${member.id}-${perm.key}`}
+                        checked={permissions.has(perm.key)}
+                        onCheckedChange={(checked) => togglePermission(perm.key, checked === true)}
+                      />
+                      <Label htmlFor={`perm-${member.id}-${perm.key}`} className="cursor-pointer text-xs font-normal text-foreground">
+                        {perm.label}
+                      </Label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <Button size="sm" disabled={isSavingPermissions} onClick={handleSavePermissions} className="text-xs">
+            {isSavingPermissions ? "Saving…" : "Save permissions"}
+          </Button>
+        </div>
+      ) : null}
+
+      {panel === "roster" ? (
+        <div className="mt-2 space-y-2.5 border-t border-border pt-3">
+          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Assign Roster Access</p>
           {rosterEntries.length === 0 ? (
             <p className="text-xs text-muted-foreground italic">No accepted roster members to assign.</p>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {rosterEntries.map((entry) =>
                 entry.member ? (
                   <li key={entry.id} className="flex items-center gap-2">
                     <Checkbox
-                      id={`assign-${manager.id}-${entry.id}`}
+                      id={`assign-${member.id}-${entry.id}`}
                       checked={assignedEntryIds.has(entry.id)}
-                      onCheckedChange={(checked) => toggle(entry.id, checked === true)}
+                      onCheckedChange={(checked) => toggleRosterEntry(entry.id, checked === true)}
                     />
-                    <Label htmlFor={`assign-${manager.id}-${entry.id}`} className="text-xs text-foreground cursor-pointer font-medium">
+                    <Label htmlFor={`assign-${member.id}-${entry.id}`} className={cn("cursor-pointer text-xs font-medium text-foreground")}>
                       {entry.member.name}
                     </Label>
                   </li>
-                ) : null
+                ) : null,
               )}
             </ul>
           )}
         </div>
-      )}
-
-    </li>
-  );
-}
-
-/* ==========================================================================
-   STANDARD TEAM VIEW (FALLBACK FOR OTHER ROLES)
-   ========================================================================== */
-function StandardTeamView() {
-  const { data: managers, isLoading } = useGetManagersQuery();
-  const { data: roster } = useGetMyRosterQuery();
-  const [createManager, { isLoading: isCreating }] = useCreateManagerMutation();
-  const [showForm, setShowForm] = useState(false);
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [justCreated, setJustCreated] = useState<{ email: string; tempPassword: string } | null>(null);
-
-  const acceptedMembers = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
-
-  async function handleCreate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    try {
-      const result = await createManager({ email, username, name }).unwrap();
-      setJustCreated({ email, tempPassword: result.tempPassword });
-      setEmail("");
-      setUsername("");
-      setName("");
-      setShowForm(false);
-    } catch {
-      toast.error("Couldn't create that manager account. Please try again.");
-    }
-  }
-
-  return (
-    <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">Team</h1>
-          <p className="text-sm text-muted-foreground">
-            Talent managers — each can act on behalf of only the roster members you assign them.
-          </p>
-        </div>
-        <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-          New manager
-        </Button>
-      </div>
-
-      {justCreated ? (
-        <div className="rounded-2xl border border-primary bg-card p-4">
-          <p className="text-sm font-medium text-foreground">
-            Account created for {justCreated.email}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Share this temporary password now — it won&apos;t be shown again.
-          </p>
-          <code className="mt-2 block rounded-lg bg-muted p-2 text-sm">{justCreated.tempPassword}</code>
-          <Button size="sm" variant="ghost" className="mt-2" onClick={() => setJustCreated(null)}>
-            Dismiss
-          </Button>
-        </div>
-      ) : null}
-
-      {showForm ? (
-        <form onSubmit={handleCreate} className="space-y-3 rounded-2xl border border-border bg-card p-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="manager-email">Email</Label>
-            <Input id="manager-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="manager-username">Username</Label>
-            <Input id="manager-username" required value={username} onChange={(e) => setUsername(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="manager-name">Name</Label>
-            <Input id="manager-name" required value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <Button type="submit" size="sm" disabled={isCreating}>
-            {isCreating ? "Creating…" : "Create manager"}
-          </Button>
-        </form>
-      ) : null}
-
-      {isLoading ? (
-        <div className="h-24 animate-pulse rounded-2xl border border-border bg-muted" />
-      ) : !managers || managers.items.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-          No managers yet.
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {managers.items.map((manager) => (
-            <StandardManagerCard key={manager.id} manager={manager} rosterEntries={acceptedMembers} />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function StandardManagerCard({
-  manager,
-  rosterEntries,
-}: {
-  manager: ManagerDto;
-  rosterEntries: { id: string; member: { userId: string; name: string } | null }[];
-}) {
-  const [assign] = useAssignManagerToRosterEntryMutation();
-  const [unassign] = useUnassignManagerFromRosterEntryMutation();
-  const [expanded, setExpanded] = useState(false);
-  const [assignedEntryIds, setAssignedEntryIds] = useState<Set<string>>(new Set());
-
-  function toggle(entryId: string, checked: boolean) {
-    setAssignedEntryIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(entryId);
-      else next.delete(entryId);
-      return next;
-    });
-    if (checked) assign({ managerId: manager.id, entryId });
-    else unassign({ managerId: manager.id, entryId });
-  }
-
-  return (
-    <li className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-foreground">{manager.name ?? manager.email}</p>
-          <p className="text-xs text-muted-foreground">{manager.email}</p>
-        </div>
-        <Button size="sm" variant="ghost" onClick={() => setExpanded((v) => !v)}>
-          {expanded ? "Hide roster access" : "Manage roster access"}
-        </Button>
-      </div>
-      {expanded ? (
-        <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
-          {rosterEntries.map((entry) =>
-            entry.member ? (
-              <li key={entry.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`assign-${manager.id}-${entry.id}`}
-                  checked={assignedEntryIds.has(entry.id)}
-                  onCheckedChange={(checked) => toggle(entry.id, checked === true)}
-                />
-                <Label htmlFor={`assign-${manager.id}-${entry.id}`} className="text-sm font-normal">
-                  {entry.member.name}
-                </Label>
-              </li>
-            ) : null,
-          )}
-        </ul>
       ) : null}
     </li>
   );

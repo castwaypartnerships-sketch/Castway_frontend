@@ -29,7 +29,7 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
 
   const displayName = profileData?.profile?.name ?? session?.user?.email ?? "Your account";
   const displayRole = profileData?.profile?.bio ?? session?.user?.role ?? "";
-  const navItems = getNavItemsForRole(session?.user?.role);
+  const navItems = getNavItemsForRole(session?.user?.role, session?.user?.permissions);
   const ownProfileHref = profileData?.profile?.username ? `/profile/${profileData.profile.username}` : "/settings";
 
   return (

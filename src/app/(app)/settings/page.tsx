@@ -65,6 +65,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { isTalentRole } from "@/lib/rbac";
+import { PERMISSION_CATEGORIES } from "@/lib/permissions";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,7 @@ export default function SettingsPage() {
   const { data: session } = useGetSessionQuery();
   const isFreelancer = session?.user?.role === "FREELANCER";
   const isTalent = isTalentRole(session?.user?.role);
+  const isAgencyManager = session?.user?.role === "AGENCY_MANAGER";
 
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[220px_1fr]">
@@ -122,6 +124,7 @@ export default function SettingsPage() {
         {activeSection === "account" ? (
           <>
             <AccountPanel email={session?.user?.email} />
+            {isAgencyManager ? <PermissionsSummaryCard permissions={session?.user?.permissions ?? []} /> : null}
             {isTalent ? <RosterInvitesCard /> : null}
             {isFreelancer ? <ProposalTemplatesCard /> : null}
           </>
@@ -329,6 +332,8 @@ function AccountPanel({ email }: { email: string | undefined }) {
 }
 
 function ProfilePanel() {
+  const { data: session } = useGetSessionQuery();
+  const isTalent = isTalentRole(session?.user?.role);
   const { data, isLoading } = useGetOwnProfileQuery();
   const [updateProfile] = useUpdateProfileMutation();
   const [updateSubSpecializations] = useUpdateSubSpecializationsMutation();
@@ -442,51 +447,55 @@ function ProfilePanel() {
         />
       </div>
 
-      <div className="mt-6 space-y-1.5">
-        <Label>Content Niche</Label>
-        <div className="flex flex-wrap items-center gap-2">
-          {niches.map((tag) => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 rounded-full bg-[#e6f4ea] px-3 py-1 text-xs font-semibold text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]"
-            >
-              {tag}
-              <button type="button" onClick={() => void handleRemoveNiche(tag)} aria-label={`Remove ${tag}`}>
-                <X className="size-3" />
-              </button>
-            </span>
-          ))}
-          <div className="flex items-center gap-1.5">
-            <Input
-              value={nicheInput}
-              onChange={(e) => setNicheInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void handleAddNiche();
-                }
-              }}
-              placeholder="Add niche"
-              className="h-7 w-32"
-            />
-            <Button type="button" variant="outline" size="icon-sm" onClick={() => void handleAddNiche()}>
-              <Plus className="size-3.5" />
-            </Button>
+      {isTalent ? (
+        <div className="mt-6 space-y-1.5">
+          <Label>Content Niche</Label>
+          <div className="flex flex-wrap items-center gap-2">
+            {niches.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 rounded-full bg-[#e6f4ea] px-3 py-1 text-xs font-semibold text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+              >
+                {tag}
+                <button type="button" onClick={() => void handleRemoveNiche(tag)} aria-label={`Remove ${tag}`}>
+                  <X className="size-3" />
+                </button>
+              </span>
+            ))}
+            <div className="flex items-center gap-1.5">
+              <Input
+                value={nicheInput}
+                onChange={(e) => setNicheInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void handleAddNiche();
+                  }
+                }}
+                placeholder="Add niche"
+                className="h-7 w-32"
+              />
+              <Button type="button" variant="outline" size="icon-sm" onClick={() => void handleAddNiche()}>
+                <Plus className="size-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="mt-6 flex items-center justify-between rounded-xl bg-muted p-4">
-        <div>
-          <p className="text-sm font-medium text-foreground">Open to Work</p>
-          <p className="text-xs text-muted-foreground">Show recruiters and agencies you are available.</p>
+      {isTalent ? (
+        <div className="mt-6 flex items-center justify-between rounded-xl bg-muted p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Open to Work</p>
+            <p className="text-xs text-muted-foreground">Show recruiters and agencies you are available.</p>
+          </div>
+          <Switch
+            className={GREEN_SWITCH}
+            checked={profile.availableForWork}
+            onCheckedChange={(checked) => updateProfile({ availableForWork: checked })}
+          />
         </div>
-        <Switch
-          className={GREEN_SWITCH}
-          checked={profile.availableForWork}
-          onCheckedChange={(checked) => updateProfile({ availableForWork: checked })}
-        />
-      </div>
+      ) : null}
 
       <div className="mt-6 border-t border-border pt-4">
         <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Social Connections</p>
@@ -547,6 +556,50 @@ function ProfilePanel() {
           Preview Public Profile
         </Link>
       </div>
+    </section>
+  );
+}
+
+/** Read-only — a manager can see what they're scoped to but only the
+ * inviting agency can change it (Team page, "Edit Permissions"). */
+function PermissionsSummaryCard({ permissions }: { permissions: string[] }) {
+  const granted = new Set(permissions);
+  const categories = PERMISSION_CATEGORIES.map((category) => ({
+    ...category,
+    permissions: category.permissions.filter((p) => granted.has(p.key)),
+  })).filter((category) => category.permissions.length > 0);
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-center gap-1.5">
+        <Shield className="size-4 text-[#476948] dark:text-[#a7d9b5]" />
+        <h2 className="text-sm font-semibold text-foreground">Your Permissions</h2>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        What your agency has granted you. Only they can change this — see Team page.
+      </p>
+
+      {categories.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">No permissions granted yet.</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {categories.map((category) => (
+            <div key={category.label}>
+              <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">{category.label}</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {category.permissions.map((perm) => (
+                  <span
+                    key={perm.key}
+                    className="rounded-full bg-[#e6f4ea] px-2.5 py-1 text-xs font-medium text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                  >
+                    {perm.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

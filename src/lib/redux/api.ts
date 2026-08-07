@@ -119,6 +119,7 @@ export const api = createApi({
     "BrandAgencyLinks",
     "RevenueSplits",
     "RosterManagers",
+    "TeamInvites",
     "BrandTeam",
     "ShortlistComments",
     "ManagedTalent",

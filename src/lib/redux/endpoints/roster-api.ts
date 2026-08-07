@@ -50,21 +50,9 @@ export const rosterApi = api.injectEndpoints({
       query: (agencyUsername) => `/roster/public/${agencyUsername}`,
       transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
     }),
-    // Talent manager sub-accounts — Agency-only management + the manager's
-    // own scoped view.
-    getManagers: builder.query<{ items: ManagerDto[] }, void>({
-      query: () => "/roster/managers",
-      transformResponse: (response: { data: { items: ManagerDto[] } }) => response.data,
-      providesTags: ["RosterManagers"],
-    }),
-    createManager: builder.mutation<
-      { tempPassword: string; managerUserId: string },
-      { email: string; username: string; name: string }
-    >({
-      query: (body) => ({ url: "/roster/managers", method: "POST", body }),
-      transformResponse: (response: { data: { tempPassword: string; managerUserId: string } }) => response.data,
-      invalidatesTags: ["RosterManagers"],
-    }),
+    // Talent manager sub-accounts — creation/listing/removal live in
+    // team-api.ts (TeamService); these endpoints only assign a manager to
+    // specific roster entries.
     assignManagerToRosterEntry: builder.mutation<void, { managerId: string; entryId: string }>({
       query: ({ managerId, entryId }) => ({
         url: `/roster/managers/${managerId}/assignments/${entryId}`,
@@ -87,13 +75,6 @@ export const rosterApi = api.injectEndpoints({
   }),
 });
 
-export interface ManagerDto {
-  id: string;
-  email: string;
-  name: string | null;
-  username: string | null;
-}
-
 export const {
   useGetMyRosterQuery,
   useGetPendingRosterInvitesQuery,
@@ -105,8 +86,6 @@ export const {
   useUpdateTalentStatusMutation,
   useSetPubliclyListedMutation,
   useGetPublicRosterCatalogQuery,
-  useGetManagersQuery,
-  useCreateManagerMutation,
   useAssignManagerToRosterEntryMutation,
   useUnassignManagerFromRosterEntryMutation,
   useGetAssignedRosterQuery,

@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 
 import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
-import { useGetMyRosterQuery, useGetManagersQuery } from "@/lib/redux/endpoints/roster-api";
+import { useGetMyRosterQuery } from "@/lib/redux/endpoints/roster-api";
+import { useGetTeamMembersQuery } from "@/lib/redux/endpoints/team-api";
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
 import { useComposer } from "@/components/feed/composer-context";
 import { FeedView } from "@/app/(app)/home/feed-view";
@@ -42,7 +43,7 @@ export function AgencyHomeView() {
   // Fetch backend queries
   const { data: ownProfile, isLoading: isProfileLoading } = useGetOwnProfileQuery();
   const { data: roster, isLoading: isRosterLoading } = useGetMyRosterQuery();
-  const { data: managers, isLoading: isManagersLoading } = useGetManagersQuery();
+  const { data: managers, isLoading: isManagersLoading } = useGetTeamMembersQuery();
   const { data: dashboard, isLoading: isDashboardLoading } = useGetDashboardQuery();
 
   if (isProfileLoading || isRosterLoading || isManagersLoading || isDashboardLoading) {

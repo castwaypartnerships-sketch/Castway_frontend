@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Briefcase, ClipboardList, Plus, SearchIcon } from "lucide-react";
+import { Briefcase, ClipboardList, Plus, SearchIcon, Sparkles } from "lucide-react";
 
-import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
+import { useGetOpportunitiesQuery, useSemanticSearchOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
 import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { OpportunityCard } from "@/components/opportunities/opportunity-card";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { canPostOpportunity, canApplyToOpportunity } from "@/lib/rbac";
 import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
@@ -84,6 +85,7 @@ export default function OpportunitiesPage() {
 }
 
 function BrowseTab() {
+  const [searchMode, setSearchMode] = useState<"keyword" | "semantic">("keyword");
   const [query, setQuery] = useState("");
   const [type, setType] = useState<OpportunityType | "">("");
   const [status, setStatus] = useState<"OPEN" | "CLOSED" | "ARCHIVED">("OPEN");
@@ -92,18 +94,29 @@ function BrowseTab() {
   const [isRemote, setIsRemote] = useState(false);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, isFetching, isError } = useGetOpportunitiesQuery({
-    query: query.trim() || undefined,
-    type: type || undefined,
-    status,
-    category: category.trim() || undefined,
-    skills: skills
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-    isRemote: isRemote || undefined,
-    page,
-  });
+  const trimmedQuery = query.trim();
+  const isSemantic = searchMode === "semantic";
+
+  const keywordResult = useGetOpportunitiesQuery(
+    {
+      query: trimmedQuery || undefined,
+      type: type || undefined,
+      status,
+      category: category.trim() || undefined,
+      skills: skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      isRemote: isRemote || undefined,
+      page,
+    },
+    { skip: isSemantic },
+  );
+  const semanticResult = useSemanticSearchOpportunitiesQuery(
+    { query: trimmedQuery, page },
+    { skip: !isSemantic || !trimmedQuery },
+  );
+  const { data, isLoading, isFetching, isError } = isSemantic ? semanticResult : keywordResult;
 
   const hasMore = data ? data.items.length < data.total : false;
   const sentinelRef = useInfiniteScroll(hasMore, isFetching, () => setPage((p) => p + 1));
@@ -118,16 +131,38 @@ function BrowseTab() {
   return (
     <div className="space-y-5">
       <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+        <Tabs
+          value={searchMode}
+          onValueChange={(value) => {
+            setSearchMode((value as "keyword" | "semantic") ?? "keyword");
+            setPage(1);
+          }}
+        >
+          <TabsList>
+            <TabsTrigger value="keyword">
+              <SearchIcon className="size-3.5" />
+              Keyword
+            </TabsTrigger>
+            <TabsTrigger value="semantic">
+              <Sparkles className="size-3.5" />
+              Ask in plain language
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => updateFilter(setQuery)(e.target.value)}
-            placeholder="Search by title or description…"
+            placeholder={
+              isSemantic
+                ? "e.g. \"remote brand deals for beauty creators\"…"
+                : "Search by title or description…"
+            }
             className="pl-9"
           />
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2", isSemantic && "hidden")}>
           <div className="space-y-1.5">
             <Label htmlFor="opp-type">Type</Label>
             <Select
@@ -206,7 +241,7 @@ function BrowseTab() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className={cn("flex items-center gap-2.5", isSemantic && "hidden")}>
           <Switch
             id="opp-remote"
             className="data-checked:bg-[#476948] dark:data-checked:bg-[#1c3322]"
@@ -217,7 +252,12 @@ function BrowseTab() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isSemantic && !trimmedQuery ? (
+        <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+          Describe what you&apos;re looking for above — e.g. &quot;freelance video editing gigs&quot; or
+          &quot;brand deals for fitness creators&quot;.
+        </p>
+      ) : isLoading ? (
         <div className="space-y-5">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-muted" />
@@ -229,7 +269,7 @@ function BrowseTab() {
         </p>
       ) : !data || data.items.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-          No open opportunities match those filters yet.
+          {isSemantic ? "Nothing matched that description yet." : "No open opportunities match those filters yet."}
         </p>
       ) : (
         <div className="space-y-5">
