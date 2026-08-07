@@ -47,7 +47,11 @@ export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
       ? "Company Profile"
       : "My Profile"
     : (activeItem?.breadcrumbLabel ?? activeItem?.label ?? "Overview");
-  const { data: dashboard } = useGetDashboardQuery();
+  // AGENCY_MANAGER has no dashboard of its own (see dashboard.service.ts) —
+  // skip so this doesn't 403 on every page load for that role.
+  const { data: dashboard } = useGetDashboardQuery(undefined, {
+    skip: session?.user?.role === "AGENCY_MANAGER",
+  });
   const hasUnreadNotifications = (dashboard?.unreadNotificationsCount ?? 0) > 0;
   const { openComposer } = useComposer();
 

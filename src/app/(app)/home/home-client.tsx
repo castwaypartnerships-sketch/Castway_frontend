@@ -20,7 +20,11 @@ export function HomeClient() {
   }
 
   const role = session?.user?.role;
-  const isAgency = role === "AGENCY" || role === "AGENCY_MANAGER";
+  // AGENCY_MANAGER deliberately excluded — it's a narrow sub-account scope
+  // with no dashboard/roster/managers data of its own (see nav-items.ts and
+  // dashboard.service.ts), so AgencyHomeView's owner-only widgets (Company
+  // Profile completion, Your Team, campaign creation) don't apply to it.
+  const isAgency = role === "AGENCY";
 
   if (isAgency) {
     return <AgencyHomeView />;

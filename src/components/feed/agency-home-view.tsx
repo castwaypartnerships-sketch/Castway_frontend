@@ -83,11 +83,6 @@ export function AgencyHomeView() {
     { name: "Elena Rodriguez", role: "Campaign Manager", initials: "ER", avatar: "" },
   ];
 
-  const defaultTalent = [
-    { name: "Sarah Chen", engagement: "5.2%", initials: "SC", avatar: "" },
-    { name: "Jordan Smith", engagement: "4.8%", initials: "JS", avatar: "" },
-  ];
-
   const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -562,28 +557,13 @@ export function AgencyHomeView() {
                       </Avatar>
                       <div>
                         <p className="text-xs font-bold text-foreground">{name}</p>
-                        <p className="text-[10px] text-muted-foreground font-medium">Engagement: 5.0%</p>
                       </div>
                     </div>
-                    <span className="text-success text-[10px] font-bold flex items-center">▲</span>
                   </div>
                 );
               })
             ) : (
-              defaultTalent.map((item) => (
-                <div key={item.name} className="flex items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar size="sm">
-                      <AvatarFallback className="text-[10px]">{item.initials}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-xs font-bold text-foreground">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium">Engagement: {item.engagement}</p>
-                    </div>
-                  </div>
-                  <span className="text-success text-[10px] font-bold flex items-center">▲</span>
-                </div>
-              ))
+              <p className="text-xs text-muted-foreground">No roster talent yet.</p>
             )}
           </div>
         </section>

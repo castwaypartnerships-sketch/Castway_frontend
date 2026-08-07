@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { FeedItem, PostStatus } from "@/lib/types/feed";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/redux/endpoints/feed-api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CreatePostDialog } from "@/components/feed/create-post-dialog";
 import { formatRelativeTime } from "@/lib/format";
 
 const STATUS_LABEL: Record<PostStatus, string> = {
@@ -38,6 +40,7 @@ export default function MyPostsPage() {
   const [archive] = useArchivePostMutation();
   const [unarchive] = useUnarchivePostMutation();
   const [deletePost] = useDeletePostMutation();
+  const [editingPost, setEditingPost] = useState<FeedItem | null>(null);
 
   async function handlePublish(post: FeedItem) {
     try {
@@ -141,6 +144,14 @@ export default function MyPostsPage() {
                 <Button
                   variant="ghost"
                   size="icon-sm"
+                  aria-label="Edit"
+                  onClick={() => setEditingPost(post)}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   aria-label="Delete"
                   className="text-destructive"
                   onClick={() => handleDelete(post)}
@@ -152,6 +163,17 @@ export default function MyPostsPage() {
           ))}
         </ul>
       )}
+
+      {editingPost ? (
+        <CreatePostDialog
+          key={editingPost.id}
+          post={editingPost}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditingPost(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

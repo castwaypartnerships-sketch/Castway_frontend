@@ -21,7 +21,11 @@ export function AppSidebar({ isOpen, onClose }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useGetSessionQuery();
   const { data: profileData } = useGetOwnProfileQuery(undefined, { skip: !session?.user });
-  const { data: dashboard } = useGetDashboardQuery(undefined, { skip: !session?.user });
+  // AGENCY_MANAGER has no dashboard of its own (see dashboard.service.ts) —
+  // skip so this doesn't 403 on every page load for that role.
+  const { data: dashboard } = useGetDashboardQuery(undefined, {
+    skip: !session?.user || session.user.role === "AGENCY_MANAGER",
+  });
 
   const displayName = profileData?.profile?.name ?? session?.user?.email ?? "Your account";
   const displayRole = profileData?.profile?.bio ?? session?.user?.role ?? "";

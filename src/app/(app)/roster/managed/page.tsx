@@ -8,15 +8,15 @@ import {
   useCreateManagedTalentMutation,
   useGetManagedTalentQuery,
   useReleaseManagedTalentMutation,
-  useUpdateManagedTalentProfileMutation,
+  type ManagedTalentProfile,
 } from "@/lib/redux/endpoints/managed-talent-api";
-import type { Profile } from "@/lib/types/profile";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { SectionHelp } from "@/components/shared/section-help";
+import { TalentSectionTabs } from "@/components/roster/talent-section-tabs";
+import { cn } from "@/lib/utils";
 
 /** Managed-talent sub-accounts — a second, deliberately separate ownership
  * model from Roster's invite/accept flow (`/roster/team`, `/roster`): the
@@ -48,6 +48,8 @@ export default function ManagedTalentPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-6">
+      <TalentSectionTabs />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -58,11 +60,11 @@ export default function ManagedTalentPage() {
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Talent profiles you create and control directly — distinct from your{" "}
+            Talent profiles you create and control directly — distinct from{" "}
             <Link href="/roster" className="underline">
-              Roster
-            </Link>
-            , which represents independently-owned accounts.
+              Represented
+            </Link>{" "}
+            talent, who own their accounts independently.
           </p>
         </div>
         <Button size="sm" onClick={() => setShowForm((v) => !v)}>
@@ -132,20 +134,8 @@ export default function ManagedTalentPage() {
   );
 }
 
-function ManagedTalentCard({ profile }: { profile: Profile }) {
-  const [updateProfile, { isLoading: isSaving }] = useUpdateManagedTalentProfileMutation();
+function ManagedTalentCard({ profile }: { profile: ManagedTalentProfile }) {
   const [release, { isLoading: isReleasing }] = useReleaseManagedTalentMutation();
-  const [expanded, setExpanded] = useState(false);
-  const [bio, setBio] = useState(profile.bio ?? "");
-
-  async function handleSaveBio() {
-    try {
-      await updateProfile({ talentUserId: profile.userId, input: { bio } }).unwrap();
-      toast.success("Saved");
-    } catch {
-      toast.error("Couldn't save that change. Please try again.");
-    }
-  }
 
   async function handleRelease() {
     if (!confirm(`Release ${profile.name}? They'll keep their account, independently, from now on.`)) return;
@@ -158,32 +148,24 @@ function ManagedTalentCard({ profile }: { profile: Profile }) {
   }
 
   return (
-    <li className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <Link href={`/profile/${profile.username}`} className="text-sm font-medium text-foreground hover:underline">
-            {profile.name}
-          </Link>
-          <p className="text-xs text-muted-foreground">@{profile.username}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? "Hide" : "Edit"}
-          </Button>
-          <Button size="sm" variant="outline" className="text-destructive" disabled={isReleasing} onClick={handleRelease}>
-            Release
-          </Button>
-        </div>
+    <li className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+      <div className="min-w-0">
+        <Link href={`/profile/${profile.username}`} className="text-sm font-medium text-foreground hover:underline">
+          {profile.name}
+        </Link>
+        <p className="text-xs text-muted-foreground">@{profile.username}</p>
       </div>
-      {expanded ? (
-        <div className="mt-3 space-y-2 border-t border-border pt-3">
-          <Label htmlFor={`bio-${profile.userId}`}>Bio</Label>
-          <Textarea id={`bio-${profile.userId}`} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
-          <Button size="sm" disabled={isSaving} onClick={handleSaveBio}>
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
-        </div>
-      ) : null}
+      <div className="flex shrink-0 items-center gap-2">
+        <Link
+          href={`/roster/managed/${profile.userId}/edit`}
+          className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+        >
+          Edit
+        </Link>
+        <Button size="sm" variant="outline" className="text-destructive" disabled={isReleasing} onClick={handleRelease}>
+          Release
+        </Button>
+      </div>
     </li>
   );
 }
