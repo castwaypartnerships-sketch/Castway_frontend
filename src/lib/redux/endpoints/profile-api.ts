@@ -178,6 +178,11 @@ export const profileApi = api.injectEndpoints({
       transformResponse: (response: { data: { items: { skill: string; count: number }[] } }) =>
         response.data,
     }),
+    getProfileByUserId: builder.query<ProfileMeResponse, string>({
+      query: (userId) => `/profile/user/${userId}`,
+      transformResponse: (response: { data: ProfileMeResponse }) => response.data,
+      providesTags: (_result, _error, userId) => [{ type: "PublicProfile", id: userId }],
+    }),
   }),
 });
 
@@ -205,4 +210,5 @@ export const {
   useUpdateEducationMutation,
   useRemoveEducationMutation,
   useGetTrendingSkillsQuery,
+  useGetProfileByUserIdQuery,
 } = profileApi;

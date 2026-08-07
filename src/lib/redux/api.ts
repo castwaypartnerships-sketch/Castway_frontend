@@ -123,6 +123,10 @@ export const api = createApi({
     "ShortlistComments",
     "ManagedTalent",
     "PublicProfile",
+    "TalentNotes",
+    "TalentDocuments",
+    "TalentContracts",
+    "TalentPayments",
   ],
   endpoints: () => ({}),
 });

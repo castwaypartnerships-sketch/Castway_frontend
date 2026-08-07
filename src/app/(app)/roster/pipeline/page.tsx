@@ -131,7 +131,7 @@ export default function RosterPipelinePage() {
  * connections-search UI built for this yet); the agency's own id and the
  * roster member's id are pre-filled since those are the two parties on
  * almost every split. */
-function RevenueSplitSection({ deal }: { deal: RosterDealDto }) {
+export function RevenueSplitSection({ deal }: { deal: RosterDealDto }) {
   const { data: session } = useGetSessionQuery();
   const { data: splits } = useGetRevenueSplitsForDealQuery(deal.id);
   const [proposeSplit, { isLoading: isProposing }] = useProposeRevenueSplitMutation();
@@ -250,7 +250,7 @@ function RevenueSplitSection({ deal }: { deal: RosterDealDto }) {
   );
 }
 
-function DealCard({ deal }: { deal: RosterDealDto }) {
+export function DealCard({ deal }: { deal: RosterDealDto }) {
   const [updateStage] = useUpdateRosterDealStageMutation();
   const [addNote, { isLoading: isAddingNote }] = useAddRosterDealNoteMutation();
   const [removeDeal] = useRemoveRosterDealMutation();

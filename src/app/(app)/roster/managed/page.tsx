@@ -4,6 +4,8 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
+import { Globe } from "lucide-react";
+import { FaInstagram, FaYoutube, FaTwitch, FaXTwitter } from "react-icons/fa6";
 import {
   useCreateManagedTalentMutation,
   useGetManagedTalentQuery,
@@ -134,6 +136,15 @@ export default function ManagedTalentPage() {
   );
 }
 
+function getPlatformIcon(platform: string) {
+  const p = platform.toLowerCase();
+  if (p === "instagram") return <FaInstagram className="size-3.5 text-pink-500 shrink-0" />;
+  if (p === "youtube") return <FaYoutube className="size-3.5 text-red-500 shrink-0" />;
+  if (p === "twitch") return <FaTwitch className="size-3.5 text-purple-500 shrink-0" />;
+  if (p === "twitter" || p === "x") return <FaXTwitter className="size-3.5 text-sky-400 shrink-0" />;
+  return <Globe className="size-3.5 text-muted-foreground shrink-0" />;
+}
+
 function ManagedTalentCard({ profile }: { profile: ManagedTalentProfile }) {
   const [release, { isLoading: isReleasing }] = useReleaseManagedTalentMutation();
 
@@ -148,19 +159,39 @@ function ManagedTalentCard({ profile }: { profile: ManagedTalentProfile }) {
   }
 
   return (
-    <li className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
-      <div className="min-w-0">
-        <Link href={`/profile/${profile.username}`} className="text-sm font-medium text-foreground hover:underline">
-          {profile.name}
-        </Link>
-        <p className="text-xs text-muted-foreground">@{profile.username}</p>
+    <li className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <Link href={`/roster/talent/${profile.userId}`} className="min-w-0">
+            <p className="text-sm font-semibold text-foreground hover:underline">{profile.name}</p>
+          </Link>
+          <p className="text-xs text-muted-foreground">@{profile.username}</p>
+        </div>
+        
+        {/* Managed Talent Metrics Row */}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-muted-foreground">
+          {profile.primaryPlatform && (
+            <span className="flex items-center gap-1 shrink-0 font-medium">
+              {getPlatformIcon(profile.primaryPlatform)}
+              <span className="capitalize">{profile.primaryPlatform}</span>
+            </span>
+          )}
+          
+          {profile.followers && (
+            <span className="shrink-0 font-medium text-foreground">{profile.followers} followers</span>
+          )}
+
+          <span className="shrink-0 text-[11px] text-muted-foreground/80 pl-2 border-l border-border/80 italic">
+            Managed by: Agency Owner
+          </span>
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Link
-          href={`/roster/managed/${profile.userId}/edit`}
+          href={`/roster/talent/${profile.userId}`}
           className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
         >
-          Edit
+          View Detail
         </Link>
         <Button size="sm" variant="outline" className="text-destructive" disabled={isReleasing} onClick={handleRelease}>
           Release

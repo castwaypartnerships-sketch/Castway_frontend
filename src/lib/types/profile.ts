@@ -128,6 +128,12 @@ export interface Profile {
   caseStudies: CaseStudy[];
   subSpecializations: string[];
   agencySize: AgencySize | null;
+  instagramFollowers: number | null;
+  youtubeFollowers: number | null;
+  twitchFollowers: number | null;
+  twitterFollowers: number | null;
+  followers: string | null;
+  primaryPlatform: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -152,6 +158,10 @@ export interface ProfileUpdateInput {
   minRate?: number;
   maxRate?: number;
   agencySize?: AgencySize;
+  instagramFollowers?: number | null;
+  youtubeFollowers?: number | null;
+  twitchFollowers?: number | null;
+  twitterFollowers?: number | null;
 }
 
 export interface ExperienceInput {
