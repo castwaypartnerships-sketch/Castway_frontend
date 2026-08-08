@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { ShortlistCommentThread } from "@/components/campaigns/shortlist-comment-thread";
 import { ApplicantsList } from "@/components/opportunities/applicants-list";
+import { OPPORTUNITY_TYPE_OPTIONS } from "@/components/opportunities/opportunity-form";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -61,13 +62,6 @@ const CAMPAIGN_STATUS_VARIANT: Record<CampaignStatus, "default" | "secondary" | 
   ACTIVE: "default",
   CLOSED: "secondary",
 };
-
-const OPPORTUNITY_TYPE_OPTIONS: { value: OpportunityType; label: string }[] = [
-  { value: "BRAND_DEAL", label: "Brand deal" },
-  { value: "COLLABORATION", label: "Collaboration" },
-  { value: "HIRING", label: "Hiring" },
-  { value: "FREELANCE_GIG", label: "Freelance gig" },
-];
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

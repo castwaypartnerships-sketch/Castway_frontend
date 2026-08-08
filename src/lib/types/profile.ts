@@ -1,3 +1,5 @@
+import type { OpportunityType } from "@/lib/types/opportunity";
+
 export type AgencySize = "SOLO" | "SMALL" | "MEDIUM" | "LARGE";
 
 export interface SocialLinks {
@@ -66,7 +68,7 @@ export interface ProfileOpenOpportunity {
   id: string;
   title: string;
   description: string;
-  type: "HIRING" | "COLLABORATION" | "BRAND_DEAL" | "FREELANCE_GIG";
+  type: OpportunityType;
   category: string | null;
   location: string | null;
   isRemote: boolean;

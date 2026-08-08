@@ -18,6 +18,10 @@ const TYPE_LABEL: Record<Opportunity["type"], string> = {
   COLLABORATION: "Collaboration",
   BRAND_DEAL: "Brand Deal",
   FREELANCE_GIG: "Freelance Gig",
+  SPONSORSHIP: "Sponsorship",
+  AMBASSADORSHIP: "Ambassadorship",
+  UGC_CONTENT: "UGC / Content Creation",
+  EVENT_APPEARANCE: "Event / Appearance",
 };
 
 const SOURCE_LABEL: Record<string, string> = { linkedin: "LinkedIn" };
