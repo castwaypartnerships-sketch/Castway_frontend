@@ -487,7 +487,7 @@ function ProfilePanel() {
           kind="covers"
           imageUrl={profile.coverImageUrl ?? ""}
           onUploaded={(url) => updateProfile({ coverImageUrl: url })}
-          onRemove={() => updateProfile({ coverImageUrl: undefined })}
+          onRemove={() => updateProfile({ coverImageUrl: null })}
         />
       </div>
 

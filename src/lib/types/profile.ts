@@ -144,7 +144,7 @@ export interface ProfileUpdateInput {
   headline?: string;
   bio?: string;
   avatarUrl?: string | null;
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
   creatorCategory?: string;
   location?: string;
   languages?: string[];
