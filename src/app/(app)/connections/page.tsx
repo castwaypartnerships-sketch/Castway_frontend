@@ -46,7 +46,7 @@ export default function ConnectionsPage() {
       : "connections";
 
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[1fr_320px]">
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div>
         <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">Connections</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -258,7 +258,7 @@ function MyConnectionsTab() {
     <ul className="space-y-4">
       {data.items.map((connection: ConnectionListItem) => (
         <PersonRow key={connection.id} person={connection.counterpart}>
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <LeaveReviewAction revieweeUserId={connection.counterpart.userId} />
             <Button variant="outline" size="sm" onClick={() => handleRemove(connection)}>
               Remove
@@ -409,9 +409,9 @@ function RequestsTab() {
     <ul className="space-y-4">
       {incoming.map((connection) => (
         <PersonRow key={connection.id} person={connection.counterpart}>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <time className="text-xs text-muted-foreground">{formatRelativeTime(connection.createdAt)}</time>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"
