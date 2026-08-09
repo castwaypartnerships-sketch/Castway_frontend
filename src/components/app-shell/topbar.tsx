@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Bell, LogOut, Menu, Plus, Search } from "lucide-react";
 
 import { findNavItemByPathname } from "@/lib/nav-items";
@@ -35,8 +35,16 @@ import { cn } from "@/lib/utils";
 export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const activeItem = findNavItemByPathname(pathname);
+
+  // Keeps the box in sync with the URL — pre-fills it from a direct
+  // `/home?q=...` link, and clears it when HomeSearchResults' "Clear
+  // search" button navigates back to a plain `/home`.
+  useEffect(() => {
+    setSearchTerm(pathname === "/home" ? (searchParams.get("q") ?? "") : "");
+  }, [pathname, searchParams]);
   const { data: session } = useGetSessionQuery();
   const { data: profileData } = useGetOwnProfileQuery(undefined, { skip: !session?.user });
   const ownProfileHref = profileData?.profile?.username ? `/profile/${profileData.profile.username}` : null;
@@ -58,7 +66,10 @@ export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== "Enter") return;
     const trimmed = searchTerm.trim();
-    router.push(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search");
+    if (!trimmed) return;
+    // Stays on Home and swaps its content for results (see HomeClient) —
+    // not a navigation to a separate search page.
+    router.push(`/home?q=${encodeURIComponent(trimmed)}`);
   }
 
   return (
