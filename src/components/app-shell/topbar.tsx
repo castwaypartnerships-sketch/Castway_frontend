@@ -87,7 +87,7 @@ export function AppTopbar({ onMenuClick }: { onMenuClick: () => void }) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder="Search keywords, creators, stacks..."
+            placeholder="Search creators, agencies, brands..."
             className="pl-9"
           />
         </div>
