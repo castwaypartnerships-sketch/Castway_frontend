@@ -43,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
+import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
 
 export default function AgencyClientsPage() {
   const { data: session } = useGetSessionQuery();
@@ -75,7 +76,7 @@ function AgencyCampaignsDashboard() {
   
   // Create Campaign States
   const [formBrandUserId, setFormBrandUserId] = useState("");
-  const [formCategory, setFormCategory] = useState("Production");
+  const [formCategory, setFormCategory] = useState<string>(PROFILE_CATEGORY_OPTIONS[0]);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formBudget, setFormBudget] = useState("");
@@ -250,15 +251,19 @@ function AgencyCampaignsDashboard() {
                   <Label htmlFor="create-niche-select" className="text-xs font-bold text-muted-foreground uppercase">
                     Category / Niche
                   </Label>
-                  <Select value={formCategory} onValueChange={(val) => setFormCategory(val || "Production")}>
+                  <Select
+                    value={formCategory}
+                    onValueChange={(val) => setFormCategory(val || PROFILE_CATEGORY_OPTIONS[0])}
+                  >
                     <SelectTrigger id="create-niche-select" className="h-10 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Production" className="text-xs">Production</SelectItem>
-                      <SelectItem value="Content Creation" className="text-xs">Content Creation</SelectItem>
-                      <SelectItem value="Lifestyle" className="text-xs">Lifestyle</SelectItem>
-                      <SelectItem value="Sponsorship" className="text-xs">Sponsorship</SelectItem>
+                      {PROFILE_CATEGORY_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option} className="text-xs">
+                          {option}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
