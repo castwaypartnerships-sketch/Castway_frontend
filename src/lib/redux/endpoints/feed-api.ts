@@ -72,6 +72,23 @@ export const feedApi = api.injectEndpoints({
             ]
           : [{ type: "Feed" as const, id: "LIST" }],
     }),
+    // Separate from `getFeed` (not merged into its infinite-scroll cache) —
+    // used by the Home search bar's unified results page. Same `/feed`
+    // endpoint, just with `query` set instead of `category`.
+    searchPosts: builder.query<FeedResponse, { query: string; page?: number }>({
+      query: (args) => ({ url: "/feed", params: { query: args.query, page: args.page ?? 1 } }),
+      transformResponse: (response: { data: FeedResponse }) => response.data,
+      serializeQueryArgs: ({ queryArgs }) => ({ query: queryArgs.query }),
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map((item) => ({ type: "Feed" as const, id: item.id })),
+              { type: "Feed" as const, id: "SEARCH" },
+            ]
+          : [{ type: "Feed" as const, id: "SEARCH" }],
+    }),
     // The create response is the raw `Post` row, not the author/like/save-
     // enriched `FeedItem` the list view needs — so this doesn't try to use
     // the response body at all; it just invalidates the list to refetch it
@@ -258,6 +275,7 @@ export const feedApi = api.injectEndpoints({
 
 export const {
   useGetFeedQuery,
+  useSearchPostsQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
   useGetMyPostsQuery,

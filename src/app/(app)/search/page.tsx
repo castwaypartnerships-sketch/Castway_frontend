@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { useSearchProfilesQuery, type SearchProfileItem } from "@/lib/redux/endpoints/search-api";
 import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
 import { useStartConversationMutation } from "@/lib/redux/endpoints/messages-api";
+import { useGetOpportunitiesQuery } from "@/lib/redux/endpoints/opportunities-api";
+import { useSearchPostsQuery } from "@/lib/redux/endpoints/feed-api";
 import { useComposer } from "@/components/feed/composer-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ import { AccountRoleBadge } from "@/components/shared/account-role-badge";
 import { SuggestedConnectionsCard } from "@/components/feed/suggested-connections-card";
 import { TrendingSkillsCard } from "@/components/shared/trending-skills-card";
 import { NewOpportunitiesCard } from "@/components/shared/new-opportunities-card";
+import { OpportunityCard } from "@/components/opportunities/opportunity-card";
+import { PostCard } from "@/components/feed/post-card";
 import { initialsFromName } from "@/lib/format";
 import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
 import type { AgencySize } from "@/lib/types/profile";
@@ -86,6 +90,19 @@ export default function SearchPage() {
     agencySize: (agencySize as AgencySize) || undefined,
   });
 
+  const trimmedQuery = query.trim();
+  // Only fired once there's an actual keyword — otherwise these would just
+  // return the default unfiltered opportunity/post feeds, which isn't a
+  // "search result" and would duplicate what Opportunities/Home already show.
+  const { data: opportunityResults, isFetching: isFetchingOpportunities } = useGetOpportunitiesQuery(
+    { query: trimmedQuery || undefined },
+    { skip: !trimmedQuery },
+  );
+  const { data: postResults, isFetching: isFetchingPosts } = useSearchPostsQuery(
+    { query: trimmedQuery },
+    { skip: !trimmedQuery },
+  );
+
   const items = useMemo(() => {
     if (!data) return [];
     if (quickFilter === "all") return data.items;
@@ -97,9 +114,13 @@ export default function SearchPage() {
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Discover</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {trimmedQuery ? `Search results for "${trimmedQuery}"` : "Discover"}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Find creators, agencies, and collaborators across the network.
+              {trimmedQuery
+                ? "Profiles, opportunities, and posts matching your search."
+                : "Find creators, agencies, and collaborators across the network."}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -296,7 +317,56 @@ export default function SearchPage() {
           </div>
         </div>
 
+        {trimmedQuery ? (
+          <div className="mt-5 space-y-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Opportunities</h2>
+            {isFetchingOpportunities ? (
+              <div className="h-32 animate-pulse rounded-2xl border border-border bg-muted" />
+            ) : !opportunityResults || opportunityResults.items.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                No opportunities match &quot;{trimmedQuery}&quot;.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {opportunityResults.items.slice(0, 3).map((opportunity) => (
+                  <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+                ))}
+                {opportunityResults.total > 3 ? (
+                  <Link
+                    href={`/opportunities?query=${encodeURIComponent(trimmedQuery)}`}
+                    className="block text-center text-xs font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]"
+                  >
+                    View all {opportunityResults.total} opportunities
+                  </Link>
+                ) : null}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {trimmedQuery ? (
+          <div className="mt-5 space-y-3">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Posts</h2>
+            {isFetchingPosts ? (
+              <div className="h-32 animate-pulse rounded-2xl border border-border bg-muted" />
+            ) : !postResults || postResults.items.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                No posts match &quot;{trimmedQuery}&quot;.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {postResults.items.slice(0, 3).map((post) => (
+                  <PostCard key={post.id} item={post} />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
+
         <div className="mt-5 space-y-5">
+          {trimmedQuery ? (
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Profiles</h2>
+          ) : null}
           {isFetching ? (
             [0, 1, 2].map((i) => (
               <div key={i} className="h-48 animate-pulse rounded-2xl border border-border bg-muted" />
