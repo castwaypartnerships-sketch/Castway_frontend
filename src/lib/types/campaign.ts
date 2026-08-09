@@ -1,4 +1,5 @@
 export type CampaignStatus = "DRAFT" | "ACTIVE" | "CLOSED";
+export type CampaignVisibility = "PUBLIC" | "PRIVATE";
 
 export interface Campaign {
   id: string;
@@ -10,6 +11,10 @@ export interface Campaign {
   timelineStart: string | null;
   timelineEnd: string | null;
   status: CampaignStatus;
+  /// Free-form, sourced from `PROFILE_CATEGORY_OPTIONS` — same convention as
+  /// `Profile.creatorCategory` / `Opportunity.category` on the backend.
+  category: string | null;
+  visibility: CampaignVisibility;
   opportunityId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -20,7 +25,11 @@ export interface CampaignWriteInput {
   goals?: string;
   budget?: string;
   deliverables?: string[];
+  timelineStart?: string;
+  timelineEnd?: string;
   status?: CampaignStatus;
+  category?: string;
+  visibility?: CampaignVisibility;
   opportunityId?: string;
 }
 
