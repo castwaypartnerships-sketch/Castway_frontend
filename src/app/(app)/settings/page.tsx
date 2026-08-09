@@ -65,7 +65,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { isTalentRole } from "@/lib/rbac";
+import { isHiringRole, isTalentRole } from "@/lib/rbac";
+import type { AgencySize } from "@/lib/types/profile";
 import { PERMISSION_CATEGORIES } from "@/lib/permissions";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -333,9 +334,20 @@ function AccountPanel({ email }: { email: string | undefined }) {
   );
 }
 
+const AGENCY_SIZE_LABEL: Record<AgencySize, string> = {
+  SOLO: "Just me",
+  SMALL: "2-10 people",
+  MEDIUM: "11-50 people",
+  LARGE: "51+ people",
+};
+
 function ProfilePanel() {
   const { data: session } = useGetSessionQuery();
-  const isTalent = isTalentRole(session?.user?.role);
+  const role = session?.user?.role;
+  const isTalent = isTalentRole(role);
+  const isFreelancer = role === "FREELANCER";
+  const isAgency = role === "AGENCY";
+  const hiring = isHiringRole(role);
   const { data, isLoading } = useGetOwnProfileQuery();
   const [updateProfile] = useUpdateProfileMutation();
   const [updateSubSpecializations] = useUpdateSubSpecializationsMutation();
@@ -374,7 +386,16 @@ function ProfilePanel() {
   const [youtube, setYoutube] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [website, setWebsite] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
+  const [skills, setSkills] = useState("");
+  const [services, setServices] = useState("");
+  const [languages, setLanguages] = useState("");
+  const [businessEmail, setBusinessEmail] = useState("");
+  const [agencySize, setAgencySize] = useState<AgencySize | "">("");
   const [initialized, setInitialized] = useState(false);
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
 
   if (!initialized && data?.profile) {
     setInitialized(true);
@@ -383,6 +404,14 @@ function ProfilePanel() {
     setYoutube(data.profile.socialLinks?.youtube ?? "");
     setLinkedin(data.profile.socialLinks?.linkedin ?? "");
     setWebsite(data.profile.socialLinks?.website ?? "");
+    setHeadline(data.profile.headline ?? "");
+    setLocation(data.profile.location ?? "");
+    setCategory(data.profile.creatorCategory ?? "");
+    setSkills(data.profile.skills.join(", "));
+    setServices(data.profile.services.join(", "));
+    setLanguages(data.profile.languages.join(", "));
+    setBusinessEmail(data.profile.businessEmail ?? "");
+    setAgencySize(data.profile.agencySize ?? "");
   }
 
   if (isLoading || !data?.profile) {
@@ -426,6 +455,30 @@ function ProfilePanel() {
       toast.success("Social links saved.");
     } catch {
       toast.error("Couldn't save your social links. Please try again.");
+    }
+  }
+
+  async function handleSaveDetails() {
+    setIsSavingDetails(true);
+    try {
+      await updateProfile({
+        headline: headline.trim() || undefined,
+        location: location.trim() || undefined,
+        creatorCategory: category.trim() || undefined,
+        ...(hiring
+          ? { businessEmail: businessEmail.trim() || undefined }
+          : {
+              skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
+              services: services.split(",").map((s) => s.trim()).filter(Boolean),
+              languages: languages.split(",").map((s) => s.trim()).filter(Boolean),
+            }),
+        ...(isAgency ? { agencySize: agencySize || undefined } : {}),
+      }).unwrap();
+      toast.success("Profile details saved.");
+    } catch {
+      toast.error("Couldn't save those details. Please try again.");
+    } finally {
+      setIsSavingDetails(false);
     }
   }
 
@@ -493,7 +546,7 @@ function ProfilePanel() {
 
       <div className="mt-6 space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label htmlFor="bio">Bio</Label>
+          <Label htmlFor="bio">{hiring ? "About the company" : "Bio"}</Label>
           <span className="text-xs text-muted-foreground">{bio.length}/1000</span>
         </div>
         <Textarea
@@ -506,7 +559,93 @@ function ProfilePanel() {
         />
       </div>
 
-      {isTalent ? (
+      <div className="mt-6 space-y-4 border-t border-border pt-4">
+        <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Profile Details</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="headline">Headline</Label>
+            <Input
+              id="headline"
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              placeholder={hiring ? "e.g. Award-winning creative agency" : "e.g. Senior Product Designer"}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="location">Location</Label>
+            <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="category">{hiring ? "Industry" : "Category"}</Label>
+            <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} />
+          </div>
+          {hiring ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="settings-business-email">Business email</Label>
+              <Input
+                id="settings-business-email"
+                type="email"
+                value={businessEmail}
+                onChange={(e) => setBusinessEmail(e.target.value)}
+              />
+            </div>
+          ) : null}
+          {isAgency ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="settings-agency-size">Team size</Label>
+              <Select
+                items={AGENCY_SIZE_LABEL}
+                value={agencySize || undefined}
+                onValueChange={(value) => setAgencySize((value as AgencySize | null) ?? "")}
+              >
+                <SelectTrigger id="settings-agency-size" className="w-full">
+                  <SelectValue placeholder="Select team size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(AGENCY_SIZE_LABEL) as AgencySize[]).map((size) => (
+                    <SelectItem key={size} value={size}>
+                      {AGENCY_SIZE_LABEL[size]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </div>
+
+        {hiring ? null : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="settings-skills">Skills (comma-separated)</Label>
+              <Input id="settings-skills" value={skills} onChange={(e) => setSkills(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="settings-services">Services (comma-separated)</Label>
+              <Input id="settings-services" value={services} onChange={(e) => setServices(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="settings-languages">Languages (comma-separated)</Label>
+              <Input
+                id="settings-languages"
+                value={languages}
+                onChange={(e) => setLanguages(e.target.value)}
+                placeholder="e.g. English, Hindi"
+              />
+            </div>
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          className="bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d]"
+          disabled={isSavingDetails}
+          onClick={() => void handleSaveDetails()}
+        >
+          {isSavingDetails ? "Saving…" : "Save Changes"}
+        </Button>
+      </div>
+
+      {isFreelancer ? (
         <div className="mt-6 space-y-1.5">
           <Label>Content Niche</Label>
           <div className="flex flex-wrap items-center gap-2">
@@ -555,6 +694,24 @@ function ProfilePanel() {
           />
         </div>
       ) : null}
+
+      {hiring ? null : (
+        <div className="mt-6 flex items-center justify-between rounded-xl border border-dashed border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Portfolio, rate card & more</p>
+            <p className="text-xs text-muted-foreground">
+              Manage your portfolio, case studies, rate card, experience, education, and availability on your full
+              profile.
+            </p>
+          </div>
+          <Link
+            href="/profile/edit"
+            className="shrink-0 text-xs font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]"
+          >
+            Manage →
+          </Link>
+        </div>
+      )}
 
       <div className="mt-6 border-t border-border pt-4">
         <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Social Connections</p>
