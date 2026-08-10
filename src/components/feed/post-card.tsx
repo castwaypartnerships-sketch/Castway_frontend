@@ -5,19 +5,29 @@ import Image from "next/image";
 import Link from "next/link";
 import { BadgeCheck, Bookmark, CalendarDays, DollarSign, Heart, MessageCircle } from "lucide-react";
 
-import type { FeedItem } from "@/lib/types/feed";
+import type { FeedItem, FeedPostItem } from "@/lib/types/feed";
 import { formatRelativeTime, initialsFromName } from "@/lib/format";
 import { useToggleLikeMutation, useToggleSavePostMutation } from "@/lib/redux/endpoints/feed-api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/feed/category-badge";
 import { CommentDialog } from "@/components/feed/comment-dialog";
+import { NewsFeedCard } from "@/components/feed/news-card";
 import { SharePostMenu } from "@/components/feed/share-post-menu";
 import { useApplyFlow } from "@/components/opportunities/use-apply-flow";
 import { ApplyComposer } from "@/components/opportunities/apply-composer";
 import { cn } from "@/lib/utils";
 
+/** Dispatches on `item.kind` — a scraped news article renders as a much
+ * simpler branded link-out card (`NewsFeedCard`), with none of the
+ * like/comment/save/apply machinery below, since none of that applies to
+ * external content. */
 export function PostCard({ item }: { item: FeedItem }) {
+  if (item.kind === "news") return <NewsFeedCard item={item} />;
+  return <PostFeedCard item={item} />;
+}
+
+function PostFeedCard({ item }: { item: FeedPostItem }) {
   const [toggleLike] = useToggleLikeMutation();
   const [toggleSave] = useToggleSavePostMutation();
   const [liked, setLiked] = useState(item.viewerHasLiked);

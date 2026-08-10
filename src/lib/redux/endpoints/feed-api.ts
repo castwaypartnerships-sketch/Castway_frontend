@@ -1,10 +1,20 @@
 import { api } from "@/lib/redux/api";
-import type { FeedComment, FeedItem, PostCategory } from "@/lib/types/feed";
+import type { FeedComment, FeedItem, FeedPostItem, PostCategory } from "@/lib/types/feed";
 import { profileApi } from "@/lib/redux/endpoints/profile-api";
 import { forceRefetchOnPageChange, mergePaginatedPage } from "@/lib/redux/pagination";
 
+/** `getFeed` only — its home-feed page 1 can mix in `FeedNewsItem`s (see
+ * `backend/src/routes/feed.routes.ts`). Every other endpoint below returns
+ * `PostFeedResponse`/`FeedPostItem` since they only ever deal in real posts. */
 interface FeedResponse {
   items: FeedItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+interface PostFeedResponse {
+  items: FeedPostItem[];
   page: number;
   pageSize: number;
   total: number;
@@ -75,9 +85,9 @@ export const feedApi = api.injectEndpoints({
     // Separate from `getFeed` (not merged into its infinite-scroll cache) —
     // used by the Home search bar's unified results page. Same `/feed`
     // endpoint, just with `query` set instead of `category`.
-    searchPosts: builder.query<FeedResponse, { query: string; page?: number }>({
+    searchPosts: builder.query<PostFeedResponse, { query: string; page?: number }>({
       query: (args) => ({ url: "/feed", params: { query: args.query, page: args.page ?? 1 } }),
-      transformResponse: (response: { data: FeedResponse }) => response.data,
+      transformResponse: (response: { data: PostFeedResponse }) => response.data,
       serializeQueryArgs: ({ queryArgs }) => ({ query: queryArgs.query }),
       merge: mergePaginatedPage,
       forceRefetch: forceRefetchOnPageChange,
@@ -105,9 +115,9 @@ export const feedApi = api.injectEndpoints({
         { type: "Feed", id: "LIST" },
       ],
     }),
-    getMyPosts: builder.query<FeedResponse, void>({
+    getMyPosts: builder.query<PostFeedResponse, void>({
       query: () => "/feed/mine",
-      transformResponse: (response: { data: FeedResponse }) => response.data,
+      transformResponse: (response: { data: PostFeedResponse }) => response.data,
       providesTags: (result) =>
         result
           ? [
@@ -155,9 +165,9 @@ export const feedApi = api.injectEndpoints({
       query: (postId) => ({ url: `/feed/${postId}/like`, method: "POST" }),
       transformResponse: (response: { data: { liked: boolean } }) => response.data,
     }),
-    getSavedPosts: builder.query<{ items: FeedItem[] }, void>({
+    getSavedPosts: builder.query<{ items: FeedPostItem[] }, void>({
       query: () => "/feed/saved",
-      transformResponse: (response: { data: { items: FeedItem[] } }) => response.data,
+      transformResponse: (response: { data: { items: FeedPostItem[] } }) => response.data,
       providesTags: ["SavedFeed"],
     }),
     toggleSavePost: builder.mutation<{ saved: boolean }, string>({
@@ -165,9 +175,9 @@ export const feedApi = api.injectEndpoints({
       transformResponse: (response: { data: { saved: boolean } }) => response.data,
       invalidatesTags: ["SavedFeed"],
     }),
-    getPost: builder.query<FeedItem, string>({
+    getPost: builder.query<FeedPostItem, string>({
       query: (postId) => `/feed/${postId}`,
-      transformResponse: (response: { data: FeedItem }) => response.data,
+      transformResponse: (response: { data: FeedPostItem }) => response.data,
       providesTags: (_result, _error, postId) => [{ type: "Feed", id: postId }],
     }),
     // Same merge-by-page pagination recipe as `getFeed` above, keyed by

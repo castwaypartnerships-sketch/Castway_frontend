@@ -91,6 +91,7 @@ export const api = createApi({
   tagTypes: [
     "Session",
     "Feed",
+    "News",
     "SavedFeed",
     "Comments",
     "Replies",
