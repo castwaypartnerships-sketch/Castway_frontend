@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -220,9 +220,10 @@ function AgencyProfileView({
         username: entry.member!.username,
         niche: "Represented Talent",
         imageUrl: entry.member?.avatarUrl ?? "",
-        followerStats: [
-          { platform: "instagram" as const, count: "10K" },
-        ],
+        followerStats:
+          entry.followers && entry.primaryPlatform
+            ? [{ platform: entry.primaryPlatform, count: entry.followers }]
+            : [],
       }));
     }
     return [];
@@ -1019,14 +1020,15 @@ function AgencyProfileView({
 
       </Tabs>
 
-      {isOwnProfile && (
+      {isOwnProfile && caseStudyDialogOpen && (
         <CaseStudyDialog
+          key={editingCaseStudy?.id ?? "new"}
           open={caseStudyDialogOpen}
           onOpenChange={setCaseStudyDialogOpen}
           caseStudy={editingCaseStudy}
         />
       )}
-      {!isOwnProfile && (
+      {!isOwnProfile && reviewDialogOpen && (
         <ReviewFormDialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen} revieweeUserId={profile.userId} />
       )}
     </div>
@@ -1117,25 +1119,16 @@ function CaseStudyDialog({
   caseStudy?: CaseStudy;
 }) {
   const isEditing = !!caseStudy;
-  const [title, setTitle] = useState("");
-  const [brief, setBrief] = useState("");
-  const [action, setAction] = useState("");
-  const [result, setResult] = useState("");
-  const [metrics, setMetrics] = useState<PortfolioMetric[]>([]);
+  const [title, setTitle] = useState(caseStudy?.title ?? "");
+  const [brief, setBrief] = useState(caseStudy?.brief ?? "");
+  const [action, setAction] = useState(caseStudy?.action ?? "");
+  const [result, setResult] = useState(caseStudy?.result ?? "");
+  const [metrics, setMetrics] = useState<PortfolioMetric[]>(caseStudy?.metrics ?? []);
 
   const [addCaseStudy, { isLoading: isAdding }] = useAddCaseStudyMutation();
   const [updateCaseStudy, { isLoading: isUpdating }] = useUpdateCaseStudyMutation();
   const [removeCaseStudy, { isLoading: isRemoving }] = useRemoveCaseStudyMutation();
   const isSaving = isAdding || isUpdating;
-
-  useEffect(() => {
-    if (!open) return;
-    setTitle(caseStudy?.title ?? "");
-    setBrief(caseStudy?.brief ?? "");
-    setAction(caseStudy?.action ?? "");
-    setResult(caseStudy?.result ?? "");
-    setMetrics(caseStudy?.metrics ?? []);
-  }, [open, caseStudy]);
 
   function updateMetric(index: number, field: "label" | "value", value: string) {
     setMetrics((prev) => prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
@@ -1262,12 +1255,6 @@ function ReviewFormDialog({
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitReview, { isLoading }] = useSubmitReviewMutation();
-
-  useEffect(() => {
-    if (!open) return;
-    setRating(5);
-    setComment("");
-  }, [open]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
