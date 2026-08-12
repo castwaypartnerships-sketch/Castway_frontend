@@ -19,7 +19,7 @@ export function NewsFeedCard({ item }: { item: FeedNewsItem }) {
       <div className="flex items-center justify-between gap-4">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e6f4ea] px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-[#2d4a35] uppercase dark:bg-[#1a261d] dark:text-[#daf0dd]">
           <Newspaper className="size-3" />
-          Castway News
+          Castway
         </span>
         <time dateTime={item.createdAt} className="shrink-0 text-xs whitespace-nowrap text-muted-foreground">
           {formatRelativeTime(item.createdAt)}

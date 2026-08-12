@@ -177,12 +177,12 @@ function AgencyTeamView() {
             </div>
             <div>
               <h5 className="text-xs font-bold text-foreground">Need help?</h5>
-              <button
-                onClick={() => toast.success("Agency support chat opened!")}
+              <a
+                href="mailto:support@castway.com"
                 className="mt-0.5 text-left text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
               >
                 Contact Agency Support
-              </button>
+              </a>
             </div>
           </div>
         </div>

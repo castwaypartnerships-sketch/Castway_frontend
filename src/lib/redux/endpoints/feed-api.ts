@@ -1,7 +1,7 @@
 import { api } from "@/lib/redux/api";
 import type { FeedComment, FeedItem, FeedPostItem, PostCategory } from "@/lib/types/feed";
 import { profileApi } from "@/lib/redux/endpoints/profile-api";
-import { forceRefetchOnPageChange, mergePaginatedPage } from "@/lib/redux/pagination";
+import { forceRefetchOnPageChange, mergeNewestFirstPage, mergePaginatedPage } from "@/lib/redux/pagination";
 
 /** `getFeed` only — its home-feed page 1 can mix in `FeedNewsItem`s (see
  * `backend/src/routes/feed.routes.ts`). Every other endpoint below returns
@@ -72,7 +72,7 @@ export const feedApi = api.injectEndpoints({
       }),
       transformResponse: (response: { data: FeedResponse }) => response.data,
       serializeQueryArgs: ({ queryArgs }) => ({ category: queryArgs?.category }),
-      merge: mergePaginatedPage,
+      merge: mergeNewestFirstPage,
       forceRefetch: forceRefetchOnPageChange,
       providesTags: (result) =>
         result
@@ -89,7 +89,7 @@ export const feedApi = api.injectEndpoints({
       query: (args) => ({ url: "/feed", params: { query: args.query, page: args.page ?? 1 } }),
       transformResponse: (response: { data: PostFeedResponse }) => response.data,
       serializeQueryArgs: ({ queryArgs }) => ({ query: queryArgs.query }),
-      merge: mergePaginatedPage,
+      merge: mergeNewestFirstPage,
       forceRefetch: forceRefetchOnPageChange,
       providesTags: (result) =>
         result

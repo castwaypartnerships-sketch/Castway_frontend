@@ -194,10 +194,10 @@ function ProfileForm({
     }
   }
 
-  async function handleCoverUploaded(coverImageUrl: string) {
+  async function handleCoverUploaded(coverImageUrl: string | null) {
     try {
       await updatePhoto({ coverImageUrl }).unwrap();
-      toast.success("Cover photo updated");
+      toast.success(coverImageUrl ? "Cover photo updated" : "Cover photo removed");
     } catch {
       toast.error("Couldn't save your new cover photo. Please try again.");
     }

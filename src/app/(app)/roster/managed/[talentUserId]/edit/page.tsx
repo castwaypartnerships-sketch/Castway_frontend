@@ -119,10 +119,10 @@ function ProfileForm({ talent }: { talent: ManagedTalentProfile }) {
     }
   }
 
-  async function handleCoverUploaded(coverImageUrl: string) {
+  async function handleCoverUploaded(coverImageUrl: string | null) {
     try {
       await updatePhoto({ talentUserId: talent.userId, input: { coverImageUrl } }).unwrap();
-      toast.success("Cover photo updated");
+      toast.success(coverImageUrl ? "Cover photo updated" : "Cover photo removed");
     } catch {
       toast.error("Couldn't save that cover photo. Please try again.");
     }
