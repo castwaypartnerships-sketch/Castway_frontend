@@ -72,6 +72,15 @@ export const rosterApi = api.injectEndpoints({
       transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
       providesTags: ["Roster"],
     }),
+    // Agency-facing counterpart to `getAssignedRoster` ("me") — lets the
+    // agency owner see what a *specific* manager is actually assigned to,
+    // instead of the Team page's "Manage Roster Access" panel guessing at
+    // empty/unchecked state.
+    getManagerAssignedRoster: builder.query<{ items: RosterEntryDto[] }, string>({
+      query: (managerId) => `/roster/managers/${managerId}/assigned`,
+      transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
+      providesTags: ["RosterManagers"],
+    }),
     getTalentNotes: builder.query<{ items: TalentNoteDto[] }, string>({
       query: (targetUserId) => `/roster/talent/${targetUserId}/notes`,
       transformResponse: (response: { data: { items: TalentNoteDto[] } }) => response.data,
@@ -306,6 +315,7 @@ export const {
   useAssignManagerToRosterEntryMutation,
   useUnassignManagerFromRosterEntryMutation,
   useGetAssignedRosterQuery,
+  useGetManagerAssignedRosterQuery,
   useGetTalentNotesQuery,
   useCreateTalentNoteMutation,
   useDeleteTalentNoteMutation,

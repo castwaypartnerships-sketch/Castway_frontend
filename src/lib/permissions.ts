@@ -21,17 +21,20 @@ export const PERMISSIONS = {
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
-// Preset role labels offered on the invite form — display-only (see
-// TeamInvite's roleLabel comment in the backend schema), not tied to any
-// default permission bundle.
-export const ROLE_LABEL_OPTIONS = [
-  "Talent Manager",
-  "Campaign Manager",
-  "Finance Manager",
-  "Account Manager",
-  "Recruiter",
-  "Admin",
-] as const;
+/** Mirrors `requirePermission` in backend/src/lib/rbac/permissions.ts — the
+ * owning AGENCY account is never scoped and always passes; an
+ * AGENCY_MANAGER passes only if `key` is in their granted `permissions`.
+ * Used to hide/disable actions the viewer can't perform, so a restricted
+ * manager doesn't see a button that will just fail on click. */
+export function hasAgencyPermission(
+  role: string | null | undefined,
+  permissions: string[],
+  key: Permission,
+): boolean {
+  if (role === "AGENCY") return true;
+  if (role === "AGENCY_MANAGER") return permissions.includes(key);
+  return false;
+}
 
 export interface PermissionCategory {
   label: string;

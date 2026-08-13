@@ -99,6 +99,23 @@ export const feedApi = api.injectEndpoints({
             ]
           : [{ type: "Feed" as const, id: "SEARCH" }],
     }),
+    // Powers the "Posts" tab on a profile page — one author's posts as the
+    // current viewer is allowed to see them. Same infinite-scroll pagination
+    // recipe as `getFeed`.
+    getPostsByAuthor: builder.query<PostFeedResponse, { userId: string; page?: number }>({
+      query: ({ userId, page }) => ({ url: `/feed/author/${userId}`, params: { page: page ?? 1 } }),
+      transformResponse: (response: { data: PostFeedResponse }) => response.data,
+      serializeQueryArgs: ({ queryArgs }) => ({ userId: queryArgs.userId }),
+      merge: mergeNewestFirstPage,
+      forceRefetch: forceRefetchOnPageChange,
+      providesTags: (result, _error, { userId }) =>
+        result
+          ? [
+              ...result.items.map((item) => ({ type: "Feed" as const, id: item.id })),
+              { type: "Feed" as const, id: `AUTHOR_${userId}` },
+            ]
+          : [{ type: "Feed" as const, id: `AUTHOR_${userId}` }],
+    }),
     // The create response is the raw `Post` row, not the author/like/save-
     // enriched `FeedItem` the list view needs — so this doesn't try to use
     // the response body at all; it just invalidates the list to refetch it
@@ -286,6 +303,7 @@ export const feedApi = api.injectEndpoints({
 export const {
   useGetFeedQuery,
   useSearchPostsQuery,
+  useGetPostsByAuthorQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
   useGetMyPostsQuery,

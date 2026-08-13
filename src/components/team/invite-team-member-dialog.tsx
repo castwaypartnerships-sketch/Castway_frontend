@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ChevronDown, UserPlus } from "lucide-react";
 
 import { useInviteTeamMemberMutation } from "@/lib/redux/endpoints/team-api";
-import { PERMISSION_CATEGORIES, ROLE_LABEL_OPTIONS, type Permission } from "@/lib/permissions";
+import { PERMISSION_CATEGORIES, type Permission } from "@/lib/permissions";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export function InviteTeamMemberDialog() {
@@ -109,22 +108,18 @@ export function InviteTeamMemberDialog() {
 
           <div className="space-y-1.5">
             <Label htmlFor="invite-role">Role</Label>
-            <Select
-              items={Object.fromEntries(ROLE_LABEL_OPTIONS.map((r) => [r, r]))}
-              value={roleLabel || null}
-              onValueChange={(value) => setRoleLabel(value ?? "")}
-            >
-              <SelectTrigger id="invite-role" className="w-full">
-                <SelectValue placeholder="for example - Talent Manager" />
-              </SelectTrigger>
-              <SelectContent>
-                {ROLE_LABEL_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              id="invite-role"
+              required
+              maxLength={80}
+              value={roleLabel}
+              onChange={(e) => setRoleLabel(e.target.value)}
+              placeholder="e.g. Talent Manager"
+            />
+            <p className="text-xs text-muted-foreground">
+              A descriptive title for this teammate — access is controlled entirely by the permissions below, not
+              this label.
+            </p>
           </div>
 
           <div className="space-y-2">

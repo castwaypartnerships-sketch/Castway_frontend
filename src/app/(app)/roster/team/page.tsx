@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, HelpCircle, Mail, MoreVertical, Shield } from "lucide-react";
 
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import {
   useAssignManagerToRosterEntryMutation,
+  useGetManagerAssignedRosterQuery,
   useGetMyRosterQuery,
   useUnassignManagerFromRosterEntryMutation,
 } from "@/lib/redux/endpoints/roster-api";
@@ -19,11 +20,11 @@ import {
 } from "@/lib/redux/endpoints/team-api";
 import type { TeamMemberDto } from "@/lib/redux/endpoints/team-api";
 import type { RosterEntryDto } from "@/lib/types/roster";
-import { PERMISSION_CATEGORIES, type Permission } from "@/lib/permissions";
+import { hasAgencyPermission, PERMISSION_CATEGORIES, PERMISSIONS, type Permission } from "@/lib/permissions";
 import { InviteTeamMemberDialog } from "@/components/team/invite-team-member-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -42,7 +43,7 @@ export default function TeamPage() {
   const isAgency = role === "AGENCY" || role === "AGENCY_MANAGER";
 
   if (isAgency) {
-    return <AgencyTeamView />;
+    return <AgencyTeamView viewerRole={role} viewerPermissions={session?.user?.permissions ?? []} />;
   }
 
   return (
@@ -55,7 +56,7 @@ export default function TeamPage() {
 /* ==========================================================================
    AGENCY TEAM VIEW
    ========================================================================== */
-function AgencyTeamView() {
+function AgencyTeamView({ viewerRole, viewerPermissions }: { viewerRole: string | undefined; viewerPermissions: string[] }) {
   const { data: members, isLoading: isLoadingMembers } = useGetTeamMembersQuery();
   const { data: invites, isLoading: isLoadingInvites } = useGetTeamInvitesQuery();
   const { data: roster } = useGetMyRosterQuery();
@@ -64,6 +65,7 @@ function AgencyTeamView() {
   const acceptedRoster = (roster?.items ?? []).filter((entry) => entry.status === "ACCEPTED" && entry.member);
   const memberItems = members?.items ?? [];
   const inviteItems = invites?.items ?? [];
+  const canInvite = hasAgencyPermission(viewerRole, viewerPermissions, PERMISSIONS.TEAM_INVITE);
 
   async function handleRevoke(id: string) {
     try {
@@ -89,7 +91,7 @@ function AgencyTeamView() {
             Manage internal members who help run your agency&apos;s account.
           </p>
         </div>
-        <InviteTeamMemberDialog />
+        {canInvite ? <InviteTeamMemberDialog /> : null}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
@@ -121,9 +123,11 @@ function AgencyTeamView() {
                         </p>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="shrink-0 text-xs" onClick={() => handleRevoke(invite.id)}>
-                      Revoke
-                    </Button>
+                    {canInvite ? (
+                      <Button size="sm" variant="ghost" className="shrink-0 text-xs" onClick={() => handleRevoke(invite.id)}>
+                        Revoke
+                      </Button>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -144,7 +148,13 @@ function AgencyTeamView() {
             ) : (
               <ul className="space-y-3">
                 {memberItems.map((member) => (
-                  <TeamMemberRow key={member.id} member={member} rosterEntries={acceptedRoster} />
+                  <TeamMemberRow
+                    key={member.id}
+                    member={member}
+                    rosterEntries={acceptedRoster}
+                    viewerRole={viewerRole}
+                    viewerPermissions={viewerPermissions}
+                  />
                 ))}
               </ul>
             )}
@@ -179,7 +189,7 @@ function AgencyTeamView() {
               <h5 className="text-xs font-bold text-foreground">Need help?</h5>
               <a
                 href="mailto:support@castway.com"
-                className="mt-0.5 text-left text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-1.5 text-xs")}
               >
                 Contact Agency Support
               </a>
@@ -194,7 +204,19 @@ function AgencyTeamView() {
 /* ==========================================================================
    SUB-COMPONENT: Team Member Row
    ========================================================================== */
-function TeamMemberRow({ member, rosterEntries }: { member: TeamMemberDto; rosterEntries: RosterEntryDto[] }) {
+function TeamMemberRow({
+  member,
+  rosterEntries,
+  viewerRole,
+  viewerPermissions,
+}: {
+  member: TeamMemberDto;
+  rosterEntries: RosterEntryDto[];
+  viewerRole: string | undefined;
+  viewerPermissions: string[];
+}) {
+  const canEditPermissions = hasAgencyPermission(viewerRole, viewerPermissions, PERMISSIONS.TEAM_EDIT_PERMISSIONS);
+  const canRemove = hasAgencyPermission(viewerRole, viewerPermissions, PERMISSIONS.TEAM_REMOVE);
   const [panel, setPanel] = useState<"none" | "roster" | "permissions">("none");
   const [assignedEntryIds, setAssignedEntryIds] = useState<Set<string>>(new Set());
   const [permissions, setPermissions] = useState<Set<Permission>>(new Set(member.permissions as Permission[]));
@@ -202,16 +224,38 @@ function TeamMemberRow({ member, rosterEntries }: { member: TeamMemberDto; roste
   const [unassign] = useUnassignManagerFromRosterEntryMutation();
   const [updatePermissions, { isLoading: isSavingPermissions }] = useUpdateTeamMemberPermissionsMutation();
   const [removeMember] = useRemoveTeamMemberMutation();
+  const { data: assignedRoster } = useGetManagerAssignedRosterQuery(member.id, { skip: panel !== "roster" });
 
-  function toggleRosterEntry(entryId: string, checked: boolean) {
+  // Seeds real assignment state once the panel is opened and its data
+  // arrives — previously this stayed an empty Set forever, so every
+  // checkbox showed unchecked regardless of what was actually assigned.
+  useEffect(() => {
+    if (assignedRoster) setAssignedEntryIds(new Set(assignedRoster.items.map((entry) => entry.id)));
+  }, [assignedRoster]);
+
+  // Discards any unsaved permission edits when the panel is (re)opened, so
+  // closing without saving and reopening later doesn't show stale checked
+  // boxes that were never actually saved.
+  function openPanel(next: "roster" | "permissions") {
+    setPanel((p) => (p === next ? "none" : next));
+    if (next === "permissions") setPermissions(new Set(member.permissions as Permission[]));
+  }
+
+  async function toggleRosterEntry(entryId: string, checked: boolean) {
+    const previous = assignedEntryIds;
     setAssignedEntryIds((prev) => {
       const next = new Set(prev);
       if (checked) next.add(entryId);
       else next.delete(entryId);
       return next;
     });
-    if (checked) assign({ managerId: member.id, entryId });
-    else unassign({ managerId: member.id, entryId });
+    try {
+      if (checked) await assign({ managerId: member.id, entryId }).unwrap();
+      else await unassign({ managerId: member.id, entryId }).unwrap();
+    } catch {
+      setAssignedEntryIds(previous);
+      toast.error("Couldn't update roster access. Please try again.");
+    }
   }
 
   function togglePermission(key: Permission, checked: boolean) {
@@ -274,21 +318,19 @@ function TeamMemberRow({ member, rosterEntries }: { member: TeamMemberDto; roste
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => setPanel((p) => (p === "permissions" ? "none" : "permissions"))}
-              className="text-xs font-semibold"
-            >
-              {panel === "permissions" ? "Hide Permissions" : "Edit Permissions"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setPanel((p) => (p === "roster" ? "none" : "roster"))}
-              className="text-xs font-semibold"
-            >
+            {canEditPermissions ? (
+              <DropdownMenuItem onClick={() => openPanel("permissions")} className="text-xs font-semibold">
+                {panel === "permissions" ? "Hide Permissions" : "Edit Permissions"}
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem onClick={() => openPanel("roster")} className="text-xs font-semibold">
               {panel === "roster" ? "Hide Roster Access" : "Manage Roster Access"}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleRemove} className="text-xs font-semibold text-destructive">
-              Remove from team
-            </DropdownMenuItem>
+            {canRemove ? (
+              <DropdownMenuItem onClick={handleRemove} className="text-xs font-semibold text-destructive">
+                Remove from team
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

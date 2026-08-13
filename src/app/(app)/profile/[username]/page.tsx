@@ -46,6 +46,8 @@ import { useToggleFollowMutation } from "@/lib/redux/endpoints/follow-api";
 import { useGetReviewsForUserQuery, useReplyToReviewMutation, useSubmitReviewMutation } from "@/lib/redux/endpoints/reviews-api";
 import { useGetClientCampaignsQuery, useGetCampaignsQuery, useAddToShortlistMutation } from "@/lib/redux/endpoints/campaigns-api";
 import { useGetClientBrandsQuery } from "@/lib/redux/endpoints/brand-agency-api";
+import { useGetPostsByAuthorQuery } from "@/lib/redux/endpoints/feed-api";
+import { PostCard } from "@/components/feed/post-card";
 import {
   useAddCaseStudyMutation,
   useUpdateCaseStudyMutation,
@@ -150,6 +152,11 @@ function AgencyProfileView({
   const [toggleFollow, { isLoading: isTogglingFollow }] = useToggleFollowMutation();
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [postsPage, setPostsPage] = useState(1);
+  const { data: postsData, isFetching: isFetchingPosts } = useGetPostsByAuthorQuery({
+    userId: profile.userId,
+    page: postsPage,
+  });
   const [selectedClientBrandUserId, setSelectedClientBrandUserId] = useState<string | null>(null);
   const [caseStudyDialogOpen, setCaseStudyDialogOpen] = useState(false);
   const [editingCaseStudy, setEditingCaseStudy] = useState<CaseStudy | undefined>(undefined);
@@ -500,6 +507,16 @@ function AgencyProfileView({
                 />
               )}
             </TabsTrigger>
+            <TabsTrigger value="posts" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Posts</span>
+              {activeTab === "posts" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
             <TabsTrigger value="roster" className={NEW_TAB_TRIGGER_CLASS}>
               <span>Roster (Public)</span>
               {activeTab === "roster" && (
@@ -642,6 +659,35 @@ function AgencyProfileView({
             </div>
 
           </div>
+        </TabsContent>
+
+        {/* ------------------------------------------------------------------
+            TAB: POSTS
+            ------------------------------------------------------------------ */}
+        <TabsContent value="posts" className="outline-none mt-0">
+          {!postsData || postsData.items.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No posts yet.
+            </p>
+          ) : (
+            <div className="space-y-5">
+              {postsData.items.map((item) => (
+                <PostCard key={item.id} item={item} />
+              ))}
+              {postsData.items.length < postsData.total && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPostsPage((p) => p + 1)}
+                    disabled={isFetchingPosts}
+                    className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
+                  >
+                    {isFetchingPosts ? "Loading..." : "Load More Posts"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* ------------------------------------------------------------------
@@ -1355,12 +1401,18 @@ function StandardProfileView({
   });
 
   const { data: reviewsData } = useGetReviewsForUserQuery({ userId: profile.userId });
+  const [postsPage, setPostsPage] = useState(1);
+  const { data: postsData, isFetching: isFetchingPosts } = useGetPostsByAuthorQuery({
+    userId: profile.userId,
+    page: postsPage,
+  });
 
   const [activeTab, setActiveTab] = useState("overview");
   const isTalent = role === "CREATOR" || role === "FREELANCER";
 
   const standardTabs = [
     { value: "overview", label: "Overview" },
+    { value: "posts", label: "Posts" },
     { value: "portfolio", label: "Portfolio" },
     { value: "experience", label: "Experience" },
     { value: "reviews", label: "Reviews" },
@@ -1813,6 +1865,32 @@ function StandardProfileView({
               {isOwnProfile ? <ProfileCompletionCard /> : null}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="posts" className="outline-none mt-0">
+          {!postsData || postsData.items.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No posts yet.
+            </p>
+          ) : (
+            <div className="space-y-5">
+              {postsData.items.map((item) => (
+                <PostCard key={item.id} item={item} />
+              ))}
+              {postsData.items.length < postsData.total && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPostsPage((p) => p + 1)}
+                    disabled={isFetchingPosts}
+                    className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
+                  >
+                    {isFetchingPosts ? "Loading..." : "Load More Posts"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="portfolio" className="outline-none mt-0">

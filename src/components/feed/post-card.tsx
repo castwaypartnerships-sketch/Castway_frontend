@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BadgeCheck, Bookmark, CalendarDays, DollarSign, Heart, MessageCircle } from "lucide-react";
@@ -25,6 +25,48 @@ import { cn } from "@/lib/utils";
 export function PostCard({ item }: { item: FeedItem }) {
   if (item.kind === "news") return <NewsFeedCard item={item} />;
   return <PostFeedCard item={item} />;
+}
+
+/** Clamps a post's rich-text body to 5 lines with a "See more"/"See less"
+ * toggle, rather than truncating with no way to read the rest. The toggle
+ * only renders when the content actually overflows the clamp — measured via
+ * `scrollHeight` vs `clientHeight` on mount, since `item.description` is
+ * arbitrary-length HTML and can't be measured by character count. */
+function PostBody({ html }: { html: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    setIsClamped(el.scrollHeight > el.clientHeight + 1);
+  }, [html]);
+
+  return (
+    <div>
+      <div
+        ref={bodyRef}
+        // `item.description` is sanitized server-side before persisting (see
+        // `backend/src/lib/sanitize-post-content.ts`) — only ever the fixed
+        // set of rich-text tags the post editor can produce.
+        className={cn(
+          "prose-post mt-2 text-sm leading-relaxed text-muted-foreground [&_a]:text-[#476948] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 dark:[&_a]:text-[#a7d9b5]",
+          !expanded && "line-clamp-5",
+        )}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      {isClamped ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="mt-1 text-xs font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 function PostFeedCard({ item }: { item: FeedPostItem }) {
@@ -109,13 +151,7 @@ function PostFeedCard({ item }: { item: FeedPostItem }) {
       <h3 className="mt-4 text-lg font-semibold text-[#476948] hover:underline dark:text-[#a7d9b5]">
         <Link href={`/home/${item.id}`}>{item.title}</Link>
       </h3>
-      <div
-        // `item.description` is sanitized server-side before persisting (see
-        // `backend/src/lib/sanitize-post-content.ts`) — only ever the fixed
-        // set of rich-text tags the post editor can produce.
-        className="prose-post mt-2 text-sm leading-relaxed text-muted-foreground [&_a]:text-[#476948] [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 dark:[&_a]:text-[#a7d9b5]"
-        dangerouslySetInnerHTML={{ __html: item.description }}
-      />
+      <PostBody html={item.description} />
 
       {item.imageUrl ? (
         <div className="relative mt-4 aspect-video w-full max-h-[400px] overflow-hidden rounded-xl bg-muted">
