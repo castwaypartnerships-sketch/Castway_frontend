@@ -143,10 +143,10 @@ function BrowseTab() {
               <SearchIcon className="size-3.5" />
               Keyword
             </TabsTrigger>
-            <TabsTrigger value="semantic">
+            {/* <TabsTrigger value="semantic">
               <Sparkles className="size-3.5" />
               Ask in plain language
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
         </Tabs>
         <div className="relative">
