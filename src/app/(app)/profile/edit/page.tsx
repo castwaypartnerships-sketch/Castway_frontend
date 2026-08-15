@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useEffect, useState, type FormEvent } from "react";
 import { FileText, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
   useUpdateSocialLinksMutation,
   useUpdateSubSpecializationsMutation,
 } from "@/lib/redux/endpoints/profile-api";
+import { useGetAcceptedBrandsQuery } from "@/lib/redux/endpoints/search-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,25 @@ import { AvatarUpload } from "@/components/upload/avatar-upload";
 import { CoverUpload } from "@/components/upload/cover-upload";
 import { InlineImageUpload } from "@/components/upload/inline-image-upload";
 import { isImageUrl } from "@/lib/upload-image";
+
+
+const SERVICES_OFFERED_OPTIONS = [
+  "Influencer Marketing", "Talent Management", "UGC Campaigns", 
+  "Brand Partnerships", "Social Media Management", "Video Production", 
+  "Photography", "PR", "Performance Marketing", "Creative Strategy", 
+  "Event Management", "Casting", "Brand Consulting"
+];
+
+const CREATOR_CATEGORIES_OPTIONS = [
+  "Fashion", "Beauty", "Lifestyle", "Tech", "Gaming", 
+  "Finance", "Education", "Fitness", "Food", "Travel", 
+  "Comedy", "Parenting", "Automobile", "Luxury", "Music"
+];
+
+const PLATFORMS_MANAGED_OPTIONS = [
+  "Instagram", "YouTube", "TikTok", "LinkedIn", "X", 
+  "Snapchat", "Facebook", "Twitch"
+];
 
 export default function PortfolioPage() {
   const { data, isLoading } = useGetOwnProfileQuery();
@@ -160,6 +181,11 @@ function ProfileForm({
     businessEmail: string | null;
     contactNumber: string | null;
     agencySize: AgencySize | null;
+    yearFounded?: number | null;
+    industry?: string | null;
+    servicesOffered?: string[];
+    creatorCategories?: string[];
+    platformsManaged?: string[];
   };
   hiring: boolean;
   isAgency: boolean;
@@ -177,7 +203,22 @@ function ProfileForm({
   const [businessEmail, setBusinessEmail] = useState(profile.businessEmail ?? "");
   const [contactNumber, setContactNumber] = useState(profile.contactNumber ?? "");
   const [agencySize, setAgencySize] = useState<AgencySize | "">(profile.agencySize ?? "");
+  const [yearFounded, setYearFounded] = useState(profile.yearFounded ? String(profile.yearFounded) : "");
+  const [industry, setIndustry] = useState(profile.industry ?? "");
+  const [servicesOffered, setServicesOffered] = useState<string[]>(profile.servicesOffered ?? []);
+  const [creatorCategories, setCreatorCategories] = useState<string[]>(profile.creatorCategories ?? []);
+  const [platformsManaged, setPlatformsManaged] = useState<string[]>(profile.platformsManaged ?? []);
   const [saved, setSaved] = useState(false);
+
+  const toggleService = (val: string) => {
+    setServicesOffered(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  };
+  const toggleCategory = (val: string) => {
+    setCreatorCategories(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  };
+  const togglePlatform = (val: string) => {
+    setPlatformsManaged(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  };
 
   useEffect(() => {
     if (!saved) return;
@@ -225,7 +266,14 @@ function ProfileForm({
         .map((s) => s.trim())
         .filter(Boolean),
       ...(hiring ? { businessEmail: businessEmail || undefined } : {}),
-      ...(isAgency ? { agencySize: agencySize || undefined } : {}),
+      ...(isAgency ? {
+        agencySize: agencySize || undefined,
+        yearFounded: yearFounded ? Number(yearFounded) : null,
+        industry: industry || null,
+        servicesOffered,
+        creatorCategories,
+        platformsManaged,
+      } : {}),
     }).unwrap();
     setSaved(true);
   }
@@ -271,6 +319,32 @@ function ProfileForm({
           />
         </div>
       ) : null}
+
+      {isAgency && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="yearFounded">Year founded</Label>
+            <Input
+              id="yearFounded"
+              type="number"
+              min={1800}
+              max={2100}
+              value={yearFounded}
+              onChange={(e) => setYearFounded(e.target.value)}
+              placeholder="e.g. 2020"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="industry">Industry</Label>
+            <Input
+              id="industry"
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              placeholder="e.g. Talent Management"
+            />
+          </div>
+        </div>
+      )}
 
       {isAgency ? (
         <div className="space-y-1.5">
@@ -341,6 +415,83 @@ function ProfileForm({
         </>
       )}
 
+
+      {isAgency && (
+        <>
+          <div className="space-y-2">
+            <Label>Services Offered</Label>
+            <div className="flex flex-wrap gap-2">
+              {SERVICES_OFFERED_OPTIONS.map((option) => {
+                const isSelected = servicesOffered.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => toggleService(option)}
+                    className={cn(
+                      "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      isSelected
+                        ? "border-[#1F5F3F] bg-[#1F5F3F]/10 text-[#1F5F3F] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Creator Categories</Label>
+            <div className="flex flex-wrap gap-2">
+              {CREATOR_CATEGORIES_OPTIONS.map((option) => {
+                const isSelected = creatorCategories.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => toggleCategory(option)}
+                    className={cn(
+                      "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      isSelected
+                        ? "border-[#1F5F3F] bg-[#1F5F3F]/10 text-[#1F5F3F] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Platforms Managed</Label>
+            <div className="flex flex-wrap gap-2">
+              {PLATFORMS_MANAGED_OPTIONS.map((option) => {
+                const isSelected = platformsManaged.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => togglePlatform(option)}
+                    className={cn(
+                      "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      isSelected
+                        ? "border-[#1F5F3F] bg-[#1F5F3F]/10 text-[#1F5F3F] dark:border-[#25422d] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Saving…" : "Save profile"}
@@ -357,6 +508,7 @@ function SocialLinksSection({ socialLinks }: { socialLinks: SocialLinks | null }
   const [youtube, setYoutube] = useState(socialLinks?.youtube ?? "");
   const [linkedin, setLinkedin] = useState(socialLinks?.linkedin ?? "");
   const [website, setWebsite] = useState(socialLinks?.website ?? "");
+  const [twitter, setTwitter] = useState(socialLinks?.twitter ?? "");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -372,6 +524,7 @@ function SocialLinksSection({ socialLinks }: { socialLinks: SocialLinks | null }
       youtube: youtube || undefined,
       linkedin: linkedin || undefined,
       website: website || undefined,
+      twitter: twitter || undefined,
     }).unwrap();
     setSaved(true);
   }
@@ -395,6 +548,16 @@ function SocialLinksSection({ socialLinks }: { socialLinks: SocialLinks | null }
         <div className="space-y-1.5">
           <Label htmlFor="social-linkedin">LinkedIn</Label>
           <Input id="social-linkedin" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="social-twitter">X (Twitter)</Label>
+          <Input
+            id="social-twitter"
+            type="url"
+            placeholder="https://x.com/�"
+            value={twitter}
+            onChange={(e) => setTwitter(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="social-website">Website</Label>
@@ -690,17 +853,36 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
   const [description, setDescription] = useState("");
   const [metricLabel, setMetricLabel] = useState("");
   const [metricValue, setMetricValue] = useState("");
+  const [brandUserId, setBrandUserId] = useState<string | null>(null);
+  const [manualBrandName, setManualBrandName] = useState<string | null>(null);
+  const [manualBrandLogoUrl, setManualBrandLogoUrl] = useState<string | null>(null);
+  const [isManualBrand, setIsManualBrand] = useState(false);
+
+  const { data: acceptedBrands } = useGetAcceptedBrandsQuery();
 
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const metrics = metricLabel.trim() && metricValue.trim() ? [{ label: metricLabel, value: metricValue }] : undefined;
-    await addItem({ title, imageUrl, link: link.trim() || undefined, description: description || undefined, metrics }).unwrap();
+    await addItem({
+      title,
+      imageUrl,
+      link: link.trim() || undefined,
+      description: description || undefined,
+      metrics,
+      brandUserId: isManualBrand ? null : (brandUserId || undefined),
+      manualBrandName: isManualBrand ? (manualBrandName?.trim() || undefined) : null,
+      manualBrandLogoUrl: isManualBrand ? (manualBrandLogoUrl || undefined) : null,
+    }).unwrap();
     setTitle("");
     setImageUrl("");
     setLink("");
     setDescription("");
     setMetricLabel("");
     setMetricValue("");
+    setBrandUserId(null);
+    setManualBrandName(null);
+    setManualBrandLogoUrl(null);
+    setIsManualBrand(false);
     setShowForm(false);
   }
 
@@ -743,6 +925,76 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2 border-t border-border/40 pt-2">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tag Brand (Optional)</Label>
+            <div className="flex items-center gap-2 border-b border-border/40 pb-2">
+              <Button
+                type="button"
+                variant={isManualBrand ? "outline" : "default"}
+                size="xs"
+                className="flex-1 text-[11px]"
+                onClick={() => {
+                  setIsManualBrand(false);
+                  setManualBrandName(null);
+                  setManualBrandLogoUrl(null);
+                }}
+              >
+                On Castway
+              </Button>
+              <Button
+                type="button"
+                variant={isManualBrand ? "default" : "outline"}
+                size="xs"
+                className="flex-1 text-[11px]"
+                onClick={() => {
+                  setIsManualBrand(true);
+                  setBrandUserId(null);
+                }}
+              >
+                Brand not on Castway
+              </Button>
+            </div>
+
+            {isManualBrand ? (
+              <div className="space-y-2 pl-1.5 border-l-2 border-border/60">
+                <div className="space-y-1">
+                  <Label htmlFor="manual-brand-tag-name" className="text-xs">Brand Name</Label>
+                  <Input
+                    id="manual-brand-tag-name"
+                    placeholder="e.g. Pepsi"
+                    value={manualBrandName || ""}
+                    onChange={(e) => setManualBrandName(e.target.value || null)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Brand Logo</Label>
+                  <InlineImageUpload
+                    kind="portfolio"
+                    imageUrl={manualBrandLogoUrl || ""}
+                    onUploaded={setManualBrandLogoUrl}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1 pl-1.5 border-l-2 border-border/60">
+                <Label htmlFor="platform-brand-tag-select" className="text-xs">Select Connected Brand</Label>
+                <select
+                  id="platform-brand-tag-select"
+                  className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs shadow-sm h-8"
+                  value={brandUserId || ""}
+                  onChange={(e) => setBrandUserId(e.target.value || null)}
+                >
+                  <option value="">Choose a brand...</option>
+                  {(acceptedBrands?.items || []).map((b) => (
+                    <option key={b.brandUserId} value={b.brandUserId}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Result metric (optional)</Label>
@@ -804,6 +1056,11 @@ function PortfolioItems({ items }: { items: PortfolioItem[] }) {
                   <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
                   {item.description ? (
                     <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+                  ) : null}
+                  {item.brandUserId || item.manualBrandName ? (
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide mt-0.5">
+                      Brand: {item.manualBrandName || (acceptedBrands?.items || []).find(b => b.brandUserId === item.brandUserId)?.name || "Linked Brand"}
+                    </p>
                   ) : null}
                   {item.link ? (
                     <a

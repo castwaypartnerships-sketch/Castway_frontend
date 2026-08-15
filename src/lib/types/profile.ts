@@ -5,6 +5,7 @@ export interface SocialLinks {
   youtube?: string | null;
   linkedin?: string | null;
   website?: string | null;
+  twitter?: string | null;
 }
 
 export interface PortfolioMetric {
@@ -20,6 +21,23 @@ export interface PortfolioItem {
   link?: string | null;
   order: number;
   metrics?: PortfolioMetric[];
+  brandUserId?: string | null;
+  manualBrandName?: string | null;
+  manualBrandLogoUrl?: string | null;
+}
+
+
+export interface BrandWorkedWithOverride {
+  brandUserId?: string | null;
+  manualBrandName?: string | null;
+  manualBrandLogoUrl?: string | null;
+  isHidden: boolean;
+}
+
+export interface AgencyFAQs {
+  minBudget?: string | null;
+  paymentTimelines?: string | null;
+  industriesServed?: string | null;
 }
 
 export interface DateRange {
@@ -44,6 +62,13 @@ export interface CaseStudy {
   result: string;
   metrics: PortfolioMetric[];
   order: number;
+  brandUserId?: string | null;
+  manualBrandName?: string | null;
+  manualBrandLogoUrl?: string | null;
+  objective?: string | null;
+  deliverables: string[];
+  creators: string[];
+  media: string[];
 }
 
 export interface ResponseTimeSignal {
@@ -126,7 +151,14 @@ export interface Profile {
   minRate: number | null;
   maxRate: number | null;
   caseStudies: CaseStudy[];
+  yearFounded: number | null;
+  industry: string | null;
+  servicesOffered: string[];
+  creatorCategories: string[];
+  platformsManaged: string[];
   subSpecializations: string[];
+  brandsWorkedWithOverride: BrandWorkedWithOverride[];
+  faqs?: AgencyFAQs | null;
   agencySize: AgencySize | null;
   instagramFollowers: number | null;
   youtubeFollowers: number | null;
@@ -162,6 +194,13 @@ export interface ProfileUpdateInput {
   youtubeFollowers?: number | null;
   twitchFollowers?: number | null;
   twitterFollowers?: number | null;
+  yearFounded?: number | null;
+  industry?: string | null;
+  servicesOffered?: string[];
+  creatorCategories?: string[];
+  platformsManaged?: string[];
+  brandsWorkedWithOverride?: BrandWorkedWithOverride[];
+  faqs?: AgencyFAQs | null;
 }
 
 export interface ExperienceInput {
@@ -188,6 +227,9 @@ export interface PortfolioItemInput {
   link?: string;
   order?: number;
   metrics?: PortfolioMetric[];
+  brandUserId?: string | null;
+  manualBrandName?: string | null;
+  manualBrandLogoUrl?: string | null;
 }
 
 export interface RateCardItemInput {
@@ -203,6 +245,13 @@ export interface CaseStudyInput {
   result: string;
   metrics?: PortfolioMetric[];
   order?: number;
+  brandUserId?: string | null;
+  manualBrandName?: string | null;
+  manualBrandLogoUrl?: string | null;
+  objective?: string | null;
+  deliverables?: string[];
+  creators?: string[];
+  media?: string[];
 }
 
 export type EndorsementCounts = Record<string, number>;

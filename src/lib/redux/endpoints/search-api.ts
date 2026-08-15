@@ -50,6 +50,14 @@ export interface PublicProfileResponse {
   /** Set only when this profile is a managed-talent sub-account (see
    * `ManagedTalentService`) — distinct from Roster's "Represented by". */
   managedByAgency: { userId: string; username: string; name: string; avatarUrl: string | null } | null;
+  activeCreatorsCount?: number;
+  completedCampaignsCount?: number;
+  brandsWorkedWith?: {
+    brandUserId: string | null;
+    name: string;
+    logoUrl: string | null;
+    isManual: boolean;
+  }[];
 }
 
 export type MediaKitResponse = PublicProfileResponse;
@@ -69,6 +77,10 @@ export const searchApi = api.injectEndpoints({
       }),
       transformResponse: (response: { data: SearchProfilesResponse }) => response.data,
     }),
+    getAcceptedBrands: builder.query<{ items: { brandUserId: string; name: string; avatarUrl: string | null }[] }, void>({
+      query: () => "/profile/my/accepted-brands",
+      transformResponse: (response: { data: { items: { brandUserId: string; name: string; avatarUrl: string | null }[] } }) => response.data,
+    }),
     getPublicProfile: builder.query<PublicProfileResponse, string>({
       query: (username) => `/profile/public/${username}`,
       transformResponse: (response: { data: PublicProfileResponse }) => response.data,
@@ -86,6 +98,7 @@ export const searchApi = api.injectEndpoints({
 
 export const {
   useSearchProfilesQuery,
+  useGetAcceptedBrandsQuery,
   useGetPublicProfileQuery,
   useLazyGetPublicProfileQuery,
   useGetMediaKitQuery,
