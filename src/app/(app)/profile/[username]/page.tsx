@@ -918,7 +918,10 @@ function AgencyProfileView({
                 {/* Add New Case Study CTA Trigger card */}
                 {isOwnProfile && (
                   <button
-                    onClick={() => toast.info("Case Studies management is disabled in layout validation.")}
+                    onClick={() => {
+                      setEditingCaseStudy(undefined);
+                      setCaseStudyDialogOpen(true);
+                    }}
                     className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#a3d1c1] bg-[#e6f4ea]/30 p-6 text-center hover:bg-[#e6f4ea]/50 transition-colors min-h-[320px] h-full"
                   >
                     <div className="flex size-11 items-center justify-center rounded-full border border-[#a3d1c1] bg-card shadow-sm">
@@ -936,11 +939,17 @@ function AgencyProfileView({
                   <div key={study.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
 
                     {/* Header Image class */}
-                    <div className={cn("aspect-video w-full relative flex items-center justify-center", (study as any).imageClass || "bg-muted")}>
-                      <Badge className="absolute top-2.5 left-2.5 bg-[#1c3322] text-white hover:bg-[#1c3322] border-0 text-[8px] font-bold tracking-widest uppercase">
+                    <div className="aspect-video w-full relative overflow-hidden bg-muted flex items-center justify-center">
+                      <Badge className="absolute top-2.5 left-2.5 bg-[#1c3322] text-white hover:bg-[#1c3322] border-0 text-[8px] font-bold tracking-widest uppercase z-10">
                         {(study as any).statBadge || "Completed"}
                       </Badge>
-                      <ImageIcon className="size-8 text-muted-foreground/40" />
+                      {study.media && study.media.length > 0 && isImageUrl(study.media[0]) ? (
+                        <img src={study.media[0]} alt={study.title} className="size-full object-cover" />
+                      ) : (
+                        <div className={cn("size-full flex items-center justify-center", (study as any).imageClass)}>
+                          <ImageIcon className="size-8 text-muted-foreground/40" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Meta info */}
@@ -966,7 +975,10 @@ function AgencyProfileView({
                         </div>
 
                         <button
-                          onClick={() => toast.info("Detailed case study reports are disabled in layout validation.")}
+                          onClick={() => {
+                            setEditingCaseStudy(study);
+                            setCaseStudyDialogOpen(true);
+                          }}
                           className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider flex items-center gap-0.5"
                         >
                           Details →
