@@ -32,11 +32,12 @@ import {
   Heart,
   MessageCircle,
   Rss,
+  X,
 } from "lucide-react";
 import { FaInstagram, FaYoutube, FaLinkedin } from "react-icons/fa6";
 import { motion } from "framer-motion";
 
-import { useGetPublicProfileQuery, type PublicProfileResponse } from "@/lib/redux/endpoints/search-api";
+import { useGetPublicProfileQuery, type PublicProfileResponse, useGetAcceptedBrandsQuery } from "@/lib/redux/endpoints/search-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { useSendConnectionRequestMutation } from "@/lib/redux/endpoints/connections-api";
 import { useStartConversationMutation } from "@/lib/redux/endpoints/messages-api";
@@ -52,6 +53,7 @@ import {
   useAddCaseStudyMutation,
   useUpdateCaseStudyMutation,
   useRemoveCaseStudyMutation,
+  useUpdateProfileMutation,
 } from "@/lib/redux/endpoints/profile-api";
 import type { AgencySize, CaseStudy, DateRange, Education, Experience, PortfolioMetric, Profile } from "@/lib/types/profile";
 import type { RosterEntryDto } from "@/lib/types/roster";
@@ -68,6 +70,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 import { initialsFromName, formatRelativeTime } from "@/lib/format";
 import { isImageUrl } from "@/lib/upload-image";
+import { InlineImageUpload } from "@/components/upload/inline-image-upload";
 import { cn } from "@/lib/utils";
 import { isHiringRole } from "@/lib/rbac";
 
@@ -161,6 +164,7 @@ function AgencyProfileView({
   const [caseStudyDialogOpen, setCaseStudyDialogOpen] = useState(false);
   const [editingCaseStudy, setEditingCaseStudy] = useState<CaseStudy | undefined>(undefined);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [faqDialogOpen, setFaqDialogOpen] = useState(false);
   const [replyingToReviewId, setReplyingToReviewId] = useState<string | null>(null);
   const [replyDraft, setReplyDraft] = useState("");
   const [replyToReview, { isLoading: isSubmittingReply }] = useReplyToReviewMutation();
@@ -650,10 +654,219 @@ function AgencyProfileView({
                 )}
               </div>
 
+              {/* Collaboration FAQs */}
+              {(() => {
+                const hasFaqs = profile.faqs && (profile.faqs.minBudget || profile.faqs.paymentTimelines || profile.faqs.industriesServed);
+                if (!hasFaqs && !isOwnProfile) return null;
+
+                return (
+                  <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4 relative">
+                    <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
+                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Collaboration FAQs</h2>
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => setFaqDialogOpen(true)}
+                          className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-muted rounded-md"
+                          title="Edit FAQs"
+                        >
+                          <Pencil className="size-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    {!hasFaqs ? (
+                      <div className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+                        <span>No FAQs set yet.</span>
+                        {isOwnProfile && (
+                          <Button
+                            size="sm"
+                            onClick={() => setFaqDialogOpen(true)}
+                            className="bg-[#1F5F3F] text-white hover:bg-[#1A4F35] font-semibold text-xs rounded-xl"
+                          >
+                            Set FAQ Terms
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4 text-xs leading-relaxed text-muted-foreground">
+                        {profile.faqs?.minBudget && (
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                              <Star className="size-3.5 text-[#1F5F3F] dark:text-[#a7d9b5]" />
+                              Minimum Project Budget
+                            </h4>
+                            <p className="pl-5 text-muted-foreground font-medium">{profile.faqs.minBudget}</p>
+                          </div>
+                        )}
+                        {profile.faqs?.paymentTimelines && (
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                              <Clock className="size-3.5 text-[#1F5F3F] dark:text-[#a7d9b5]" />
+                              Payment Timelines
+                            </h4>
+                            <p className="pl-5 text-muted-foreground font-medium">{profile.faqs.paymentTimelines}</p>
+                          </div>
+                        )}
+                        {profile.faqs?.industriesServed && (
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                              <Globe className="size-3.5 text-[#1F5F3F] dark:text-[#a7d9b5]" />
+                              Industries Served
+                            </h4>
+                            <p className="pl-5 text-muted-foreground font-medium whitespace-pre-wrap">{profile.faqs.industriesServed}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
             </div>
 
             {/* Right Sidebar Area */}
             <div className="space-y-5">
+              {/* Contact & Inquiries CTA Widget */}
+              {(() => {
+                const hasWhatsApp = !!profile.contactNumber;
+                const hasEmail = !!profile.businessEmail;
+                const hasAnyContact = hasWhatsApp || hasEmail;
+
+                if (!hasAnyContact && !isOwnProfile) return null;
+
+                const cleanPhone = profile.contactNumber ? profile.contactNumber.replace(/[^0-9]/g, "") : "";
+                const whatsappUrl = `https://wa.me/${cleanPhone}`;
+                const emailUrl = `mailto:${profile.businessEmail}`;
+                const bookingUrl = hasWhatsApp
+                  ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent("Hi! I'd like to book a call with your agency to discuss a potential collaboration.")}`
+                  : `mailto:${profile.businessEmail}?subject=${encodeURIComponent("Booking Inquiry")}&body=${encodeURIComponent("Hi! I'd like to book a call with your agency to discuss a potential collaboration.")}`;
+
+                function handleInquiryClick() {
+                  if (!session || !session.user) {
+                    router.push(`/login?redirectTo=${encodeURIComponent(window.location.pathname)}`);
+                  } else {
+                    handleMessage();
+                  }
+                }
+
+                return (
+                  <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider border-b border-border/40 pb-2 flex items-center justify-between">
+                      <span>Contact Agency</span>
+                      {isOwnProfile && (
+                        <span className="text-[9px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded uppercase">Owner Preview</span>
+                      )}
+                    </h4>
+
+                    <div className="space-y-2.5">
+                      {/* Inquiry CTA */}
+                      <div className="w-full cursor-not-allowed" title={isOwnProfile ? "Action disabled in Owner Preview" : undefined}>
+                        <Button
+                          onClick={handleInquiryClick}
+                          disabled={isMessaging || isOwnProfile}
+                          className="w-full bg-[#1F5F3F] text-white hover:bg-[#1A4F35] font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-sm border-0 disabled:opacity-50 pointer-events-none"
+                        >
+                          <MessageCircle className="size-4" />
+                          Send Inquiry (In-App)
+                        </Button>
+                      </div>
+
+                      {/* Book Call CTA */}
+                      {(hasWhatsApp || hasEmail) && (
+                        isOwnProfile ? (
+                          <div className="w-full cursor-not-allowed" title="Action disabled in Owner Preview">
+                            <Button
+                              variant="outline"
+                              disabled
+                              className="w-full font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border disabled:opacity-50 pointer-events-none"
+                            >
+                              <Calendar className="size-4 text-[#1F5F3F] dark:text-[#a7d9b5]" />
+                              Book a Call
+                            </Button>
+                          </div>
+                        ) : (
+                          <a
+                            href={bookingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              buttonVariants({ variant: "outline" }),
+                              "w-full font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border hover:bg-muted/40"
+                            )}
+                          >
+                            <Calendar className="size-4 text-[#1F5F3F] dark:text-[#a7d9b5]" />
+                            Book a Call
+                          </a>
+                        )
+                      )}
+
+                      {/* Secondary Contact Actions Grid */}
+                      {hasAnyContact && (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          {hasWhatsApp && (
+                            isOwnProfile ? (
+                              <div className="w-full cursor-not-allowed" title="Action disabled in Owner Preview">
+                                <Button
+                                  variant="outline"
+                                  disabled
+                                  className="font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border disabled:opacity-50 pointer-events-none text-center w-full"
+                                >
+                                  WhatsApp
+                                </Button>
+                              </div>
+                            ) : (
+                              <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={cn(
+                                  buttonVariants({ variant: "outline" }),
+                                  "font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border hover:bg-muted/40 text-center"
+                                )}
+                              >
+                                WhatsApp
+                              </a>
+                            )
+                          )}
+                          {hasEmail && (
+                            isOwnProfile ? (
+                              <div className="w-full cursor-not-allowed" title="Action disabled in Owner Preview">
+                                <Button
+                                  variant="outline"
+                                  disabled
+                                  className="font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border disabled:opacity-50 pointer-events-none text-center w-full"
+                                >
+                                  Direct Email
+                                </Button>
+                              </div>
+                            ) : (
+                              <a
+                                href={emailUrl}
+                                className={cn(
+                                  buttonVariants({ variant: "outline" }),
+                                  "font-semibold text-xs py-2 h-9 rounded-xl flex items-center justify-center gap-1.5 border-border hover:bg-muted/40 text-center"
+                                )}
+                              >
+                                Direct Email
+                              </a>
+                            )
+                          )}
+                        </div>
+                      )}
+
+                      {isOwnProfile && (
+                        <p className="text-[10px] text-muted-foreground text-center italic mt-1.5">
+                          {hasAnyContact 
+                            ? "Action buttons are disabled in Owner Preview."
+                            : "Provide a phone number or business email in your profile settings to enable booking, email, and WhatsApp CTAs."
+                          }
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <CompanyInfoWidget profile={profile} />
               <SocialPresenceWidget profile={profile} />
             </div>
@@ -1066,12 +1279,20 @@ function AgencyProfileView({
 
       </Tabs>
 
-      {isOwnProfile && caseStudyDialogOpen && (
+      {caseStudyDialogOpen && (
         <CaseStudyDialog
           key={editingCaseStudy?.id ?? "new"}
           open={caseStudyDialogOpen}
           onOpenChange={setCaseStudyDialogOpen}
           caseStudy={editingCaseStudy}
+          isOwnProfile={isOwnProfile}
+        />
+      )}
+      {faqDialogOpen && (
+        <FAQDialog
+          open={faqDialogOpen}
+          onOpenChange={setFaqDialogOpen}
+          profile={profile}
         />
       )}
       {!isOwnProfile && reviewDialogOpen && (
@@ -1158,32 +1379,223 @@ function CaseStudyDialog({
   open,
   onOpenChange,
   caseStudy,
+  isOwnProfile = true,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Present in edit mode, undefined when adding a new case study. */
   caseStudy?: CaseStudy;
+  isOwnProfile?: boolean;
 }) {
   const isEditing = !!caseStudy;
   const [title, setTitle] = useState(caseStudy?.title ?? "");
+  const [objective, setObjective] = useState(caseStudy?.objective ?? "");
   const [brief, setBrief] = useState(caseStudy?.brief ?? "");
   const [action, setAction] = useState(caseStudy?.action ?? "");
   const [result, setResult] = useState(caseStudy?.result ?? "");
   const [metrics, setMetrics] = useState<PortfolioMetric[]>(caseStudy?.metrics ?? []);
+  const [brandUserId, setBrandUserId] = useState<string | null>(caseStudy?.brandUserId ?? null);
+  const [manualBrandName, setManualBrandName] = useState<string | null>(caseStudy?.manualBrandName ?? null);
+  const [manualBrandLogoUrl, setManualBrandLogoUrl] = useState<string | null>(caseStudy?.manualBrandLogoUrl ?? null);
+  const [isManualBrand, setIsManualBrand] = useState(!!caseStudy?.manualBrandName);
+
+  const [deliverables, setDeliverables] = useState<string[]>(caseStudy?.deliverables ?? []);
+  const [creators, setCreators] = useState<string[]>(caseStudy?.creators ?? []);
+  const [media, setMedia] = useState<string[]>(caseStudy?.media ?? []);
+  const [newDeliverable, setNewDeliverable] = useState("");
+
+  const { data: acceptedBrands } = useGetAcceptedBrandsQuery();
+  const { data: roster } = useGetMyRosterQuery();
+
+  const rosterCreators = (roster?.items ?? [])
+    .filter((r) => r.status === "ACCEPTED" && r.member)
+    .map((r) => r.member!);
 
   const [addCaseStudy, { isLoading: isAdding }] = useAddCaseStudyMutation();
   const [updateCaseStudy, { isLoading: isUpdating }] = useUpdateCaseStudyMutation();
   const [removeCaseStudy, { isLoading: isRemoving }] = useRemoveCaseStudyMutation();
   const isSaving = isAdding || isUpdating;
 
+  if (!isOwnProfile && caseStudy) {
+    const brandName = caseStudy.manualBrandName || acceptedBrands?.items?.find((b: any) => b.brandUserId === caseStudy.brandUserId)?.name || "";
+    const brandLogo = caseStudy.manualBrandLogoUrl || acceptedBrands?.items?.find((b: any) => b.brandUserId === caseStudy.brandUserId)?.avatarUrl || "";
+
+    // Resolve creator details
+    const taggedCreators = (caseStudy.creators || []).map(cid => {
+      const entry = roster?.items?.find(r => r.member?.userId === cid);
+      return entry?.member;
+    }).filter(Boolean);
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto space-y-5">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">{caseStudy.title}</DialogTitle>
+          </DialogHeader>
+
+          {/* Media Showcase */}
+          {caseStudy.media && caseStudy.media.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {caseStudy.media.map((url, i) => (
+                <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border/80 bg-muted">
+                  {isImageUrl(url) ? (
+                    <img src={url} alt={`Campaign detail ${i+1}`} className="size-full object-cover" />
+                  ) : (
+                    <div className="size-full flex flex-col items-center justify-center p-3 text-center">
+                      <FileText className="size-6 text-muted-foreground/60" />
+                      <a href={url} target="_blank" rel="noreferrer" className="text-xs text-[#476948] dark:text-[#a7d9b5] hover:underline mt-1 truncate max-w-full">
+                        View Attachment
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Objective */}
+          {caseStudy.objective && (
+            <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Objective</h4>
+              <p className="text-xs text-foreground leading-relaxed">{caseStudy.objective}</p>
+            </div>
+          )}
+
+          {/* Narrative grid */}
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Brief / Challenge</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">{caseStudy.brief}</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Action / Strategy</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">{caseStudy.action}</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Result / Outcome</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">{caseStudy.result}</p>
+            </div>
+          </div>
+
+          {/* Tagged Brand */}
+          {(brandName || brandLogo) && (
+            <div className="border-t border-border/40 pt-3 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Partner Brand</span>
+              <div className="flex items-center gap-2">
+                {brandLogo && <img src={brandLogo} alt={brandName} className="size-5 object-contain" />}
+                <span className="text-xs font-semibold text-foreground">{brandName}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Creators Involved */}
+          {taggedCreators.length > 0 && (
+            <div className="border-t border-border/40 pt-3 space-y-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Creators Involved</span>
+              <div className="flex flex-wrap gap-3">
+                {taggedCreators.map((creator: any) => (
+                  <Link key={creator.userId} href={`/profile/${creator.username}`} className="flex items-center gap-1.5 hover:opacity-85 transition">
+                    <Avatar className="size-6">
+                      <AvatarImage src={creator.avatarUrl ?? undefined} />
+                      <AvatarFallback className="text-[9px] bg-muted/80">{initialsFromName(creator.name)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-semibold text-[#476948] dark:text-[#a7d9b5] hover:underline">{creator.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Deliverables */}
+          {caseStudy.deliverables && caseStudy.deliverables.length > 0 && (
+            <div className="border-t border-border/40 pt-3 space-y-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Deliverables</span>
+              <div className="flex flex-wrap gap-1.5">
+                {caseStudy.deliverables.map((item, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-[10px] font-bold px-2.5 py-0.5">
+                    {item}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Metrics */}
+          {caseStudy.metrics && caseStudy.metrics.length > 0 && (
+            <div className="border-t border-border/40 pt-3 space-y-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Metrics</span>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                {caseStudy.metrics.map((metric, i) => (
+                  <div key={i} className="border border-border/60 rounded-xl p-2.5 bg-muted/10 space-y-0.5">
+                    <p className="text-sm font-extrabold text-[#1F5F3F] dark:text-[#a7d9b5] leading-none">{metric.value}</p>
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">{metric.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="w-full">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   function updateMetric(index: number, field: "label" | "value", value: string) {
     setMetrics((prev) => prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
+  }
+
+  function addDeliverable() {
+    const val = newDeliverable.trim();
+    if (val && !deliverables.includes(val)) {
+      setDeliverables([...deliverables, val]);
+      setNewDeliverable("");
+    }
+  }
+
+  function removeDeliverable(idx: number) {
+    setDeliverables(deliverables.filter((_, i) => i !== idx));
+  }
+
+  function addMedia(url: string) {
+    if (url && !media.includes(url)) {
+      setMedia([...media, url]);
+    }
+  }
+
+  function removeMedia(url: string) {
+    setMedia(media.filter((u) => u !== url));
+  }
+
+  function toggleCreator(userId: string) {
+    setCreators((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const cleanMetrics = metrics.filter((m) => m.label.trim() && m.value.trim());
-    const input = { title: title.trim(), brief: brief.trim(), action: action.trim(), result: result.trim(), metrics: cleanMetrics };
+    const input = {
+      title: title.trim(),
+      brief: brief.trim(),
+      action: action.trim(),
+      result: result.trim(),
+      metrics: cleanMetrics,
+      brandUserId: isManualBrand ? null : (brandUserId || undefined),
+      manualBrandName: isManualBrand ? (manualBrandName?.trim() || undefined) : null,
+      manualBrandLogoUrl: isManualBrand ? (manualBrandLogoUrl || undefined) : null,
+      objective: objective.trim() || null,
+      deliverables,
+      creators,
+      media,
+    };
     try {
       if (isEditing) {
         await updateCaseStudy({ itemId: caseStudy.id, patch: input }).unwrap();
@@ -1211,27 +1623,235 @@ function CaseStudyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Case study details" : "Add new case study"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="cs-title">Title</Label>
-            <Input id="cs-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <Label htmlFor="cs-title">Campaign Name / Title</Label>
+            <Input id="cs-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Summer Product Launch" required />
           </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="cs-objective">Campaign Objective (Optional)</Label>
+              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">What we aimed to achieve</span>
+            </div>
+            <Textarea
+              id="cs-objective"
+              placeholder="What we aimed to achieve (e.g. Increase brand awareness by 20% among Gen-Z, drive product trials)"
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              rows={2}
+            />
+          </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="cs-brief">Brief</Label>
-            <Textarea id="cs-brief" value={brief} onChange={(e) => setBrief(e.target.value)} required rows={2} />
+            <Textarea
+              id="cs-brief"
+              placeholder="Background / The client's problem (e.g. Client wanted to launch a new product line with zero search footprint)"
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+              required
+              rows={2}
+            />
           </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor="cs-action">Action</Label>
-            <Textarea id="cs-action" value={action} onChange={(e) => setAction(e.target.value)} required rows={2} />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="cs-action">Action</Label>
+              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">What we did</span>
+            </div>
+            <Textarea
+              id="cs-action"
+              placeholder="What we did (e.g. Partnered with 5 micro-influencers to create authentic video content, ran a 2-week giveaway)"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+              required
+              rows={2}
+            />
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="cs-result">Result</Label>
-            <Textarea id="cs-result" value={result} onChange={(e) => setResult(e.target.value)} required rows={2} />
+            <Textarea
+              id="cs-result"
+              placeholder="The outcome of the campaign (e.g. Campaign generated 1.2M views, 50k clicks, and 5% conversion rate)"
+              value={result}
+              onChange={(e) => setResult(e.target.value)}
+              required
+              rows={2}
+            />
+          </div>
+
+          {/* Roster Creators Multi-select Selection */}
+          {rosterCreators && rosterCreators.length > 0 && (
+            <div className="space-y-1.5 border-t border-border/40 pt-3">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Creators Involved (Optional)</Label>
+              <div className="max-h-36 overflow-y-auto rounded-lg border border-border bg-muted/20 p-2 space-y-1.5">
+                {rosterCreators.map((creator) => {
+                  const isChecked = creators.includes(creator.userId);
+                  return (
+                    <label key={creator.userId} className="flex items-center gap-2 cursor-pointer hover:bg-muted/40 p-1.5 rounded-md transition-colors text-xs font-medium text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleCreator(creator.userId)}
+                        className="rounded border-input text-[#1F5F3F] focus:ring-[#1F5F3F] size-3.5"
+                      />
+                      <Avatar className="size-5 shrink-0">
+                        <AvatarImage src={creator.avatarUrl ?? undefined} />
+                        <AvatarFallback className="text-[8px] bg-muted/80">{initialsFromName(creator.name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1 truncate">
+                        <span>{creator.name}</span>
+                        <span className="text-muted-foreground ml-1 text-[10px]">@{creator.username}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Deliverables Tags Input */}
+          <div className="space-y-1.5 border-t border-border/40 pt-3">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Deliverables (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={newDeliverable}
+                onChange={(e) => setNewDeliverable(e.target.value)}
+                placeholder="e.g. 1 Dedicated YouTube Video"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addDeliverable();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={addDeliverable} className="shrink-0 h-9">
+                Add
+              </Button>
+            </div>
+            {deliverables.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {deliverables.map((item, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-[10px] font-bold px-2 py-0.5 flex items-center gap-1">
+                    {item}
+                    <button type="button" onClick={() => removeDeliverable(idx)} className="text-muted-foreground hover:text-foreground">
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Campaign Media Grid Uploads */}
+          <div className="space-y-1.5 border-t border-border/40 pt-3">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Campaign Media (Optional)</Label>
+            <div className="grid grid-cols-3 gap-2.5">
+              {media.map((url, idx) => (
+                <div key={idx} className="relative aspect-video rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center">
+                  {isImageUrl(url) ? (
+                    <img src={url} alt={`Campaign Media ${idx + 1}`} className="size-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-1 text-center">
+                      <FileText className="size-5 text-muted-foreground" />
+                      <span className="text-[8px] text-muted-foreground truncate max-w-full">File</span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeMedia(url)}
+                    className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
+              ))}
+              {media.length < 10 && (
+                <InlineImageUpload
+                  kind="portfolio"
+                  imageUrl=""
+                  onUploaded={addMedia}
+                  className="aspect-video w-full"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2 border-t border-border/40 pt-2">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tag Brand (Optional)</Label>
+            <div className="flex items-center gap-2 border-b border-border/40 pb-2">
+              <Button
+                type="button"
+                variant={isManualBrand ? "outline" : "default"}
+                size="xs"
+                className="flex-1 text-[11px]"
+                onClick={() => {
+                  setIsManualBrand(false);
+                  setManualBrandName(null);
+                  setManualBrandLogoUrl(null);
+                }}
+              >
+                On Castway
+              </Button>
+              <Button
+                type="button"
+                variant={isManualBrand ? "default" : "outline"}
+                size="xs"
+                className="flex-1 text-[11px]"
+                onClick={() => {
+                  setIsManualBrand(true);
+                  setBrandUserId(null);
+                }}
+              >
+                Brand not on Castway
+              </Button>
+            </div>
+
+            {isManualBrand ? (
+              <div className="space-y-2 pl-1.5 border-l-2 border-border/60">
+                <div className="space-y-1">
+                  <Label htmlFor="manual-brand-tag-name" className="text-xs">Brand Name</Label>
+                  <Input
+                    id="manual-brand-tag-name"
+                    placeholder="e.g. Pepsi"
+                    value={manualBrandName || ""}
+                    onChange={(e) => setManualBrandName(e.target.value || null)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Brand Logo</Label>
+                  <InlineImageUpload
+                    kind="portfolio"
+                    imageUrl={manualBrandLogoUrl || ""}
+                    onUploaded={setManualBrandLogoUrl}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1 pl-1.5 border-l-2 border-border/60">
+                <Label htmlFor="platform-brand-tag-select" className="text-xs">Select Connected Brand</Label>
+                <select
+                  id="platform-brand-tag-select"
+                  className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs shadow-sm h-8"
+                  value={brandUserId || ""}
+                  onChange={(e) => setBrandUserId(e.target.value || null)}
+                >
+                  <option value="">Choose a brand...</option>
+                  {(acceptedBrands?.items || []).map((b: any) => (
+                    <option key={b.brandUserId} value={b.brandUserId}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -1278,6 +1898,78 @@ function CaseStudyDialog({
             )}
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving..." : isEditing ? "Save changes" : "Add case study"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ==========================================================================
+   FAQ EDIT DIALOG — Agency Profile "Overview" tab
+   ========================================================================== */
+function FAQDialog({
+  open,
+  onOpenChange,
+  profile,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  profile: Profile;
+}) {
+  const [minBudget, setMinBudget] = useState(profile.faqs?.minBudget ?? "");
+  const [paymentTimelines, setPaymentTimelines] = useState(profile.faqs?.paymentTimelines ?? "");
+  const [industriesServed, setIndustriesServed] = useState(profile.faqs?.industriesServed ?? "");
+
+  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    try {
+      await updateProfile({
+        faqs: {
+          minBudget: minBudget.trim() || null,
+          paymentTimelines: paymentTimelines.trim() || null,
+          industriesServed: industriesServed.trim() || null,
+        }
+      }).unwrap();
+      toast.success("FAQs updated");
+      onOpenChange(false);
+    } catch {
+      toast.error("Couldn't save FAQs. Please try again.");
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Collaboration FAQs</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="faq-budget">Minimum Project Budget</Label>
+            <Input id="faq-budget" value={minBudget} onChange={(e) => setMinBudget(e.target.value)} placeholder="e.g. $5,000 USD" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="faq-timelines">Payment Timelines</Label>
+            <Input id="faq-timelines" value={paymentTimelines} onChange={(e) => setPaymentTimelines(e.target.value)} placeholder="e.g. Net 30, 50% upfront" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="faq-industries">Industries Served</Label>
+            <Textarea id="faq-industries" value={industriesServed} onChange={(e) => setIndustriesServed(e.target.value)} placeholder="e.g. Tech, Beauty, Gaming, Lifestyle" rows={3} />
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </form>

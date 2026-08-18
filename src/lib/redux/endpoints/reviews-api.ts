@@ -61,9 +61,13 @@ export const reviewsApi = api.injectEndpoints({
         method: "PATCH",
         body: { replyComment },
       }),
-      invalidatesTags: (_result, _error, arg) => [{ type: "Reviews", id: arg.revieweeUserId }],
+      invalidatesTags: (_result, _error, { revieweeUserId }) => [{ type: "Reviews", id: revieweeUserId }],
     }),
   }),
 });
 
-export const { useGetReviewsForUserQuery, useSubmitReviewMutation, useReplyToReviewMutation } = reviewsApi;
+export const {
+  useGetReviewsForUserQuery,
+  useSubmitReviewMutation,
+  useReplyToReviewMutation,
+} = reviewsApi;
