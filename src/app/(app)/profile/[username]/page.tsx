@@ -1003,12 +1003,18 @@ function AgencyProfileView({
                 {displayCaseStudies.map((study) => (
                   <div key={study.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
 
-                    {/* Header */}
-                    <div className="aspect-video w-full relative flex items-center justify-center bg-muted">
-                      <Badge className="absolute top-2.5 left-2.5 bg-[#1c3322] text-white hover:bg-[#1c3322] border-0 text-[8px] font-bold tracking-widest uppercase">
-                        {study.metrics[0] ? `${study.metrics[0].label}: ${study.metrics[0].value}` : "Case Study"}
+                    {/* Header Image class */}
+                    <div className="aspect-video w-full relative overflow-hidden bg-muted flex items-center justify-center">
+                      <Badge className="absolute top-2.5 left-2.5 bg-[#1c3322] text-white hover:bg-[#1c3322] border-0 text-[8px] font-bold tracking-widest uppercase z-10">
+                        {(study as any).statBadge || "Completed"}
                       </Badge>
-                      <ImageIcon className="size-8 text-muted-foreground/40" />
+                      {study.media && study.media.length > 0 && isImageUrl(study.media[0]) ? (
+                        <img src={study.media[0]} alt={study.title} className="size-full object-cover" />
+                      ) : (
+                        <div className={cn("size-full flex items-center justify-center", (study as any).imageClass)}>
+                          <ImageIcon className="size-8 text-muted-foreground/40" />
+                        </div>
+                      )}
                     </div>
 
                     {/* Meta info */}
@@ -1032,7 +1038,7 @@ function AgencyProfileView({
                             setEditingCaseStudy(study);
                             setCaseStudyDialogOpen(true);
                           }}
-                          className="shrink-0 text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider flex items-center gap-0.5"
+                          className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider flex items-center gap-0.5"
                         >
                           Details →
                         </button>
