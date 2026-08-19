@@ -120,8 +120,24 @@ export const NAV_ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
   BRAND_TEAM_MEMBER: [HOME, SEARCH, CAMPAIGNS, CONNECTIONS, MESSAGES, SAVED, BRAND_TEAM, SETTINGS],
 };
 
-export function getNavItemsForRole(role: string | null | undefined): NavItem[] {
-  return NAV_ITEMS_BY_ROLE[isRole(role) ? role : "CREATOR"];
+/** `permissions` only affects `AGENCY_MANAGER` — every other role's nav is
+ * the static per-role list above. A manager's *base* nav
+ * (`NAV_ITEMS_BY_ROLE.AGENCY_MANAGER`) stays narrow regardless of grants
+ * (Opportunities/Messages/their own assigned roster/Settings — never
+ * Search or Company Profile, see the comment above); granted permissions
+ * only ever *add* to it — "Talent" (the full agency roster, not just their
+ * assigned subset — see `effectiveAgencyUserId` on the backend) when any
+ * `TALENT_*` permission is granted, "Team" when any `TEAM_*` permission is
+ * granted. Campaigns/Finance/Reports have no nav entry yet since those
+ * features aren't built (see `lib/permissions.ts`). */
+export function getNavItemsForRole(role: string | null | undefined, permissions: string[] = []): NavItem[] {
+  const base = NAV_ITEMS_BY_ROLE[isRole(role) ? role : "CREATOR"];
+  if (role !== "AGENCY_MANAGER") return base;
+
+  const extra: NavItem[] = [];
+  if (permissions.some((p) => p.startsWith("TALENT_"))) extra.push(ROSTER);
+  if (permissions.some((p) => p.startsWith("TEAM_"))) extra.push(TEAM);
+  return [...base, ...extra];
 }
 
 /** Picks the *longest* matching href, not the first one found — order in

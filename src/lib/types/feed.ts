@@ -39,7 +39,8 @@ export interface FeedProposalDetails {
 export type PostVisibility = "PUBLIC" | "CONNECTIONS_ONLY";
 export type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "DELETED";
 
-export interface FeedItem {
+export interface FeedPostItem {
+  kind: "post";
   id: string;
   author: FeedAuthor;
   category: PostCategory;
@@ -60,6 +61,31 @@ export interface FeedItem {
   viewerHasSaved: boolean;
   createdAt: string;
 }
+
+/**
+ * A scraped external article (see `scraper/opportunities_scraper`'s
+ * `news_feed` spider), shown inline in the home feed as a Castway-branded
+ * card — see `backend/src/dto/feed.dto.ts`'s `FeedNewsItemDto`. No
+ * likes/comments/author: it's a link-out, not user content. `createdAt` is
+ * the article's `publishedAt`, reused under this name so `FeedItem` (the
+ * union below) can be sorted/rendered by one shared field regardless of kind.
+ */
+export interface FeedNewsItem {
+  kind: "news";
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  sourceName: string;
+  sourceUrl: string;
+  createdAt: string;
+}
+
+/** The home feed (`useGetFeedQuery`) mixes both kinds on its first page —
+ * every other feed-shaped endpoint (`getPost`, `getMyPosts`, `getSavedPosts`,
+ * search, comments) only ever deals in real posts and is typed as
+ * `FeedPostItem` directly rather than this union. */
+export type FeedItem = FeedPostItem | FeedNewsItem;
 
 export interface FeedComment {
   id: string;

@@ -27,6 +27,7 @@ import {
 } from "@/lib/redux/endpoints/roster-api";
 import { useGetSessionQuery } from "@/lib/redux/endpoints/auth-api";
 import { useGetRosterApplicationsQuery } from "@/lib/redux/endpoints/applications-api";
+import { hasAgencyPermission, PERMISSIONS } from "@/lib/permissions";
 import type { RosterEntryDto, TalentStatus } from "@/lib/types/roster";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -70,11 +71,14 @@ export default function RosterPage() {
    ========================================================================== */
 function AgencyRosterView() {
   const [activeTab, setActiveTab] = useState<RosterTab>("view");
+  const { data: session } = useGetSessionQuery();
+  const canAddTalent = hasAgencyPermission(session?.user?.role, session?.user?.permissions ?? [], PERMISSIONS.TALENT_ADD);
+  const canDeleteTalent = hasAgencyPermission(session?.user?.role, session?.user?.permissions ?? [], PERMISSIONS.TALENT_DELETE);
   const { data: ownProfile } = useGetOwnProfileQuery();
   const { data: roster, isLoading } = useGetMyRosterQuery();
   const [invite, { isLoading: isInviting, error: inviteError }] = useInviteToRosterMutation();
   const [remove] = useRemoveFromRosterMutation();
-  
+
   const [username, setUsername] = useState("");
   const [sent, setSent] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -199,19 +203,21 @@ function AgencyRosterView() {
       {activeTab === "view" && (
         <div className="space-y-6">
           {/* Invite Bar */}
-          <form onSubmit={handleInvite} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <Input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Invite by username, e.g. maya-linde"
-              required
-              className="flex-1"
-            />
-            <Button type="submit" size="default" className="shrink-0 gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] font-semibold" disabled={isInviting}>
-              <UserPlus className="size-4" />
-              {isInviting ? "Inviting…" : "Invite"}
-            </Button>
-          </form>
+          {canAddTalent ? (
+            <form onSubmit={handleInvite} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <Input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Invite by username, e.g. maya-linde"
+                required
+                className="flex-1"
+              />
+              <Button type="submit" size="default" className="shrink-0 gap-1.5 bg-[#476948] text-white hover:bg-[#3d5a3e] font-semibold" disabled={isInviting}>
+                <UserPlus className="size-4" />
+                {isInviting ? "Inviting…" : "Invite"}
+              </Button>
+            </form>
+          ) : null}
           {sent ? <p className="text-sm text-success font-medium">Invite sent.</p> : null}
           {inviteError ? (
             <p className="text-sm text-destructive font-medium">
@@ -249,7 +255,12 @@ function AgencyRosterView() {
           ) : (
             <ul className="space-y-3">
               {filteredRosterItems.map((entry) => (
-                <RosterItemRow key={entry.id} entry={entry} onRemove={() => remove(entry.id)} />
+                <RosterItemRow
+                  key={entry.id}
+                  entry={entry}
+                  onRemove={() => remove(entry.id)}
+                  canRemove={canDeleteTalent}
+                />
               ))}
             </ul>
           )}
@@ -284,7 +295,15 @@ function getPlatformIcon(platform: string) {
 /* ==========================================================================
    SUB-TAB: Roster Item Row
    ========================================================================== */
-function RosterItemRow({ entry, onRemove }: { entry: RosterEntryDto; onRemove: () => void }) {
+function RosterItemRow({
+  entry,
+  onRemove,
+  canRemove,
+}: {
+  entry: RosterEntryDto;
+  onRemove: () => void;
+  canRemove: boolean;
+}) {
   const [updateTalentStatus] = useUpdateTalentStatusMutation();
   const member = entry.member;
   if (!member) return null;
@@ -372,9 +391,11 @@ function RosterItemRow({ entry, onRemove }: { entry: RosterEntryDto; onRemove: (
         )}
 
         {/* Remove Button */}
-        <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10" aria-label="Remove from roster" onClick={onRemove}>
-          <X className="size-4" />
-        </Button>
+        {canRemove ? (
+          <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10" aria-label="Remove from roster" onClick={onRemove}>
+            <X className="size-4" />
+          </Button>
+        ) : null}
       </div>
     </li>
   );

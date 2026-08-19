@@ -50,21 +50,9 @@ export const rosterApi = api.injectEndpoints({
       query: (agencyUsername) => `/roster/public/${agencyUsername}`,
       transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
     }),
-    // Talent manager sub-accounts — Agency-only management + the manager's
-    // own scoped view.
-    getManagers: builder.query<{ items: ManagerDto[] }, void>({
-      query: () => "/roster/managers",
-      transformResponse: (response: { data: { items: ManagerDto[] } }) => response.data,
-      providesTags: ["RosterManagers"],
-    }),
-    createManager: builder.mutation<
-      { tempPassword: string; managerUserId: string },
-      { email: string; username: string; name: string }
-    >({
-      query: (body) => ({ url: "/roster/managers", method: "POST", body }),
-      transformResponse: (response: { data: { tempPassword: string; managerUserId: string } }) => response.data,
-      invalidatesTags: ["RosterManagers"],
-    }),
+    // Talent manager sub-accounts — creation/listing/removal live in
+    // team-api.ts (TeamService); these endpoints only assign a manager to
+    // specific roster entries.
     assignManagerToRosterEntry: builder.mutation<void, { managerId: string; entryId: string }>({
       query: ({ managerId, entryId }) => ({
         url: `/roster/managers/${managerId}/assignments/${entryId}`,
@@ -83,6 +71,15 @@ export const rosterApi = api.injectEndpoints({
       query: () => "/roster/managers/me/assigned",
       transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
       providesTags: ["Roster"],
+    }),
+    // Agency-facing counterpart to `getAssignedRoster` ("me") — lets the
+    // agency owner see what a *specific* manager is actually assigned to,
+    // instead of the Team page's "Manage Roster Access" panel guessing at
+    // empty/unchecked state.
+    getManagerAssignedRoster: builder.query<{ items: RosterEntryDto[] }, string>({
+      query: (managerId) => `/roster/managers/${managerId}/assigned`,
+      transformResponse: (response: { data: { items: RosterEntryDto[] } }) => response.data,
+      providesTags: ["RosterManagers"],
     }),
     getTalentNotes: builder.query<{ items: TalentNoteDto[] }, string>({
       query: (targetUserId) => `/roster/talent/${targetUserId}/notes`,
@@ -315,11 +312,10 @@ export const {
   useUpdateTalentStatusMutation,
   useSetPubliclyListedMutation,
   useGetPublicRosterCatalogQuery,
-  useGetManagersQuery,
-  useCreateManagerMutation,
   useAssignManagerToRosterEntryMutation,
   useUnassignManagerFromRosterEntryMutation,
   useGetAssignedRosterQuery,
+  useGetManagerAssignedRosterQuery,
   useGetTalentNotesQuery,
   useCreateTalentNoteMutation,
   useDeleteTalentNoteMutation,

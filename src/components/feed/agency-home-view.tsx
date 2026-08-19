@@ -2,36 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Megaphone,
-  Target,
-  Volume2,
-  Users,
-  Image as ImageIcon,
-  Plus,
-  CheckCircle2,
-  TrendingUp,
-  Heart,
-  MessageSquare,
-  MoreHorizontal,
-  CalendarDays,
-  DollarSign,
-  ArrowRight,
-  Sparkles,
-  BadgeCheck,
-  Check,
-} from "lucide-react";
+import { Megaphone, Target, Volume2, Users, Image as ImageIcon, Check } from "lucide-react";
 
 import { useGetOwnProfileQuery } from "@/lib/redux/endpoints/profile-api";
-import { useGetMyRosterQuery, useGetManagersQuery } from "@/lib/redux/endpoints/roster-api";
+import { useGetMyRosterQuery } from "@/lib/redux/endpoints/roster-api";
+import { useGetTeamMembersQuery } from "@/lib/redux/endpoints/team-api";
 import { useGetDashboardQuery } from "@/lib/redux/endpoints/dashboard-api";
+import { useGetRosterApplicationsQuery } from "@/lib/redux/endpoints/applications-api";
+import { useGetClientBrandsQuery } from "@/lib/redux/endpoints/brand-agency-api";
 import { useComposer } from "@/components/feed/composer-context";
 import { FeedView } from "@/app/(app)/home/feed-view";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { initialsFromName } from "@/lib/format";
+import { formatRelativeTime, initialsFromName } from "@/lib/format";
 
 type FeedTab = "for-you" | "roster" | "campaigns" | "apps" | "team";
 
@@ -42,8 +27,10 @@ export function AgencyHomeView() {
   // Fetch backend queries
   const { data: ownProfile, isLoading: isProfileLoading } = useGetOwnProfileQuery();
   const { data: roster, isLoading: isRosterLoading } = useGetMyRosterQuery();
-  const { data: managers, isLoading: isManagersLoading } = useGetManagersQuery();
+  const { data: managers, isLoading: isManagersLoading } = useGetTeamMembersQuery();
   const { data: dashboard, isLoading: isDashboardLoading } = useGetDashboardQuery();
+  const { data: rosterApplications } = useGetRosterApplicationsQuery();
+  const { data: clientBrands } = useGetClientBrandsQuery();
 
   if (isProfileLoading || isRosterLoading || isManagersLoading || isDashboardLoading) {
     return (
@@ -64,24 +51,21 @@ export function AgencyHomeView() {
   const avatarUrl = ownProfile?.profile?.avatarUrl;
   const isVerified = ownProfile?.isVerified ?? false;
 
-  // Stats values
-  const activeTalentCount = roster?.items?.filter((i) => i.status === "ACCEPTED").length || 32;
-  const openCampaignsCount = dashboard && "activeOpportunitiesCount" in dashboard ? dashboard.activeOpportunitiesCount : 6;
-  const newAppsCount = dashboard && "totalApplicantsCount" in dashboard ? dashboard.totalApplicantsCount : 18;
-  const teamMembersCount = managers?.items?.length || 5;
-  const profileStrengthPercent = ownProfile?.completion?.percent || 78;
+  // Stats values — real counts only; a genuine 0 (e.g. a brand-new agency
+  // with no roster yet) must render as 0, not a fabricated round number.
+  const activeTalentCount = roster?.items?.filter((i) => i.status === "ACCEPTED").length ?? 0;
+  const openCampaignsCount = dashboard && "activeOpportunitiesCount" in dashboard ? dashboard.activeOpportunitiesCount : 0;
+  const newAppsCount = dashboard && "totalApplicantsCount" in dashboard ? dashboard.totalApplicantsCount : 0;
+  const teamMembersCount = managers?.items?.length ?? 0;
+  const profileStrengthPercent = ownProfile?.completion?.percent ?? 0;
+  const acceptedClientBrands = (clientBrands?.items ?? []).filter((link) => link.status === "ACCEPTED" && link.brand);
+  const recentApplications = rosterApplications?.items ?? [];
 
   // Profile Checklist calculations
   const hasLogo = Boolean(avatarUrl);
   const hasTeam = Boolean(managers?.items && managers.items.length > 0);
   const hasCaseStudies = Boolean(ownProfile?.profile?.caseStudies && ownProfile.profile.caseStudies.length > 0);
   const hasVerification = isVerified;
-
-  // Mock list elements (to render when database collections are empty, aligning with mockup spec)
-  const defaultTeam = [
-    { name: "Marcus Thorne", role: "Head of Talent", initials: "MT", avatar: "" },
-    { name: "Elena Rodriguez", role: "Campaign Manager", initials: "ER", avatar: "" },
-  ];
 
   const greeting = (() => {
     const hour = new Date().getHours();
@@ -106,42 +90,32 @@ export function AgencyHomeView() {
           {/* Active Talent */}
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Talent</p>
-            <div className="mt-2 flex items-baseline justify-between">
+            <div className="mt-2">
               <span className="font-mono text-2xl font-bold text-foreground">{activeTalentCount}</span>
-              <span className="inline-flex items-center text-xs font-medium text-success gap-0.5">
-                <TrendingUp className="size-3" />
-                4%
-              </span>
             </div>
           </div>
 
           {/* Open Campaigns */}
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Open Campaigns</p>
-            <div className="mt-2 flex items-baseline justify-between">
+            <div className="mt-2">
               <span className="font-mono text-2xl font-bold text-foreground">{openCampaignsCount}</span>
-              <span className="text-xs font-medium text-muted-foreground">Stable</span>
             </div>
           </div>
 
           {/* New Apps */}
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">New Apps</p>
-            <div className="mt-2 flex items-baseline justify-between">
+            <div className="mt-2">
               <span className="font-mono text-2xl font-bold text-foreground">{newAppsCount}</span>
-              <span className="inline-flex items-center text-xs font-medium text-success gap-0.5">
-                <TrendingUp className="size-3" />
-                12%
-              </span>
             </div>
           </div>
 
           {/* Team Members */}
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Team Members</p>
-            <div className="mt-2 flex items-baseline justify-between">
+            <div className="mt-2">
               <span className="font-mono text-2xl font-bold text-foreground">{teamMembersCount}</span>
-              <span className="text-xs font-medium text-muted-foreground">No change</span>
             </div>
           </div>
 
@@ -255,172 +229,85 @@ export function AgencyHomeView() {
               outright instead of including it. */}
           {activeTab === "for-you" && <FeedView />}
 
-          {/* 1. Campaign Card (For You, Campaigns) */}
+          {/* Campaigns (client campaign management is per-client — see
+              /campaigns/clients — there's no single feed of "all clients'
+              campaigns" to summarize here, so this links out instead of
+              fabricating a campaign that doesn't exist). */}
           {(activeTab === "for-you" || activeTab === "campaigns") && (
-            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-[#476948] dark:text-[#a7d9b5]">
-                      Summer Lifestyle Series
-                    </h3>
-                    <span className="inline-flex items-center rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">
-                      ACTIVE
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground font-medium">Primary Client: Peak Fitness Co.</p>
-                </div>
-                <button className="text-muted-foreground hover:text-foreground">
-                  <MoreHorizontal className="size-5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-2">
-                <div className="rounded-xl bg-muted/60 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Applicants</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">24 / 50 Target</p>
-                </div>
-                <div className="rounded-xl bg-muted/60 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Budget</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">$12,000 Total</p>
-                </div>
-                <div className="rounded-xl bg-muted/60 px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Deadline</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">July 15, 2024</p>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="space-y-1">
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-[#476948] dark:bg-[#a7d9b5]" style={{ width: "48%" }} />
-                </div>
-              </div>
-
-              {/* Applicant Stack & View Applicants Button */}
-              <div className="flex items-center justify-between border-t border-border/50 pt-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map((i) => (
-                      <Avatar key={i} className="size-7 border-2 border-card">
-                        <AvatarFallback className="text-[9px]">A{i}</AvatarFallback>
-                      </Avatar>
-                    ))}
-                  </div>
-                  <span className="text-xs text-muted-foreground font-medium">+21 applicants</span>
-                </div>
-
-                <Link
-                  href="/opportunities"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "text-xs font-semibold"
-                  )}
-                >
-                  View Applicants
-                </Link>
-              </div>
-            </article>
-          )}
-
-          {/* 2. Talent Activity Update Card (For You, Roster Activity) */}
-          {(activeTab === "for-you" || activeTab === "roster") && (
-            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <Avatar size="lg">
-                    <AvatarImage src="" />
-                    <AvatarFallback>SC</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <p className="text-sm font-bold text-foreground">Sarah Chen (Your Talent)</p>
-                      <BadgeCheck className="size-4 text-[#476948] dark:text-[#a7d9b5]" />
-                      <span className="text-xs text-muted-foreground font-normal">• 1h ago</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium">Tech Content Creator</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border/80 bg-muted/20 p-4 text-sm text-foreground leading-relaxed">
-                Just shared my latest collaboration with Adobe. The engagement rates are through the roof! Check the report in my dashboard.
-              </div>
-
-              <div className="flex items-center justify-between border-t border-border/50 pt-4">
-                <div className="flex items-center gap-4">
-                  <button className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
-                    <Heart className="size-4" />
-                    842
-                  </button>
-                  <button className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <MessageSquare className="size-4" />
-                    56
-                  </button>
-                </div>
-                <Link
-                  href="/roster"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "text-xs font-semibold"
-                  )}
-                >
-                  View Talent Profile
-                </Link>
-              </div>
-            </article>
-          )}
-
-          {/* 3. Application Alert Card (For You, Applications) */}
-          {(activeTab === "for-you" || activeTab === "apps") && (
-            <article className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Avatar size="lg">
-                  <AvatarFallback>JS</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm text-foreground">
-                    <span className="font-bold">Jordan Smith</span> applied to <span className="font-bold">Outdoor Expedition</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground font-medium mt-0.5">Lifestyle Influencer • 120k Followers</p>
-                </div>
-              </div>
+            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3">
+              <h3 className="text-sm font-bold text-foreground">Client campaigns</h3>
+              {acceptedClientBrands.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No linked clients yet.</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {acceptedClientBrands.length} linked {acceptedClientBrands.length === 1 ? "client" : "clients"}.
+                </p>
+              )}
               <Link
-                href="/opportunities"
-                className={cn(
-                  buttonVariants({ size: "sm" }),
-                  "bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d] font-semibold text-xs whitespace-nowrap self-end sm:self-auto"
-                )}
+                href="/campaigns/clients"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs font-semibold")}
               >
-                Review Application
+                Manage campaigns
               </Link>
             </article>
           )}
 
-          {/* 4. Shortlist Card (For You, Team Updates) */}
-          {(activeTab === "for-you" || activeTab === "team") && (
+          {/* Roster Activity — no per-talent activity feed exists yet, so
+              this links to the real roster instead of fabricating a post. */}
+          {(activeTab === "for-you" || activeTab === "roster") && (
             <article className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-3">
-              <div className="flex items-start gap-3">
-                <Avatar size="default">
-                  <AvatarFallback>MT</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm text-foreground">
-                    <span className="font-bold">Marcus (Team)</span> shortlisted 3 creators for <span className="font-bold">Autumn Fashion Gala</span>
-                  </p>
-                  <p className="italic text-xs text-muted-foreground border-l-2 border-border/80 pl-3 py-0.5 mt-2">
-                    &ldquo;These three have the exact aesthetic the client requested for the luxury segment.&rdquo;
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-2 pl-11 pt-1">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="size-10 rounded-lg bg-muted border border-border overflow-hidden flex items-center justify-center">
-                    <Sparkles className="size-4 text-muted-foreground/50" />
+              <h3 className="text-sm font-bold text-foreground">Roster</h3>
+              <p className="text-xs text-muted-foreground">
+                {activeTalentCount} active {activeTalentCount === 1 ? "talent" : "talent members"}.
+              </p>
+              <Link
+                href="/roster"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs font-semibold")}
+              >
+                View roster
+              </Link>
+            </article>
+          )}
+
+          {/* Applications — real most-recent roster application. */}
+          {(activeTab === "for-you" || activeTab === "apps") &&
+            (recentApplications.length === 0 ? (
+              <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <p className="text-xs text-muted-foreground">No applications yet.</p>
+              </article>
+            ) : (
+              <article className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Avatar size="lg">
+                    <AvatarImage src={recentApplications[0].applicant.avatarUrl ?? undefined} />
+                    <AvatarFallback>{initialsFromName(recentApplications[0].applicant.name)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm text-foreground">
+                      <span className="font-bold">{recentApplications[0].applicant.name}</span> applied to{" "}
+                      <span className="font-bold">{recentApplications[0].opportunity.title}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                      {formatRelativeTime(recentApplications[0].createdAt)}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
+                <Link
+                  href={`/opportunities/${recentApplications[0].opportunityId}`}
+                  className={cn(
+                    buttonVariants({ size: "sm" }),
+                    "bg-[#476948] text-white hover:bg-[#3d5a3e] dark:bg-[#1c3322] dark:hover:bg-[#25422d] font-semibold text-xs whitespace-nowrap self-end sm:self-auto"
+                  )}
+                >
+                  Review Application
+                </Link>
+              </article>
+            ))}
+
+          {/* Team Updates — no shortlist activity feed exists yet. */}
+          {(activeTab === "for-you" || activeTab === "team") && (
+            <article className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-xs text-muted-foreground">No recent team activity.</p>
             </article>
           )}
         </div>
@@ -492,46 +379,39 @@ export function AgencyHomeView() {
 
           <div className="space-y-3">
             {managers && managers.items.length > 0 ? (
-              managers.items.slice(0, 2).map((item) => (
-                <div key={item.id} className="flex items-center gap-2.5">
-                  <Avatar size="sm">
-                    <AvatarFallback className="text-[10px]">{initialsFromName(item.name || "?")}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-xs font-bold text-foreground">{item.name || item.email}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">Team Member</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              defaultTeam.map((item) => (
-                <div key={item.name} className="flex items-center gap-2.5">
-                  <Avatar size="sm">
-                    <AvatarFallback className="text-[10px]">{item.initials}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-xs font-bold text-foreground">{item.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">{item.role}</p>
-                  </div>
-                </div>
-              ))
-            )}
-
-            {/* +More count footer row */}
-            <div className="flex items-center gap-2 pl-1.5 pt-1">
-              <div className="flex -space-x-1.5">
-                {[1, 2].map((i) => (
-                  <div key={i} className="size-5 rounded-full border border-card bg-muted flex items-center justify-center text-[7px] text-muted-foreground">
-                    +
+              <>
+                {managers.items.slice(0, 2).map((item) => (
+                  <div key={item.id} className="flex items-center gap-2.5">
+                    <Avatar size="sm">
+                      <AvatarFallback className="text-[10px]">{initialsFromName(item.name || "?")}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-xs font-bold text-foreground">{item.name || item.email}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">Team Member</p>
+                    </div>
                   </div>
                 ))}
-              </div>
-              <span className="text-[10px] text-muted-foreground font-semibold">
-                {managers?.items && managers.items.length > 2
-                  ? `+${managers.items.length - 2} more members`
-                  : "+3 more members"}
-              </span>
-            </div>
+                {managers.items.length > 2 && (
+                  <div className="flex items-center gap-2 pl-1.5 pt-1">
+                    <div className="flex -space-x-1.5">
+                      {managers.items.slice(2, 4).map((item) => (
+                        <div
+                          key={item.id}
+                          className="size-5 rounded-full border border-card bg-muted flex items-center justify-center text-[7px] text-muted-foreground"
+                        >
+                          {initialsFromName(item.name || "?").charAt(0)}
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-semibold">
+                      +{managers.items.length - 2} more members
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">No team members yet.</p>
+            )}
           </div>
         </section>
 
@@ -568,24 +448,35 @@ export function AgencyHomeView() {
           </div>
         </section>
 
-        {/* Today's Applicants block */}
+        {/* Recent Applicants block */}
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
-          <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Today&apos;s Applicants</h4>
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {[1, 2, 3].map((i) => (
-                <Avatar key={i} className="size-6 border-2 border-card">
-                  <AvatarFallback className="text-[8px]">A</AvatarFallback>
-                </Avatar>
-              ))}
-              <div className="size-6 rounded-full border border-card bg-muted flex items-center justify-center text-[7px] text-muted-foreground font-bold">
-                +15
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Recent Applicants</h4>
+          {recentApplications.length === 0 ? (
+            <p className="text-[10px] text-muted-foreground font-medium leading-tight">No applications yet.</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  {recentApplications.slice(0, 3).map((application) => (
+                    <Avatar key={application.id} className="size-6 border-2 border-card">
+                      <AvatarImage src={application.applicant.avatarUrl ?? undefined} />
+                      <AvatarFallback className="text-[8px]">
+                        {initialsFromName(application.applicant.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {recentApplications.length > 3 && (
+                    <div className="size-6 rounded-full border border-card bg-muted flex items-center justify-center text-[7px] text-muted-foreground font-bold">
+                      +{recentApplications.length - 3}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-          <p className="text-[10px] text-muted-foreground font-medium leading-tight">
-            18 new talent applications received for today.
-          </p>
+              <p className="text-[10px] text-muted-foreground font-medium leading-tight">
+                {recentApplications.length} talent {recentApplications.length === 1 ? "application" : "applications"} to review.
+              </p>
+            </>
+          )}
         </section>
       </aside>
     </div>

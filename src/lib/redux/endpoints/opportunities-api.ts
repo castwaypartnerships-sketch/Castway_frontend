@@ -60,6 +60,28 @@ export const opportunitiesApi = api.injectEndpoints({
             ]
           : [{ type: "Opportunities" as const, id: "LIST" }],
     }),
+    // Natural-language ranking (cosine similarity over OpenAI embeddings,
+    // computed server-side) rather than literal keyword matching — a
+    // separate endpoint/query since it doesn't accept the type/category/
+    // skills/remote filters the keyword search does. Same infinite-scroll
+    // merge recipe as `getOpportunities`.
+    semanticSearchOpportunities: builder.query<OpportunitiesResponse, { query: string; page?: number }>({
+      query: (args) => ({
+        url: "/opportunities/semantic-search",
+        params: { query: args.query, page: args.page ?? 1 },
+      }),
+      transformResponse: (response: { data: OpportunitiesResponse }) => response.data,
+      serializeQueryArgs: ({ queryArgs }) => ({ query: queryArgs.query }),
+      merge: mergePaginatedPage,
+      forceRefetch: forceRefetchOnPageChange,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map((item) => ({ type: "Opportunities" as const, id: item.id })),
+              { type: "Opportunities" as const, id: "SEMANTIC" },
+            ]
+          : [{ type: "Opportunities" as const, id: "SEMANTIC" }],
+    }),
     getOpportunity: builder.query<Opportunity, string>({
       query: (opportunityId) => `/opportunities/${opportunityId}`,
       transformResponse: (response: { data: Opportunity }) => response.data,
@@ -161,6 +183,7 @@ export const opportunitiesApi = api.injectEndpoints({
 
 export const {
   useGetOpportunitiesQuery,
+  useSemanticSearchOpportunitiesQuery,
   useGetOpportunityQuery,
   useGetMyOpportunitiesQuery,
   useUpdateOpportunityMutation,

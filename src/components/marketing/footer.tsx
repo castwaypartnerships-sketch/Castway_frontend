@@ -1,33 +1,100 @@
 import Link from "next/link";
+import { FooterNewsletterForm } from "@/components/marketing/footer-newsletter-form";
 
-const PLATFORM_LINKS = [
-  { label: "Home", href: "/home" },
-  { label: "Opportunities", href: "/opportunities" },
-  { label: "Find talent", href: "/login" },
-  { label: "Enterprise", href: "/login" },
-];
+interface FooterLink {
+  label: string;
+  href: string;
+}
 
-const RESOURCE_LINKS = [
-  { label: "Guides & Docs", href: "/guides" },
+const COMPANY_LINKS: FooterLink[] = [
+  { label: "About Castway", href: "/about" },
+  { label: "Our Mission", href: "/mission" },
+  { label: "Careers", href: "/careers" },
+  { label: "Press", href: "/press" },
   { label: "Blog", href: "/blog" },
-  { label: "Help Center", href: "/help" },
-  { label: "Creator Community", href: "/community" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
-const LEGAL_LINKS = [
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms of Service", href: "/terms" },
-  { label: "Cookie Policy", href: "/cookies" },
-  { label: "Trust & Safety", href: "/trust" },
+const PRODUCT_LINKS: FooterLink[] = [
+  { label: "Home", href: "/home" },
+  { label: "Feed", href: "/home" },
+  { label: "Opportunities", href: "/opportunities" },
+  { label: "Professionals", href: "/professionals" },
+  { label: "Companies", href: "/companies" },
+  { label: "Features", href: "/features" },
+  { label: "Roadmap", href: "/roadmap" },
 ];
+
+const RESOURCES_LINKS: FooterLink[] = [
+  { label: "Help Center", href: "/help" },
+  { label: "Documentation", href: "/docs" },
+  { label: "Community Guidelines", href: "/community-guidelines" },
+  { label: "Creator Handbook", href: "/creator-handbook" },
+  { label: "FAQs", href: "/faqs" },
+  { label: "Release Notes", href: "/release-notes" },
+];
+
+const LEGAL_LINKS: FooterLink[] = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Cookie Policy", href: "/cookies" },
+  { label: "Security", href: "/security" },
+  { label: "Accessibility", href: "/accessibility" },
+];
+
+const SUPPORT_LINKS: FooterLink[] = [
+  { label: "Contact Support", href: "/support" },
+  { label: "Report a Bug", href: "/report-bug" },
+  { label: "Feature Requests", href: "/feature-requests" },
+  { label: "Status Page", href: "/status" },
+];
+
+const CONTACT_LINKS: FooterLink[] = [
+  { label: "Email", href: "mailto:hello@castway.com" },
+  { label: "Business Inquiries", href: "mailto:business@castway.com" },
+];
+
+const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
+  { title: "Company", links: COMPANY_LINKS },
+  { title: "Product", links: PRODUCT_LINKS },
+  { title: "Resources", links: RESOURCES_LINKS },
+  { title: "Legal", links: LEGAL_LINKS },
+  { title: "Support", links: SUPPORT_LINKS },
+  { title: "Contact Information", links: CONTACT_LINKS },
+];
+
+function isExternalLink(href: string) {
+  return href.startsWith("http") || href.startsWith("mailto:");
+}
+
+function FooterLinkItem({ label, href }: FooterLink) {
+  const className = "text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors";
+
+  if (isExternalLink(href)) {
+    return (
+      <a
+        href={href}
+        className={className}
+        {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={className}>
+      {label}
+    </Link>
+  );
+}
 
 export function MarketingFooter() {
   return (
     <footer className="border-t border-border/40 bg-background text-foreground">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 md:grid-cols-5 gap-10 px-6 py-16 md:px-8">
-        
-        {/* Left Side: Brand & Socials */}
-        <div className="md:col-span-2 space-y-5 text-left">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-16 md:px-8 lg:grid-cols-[260px_1fr]">
+        {/* Brand */}
+        <div className="space-y-5 text-left">
           <Link href="/" className="flex items-center gap-2.5 group w-fit">
             <span className="flex size-7 items-center justify-center overflow-hidden rounded-lg transition-transform group-hover:scale-105">
               <img src="/logo.png" alt="Castway" className="size-full object-cover" />
@@ -37,74 +104,42 @@ export function MarketingFooter() {
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xs leading-relaxed">
             One profile. Every kind of professional relationship. Built for the modern creator economy.
           </p>
-          
-          {/* Social Icons */}
-          <div className="flex items-center gap-4 text-muted-foreground/60">
-            <a href="#" className="hover:text-foreground transition-colors" aria-label="LinkedIn">
-              <svg className="size-4.5 fill-current" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-              </svg>
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors" aria-label="Twitter">
-              <svg className="size-4.5 fill-current" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors" aria-label="Instagram">
-              <svg className="size-4.5 fill-none stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-              </svg>
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors" aria-label="YouTube">
-              <svg className="size-4.5 fill-current" viewBox="0 0 24 24">
-                <path d="M23.498 6.163c-.272-1.016-1.07-1.815-2.085-2.087C19.578 3.53 12 3.53 12 3.53s-7.578 0-9.413.546c-1.015.272-1.813 1.071-2.085 2.087C0 8.002 0 12 0 12s0 3.998.502 5.837c.272 1.016 1.07 1.815 2.085 2.087 1.835.547 9.413.547 9.413.547s7.578 0 9.413-.547c1.015-.272 1.813-1.071 2.085-2.087C24 15.998 24 12 24 12s0-3.998-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-            </a>
-          </div>
         </div>
 
-        {/* Right Side: 3 Columns */}
-        <div className="grid grid-cols-3 gap-6 md:col-span-3 text-left">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-4">Platform</h3>
-            <ul className="space-y-3">
-              {PLATFORM_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-4">Resources</h3>
-            <ul className="space-y-3">
-              {RESOURCE_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-4">Legal</h3>
-            <ul className="space-y-3">
-              {LEGAL_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        {/* Link columns */}
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 text-left">
+          {FOOTER_COLUMNS.map((column) => (
+            <div key={column.title}>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-4">
+                {column.title}
+              </h3>
+              <ul className="space-y-3">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    <FooterLinkItem {...link} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Newsletter */}
+      <div className="border-t border-border/40">
+        <div className="mx-auto max-w-7xl px-6 py-10 md:px-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">Newsletter</h3>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                Subscribe to product updates — creator news and feature announcements, no spam.
+              </p>
+            </div>
+            <div className="w-full max-w-xs">
+              <FooterNewsletterForm />
+            </div>
           </div>
         </div>
-
       </div>
 
       {/* Copyright Bar */}

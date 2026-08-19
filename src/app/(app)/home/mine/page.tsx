@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { FeedItem, PostStatus } from "@/lib/types/feed";
+import type { FeedPostItem, PostStatus } from "@/lib/types/feed";
 import {
   useArchivePostMutation,
   useDeletePostMutation,
@@ -40,9 +40,9 @@ export default function MyPostsPage() {
   const [archive] = useArchivePostMutation();
   const [unarchive] = useUnarchivePostMutation();
   const [deletePost] = useDeletePostMutation();
-  const [editingPost, setEditingPost] = useState<FeedItem | null>(null);
+  const [editingPost, setEditingPost] = useState<FeedPostItem | null>(null);
 
-  async function handlePublish(post: FeedItem) {
+  async function handlePublish(post: FeedPostItem) {
     try {
       await publish(post.id).unwrap();
       toast.success("Post published");
@@ -51,7 +51,7 @@ export default function MyPostsPage() {
     }
   }
 
-  async function handleArchive(post: FeedItem) {
+  async function handleArchive(post: FeedPostItem) {
     try {
       await archive(post.id).unwrap();
       toast.success("Post archived");
@@ -60,7 +60,7 @@ export default function MyPostsPage() {
     }
   }
 
-  async function handleUnarchive(post: FeedItem) {
+  async function handleUnarchive(post: FeedPostItem) {
     try {
       await unarchive(post.id).unwrap();
       toast.success("Post restored");
@@ -69,7 +69,7 @@ export default function MyPostsPage() {
     }
   }
 
-  async function handleDelete(post: FeedItem) {
+  async function handleDelete(post: FeedPostItem) {
     if (!confirm("Delete this post? This can't be undone.")) return;
     try {
       await deletePost(post.id).unwrap();

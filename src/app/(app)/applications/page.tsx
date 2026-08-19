@@ -32,6 +32,10 @@ const OPPORTUNITY_TYPE_LABEL: Record<string, string> = {
   COLLABORATION: "Collaboration",
   BRAND_DEAL: "Brand Deal",
   FREELANCE_GIG: "Freelance Gig",
+  SPONSORSHIP: "Sponsorship",
+  AMBASSADORSHIP: "Ambassadorship",
+  UGC_CONTENT: "UGC / Content Creation",
+  EVENT_APPEARANCE: "Event / Appearance",
 };
 
 const FILTER_TABS = [

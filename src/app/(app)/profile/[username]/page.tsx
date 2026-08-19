@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, type FormEvent } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -63,9 +63,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileCompletionCard } from "@/components/feed/profile-completion-card";
 import { initialsFromName, formatRelativeTime } from "@/lib/format";
@@ -150,6 +150,7 @@ function AgencyProfileView({
 
   const { data: session } = useGetSessionQuery();
   const { data: roster } = useGetMyRosterQuery(undefined, { skip: !isOwnProfile });
+  const { data: clientBrands } = useGetClientBrandsQuery(undefined, { skip: !isOwnProfile });
   const [startConversation, { isLoading: isMessaging }] = useStartConversationMutation();
   const [toggleFollow, { isLoading: isTogglingFollow }] = useToggleFollowMutation();
 
@@ -227,11 +228,13 @@ function AgencyProfileView({
       return acceptedPublic.map((entry) => ({
         id: entry.id,
         name: entry.member!.name,
+        username: entry.member!.username,
         niche: "Represented Talent",
         imageUrl: entry.member?.avatarUrl ?? "",
-        followerStats: [
-          { platform: "instagram" as const, count: "10K" },
-        ],
+        followerStats:
+          entry.followers && entry.primaryPlatform
+            ? [{ platform: entry.primaryPlatform, count: entry.followers }]
+            : [],
       }));
     }
     return [];
@@ -242,16 +245,39 @@ function AgencyProfileView({
   const displayRoster = realPublicRoster;
 
   // --------------------------------------------------------------------------
+  // Campaigns Tab — Co-Management for Brand Clients. There's no backend
+  // endpoint that aggregates campaigns across every linked client at once
+  // (each client's campaigns stay scoped to that brand, see
+  // `CampaignService.listForClient`), so this shows real per-client data via
+  // a client selector rather than a single combined (and therefore fake)
+  // list. Campaign briefs are internal agency/client data, never shown to
+  // public profile visitors.
+  // --------------------------------------------------------------------------
+  const acceptedClientBrands = (clientBrands?.items ?? []).filter(
+    (link) => link.status === "ACCEPTED" && link.brand,
+  );
+  const effectiveClientBrandUserId = selectedClientBrandUserId ?? acceptedClientBrands[0]?.brand?.userId ?? null;
+  const { data: selectedClientCampaigns, isFetching: isLoadingClientCampaigns } = useGetClientCampaignsQuery(
+    effectiveClientBrandUserId ?? "",
+    { skip: !isOwnProfile || !effectiveClientBrandUserId },
+  );
+
+  // --------------------------------------------------------------------------
   // Case Studies filtering
   // --------------------------------------------------------------------------
   const hasRealCaseStudies = profile.caseStudies && profile.caseStudies.length > 0;
-  const displayCaseStudies = profile.caseStudies;
+  const displayCaseStudies: CaseStudy[] = profile.caseStudies;
 
   // --------------------------------------------------------------------------
   // Reviews filtering
   // --------------------------------------------------------------------------
-  const { data: realReviews } = useGetReviewsForUserQuery(profile.userId);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const { data: realReviews, isFetching: isFetchingReviews } = useGetReviewsForUserQuery({
+    userId: profile.userId,
+    page: reviewsPage,
+  });
   const hasRealReviews = realReviews && realReviews.items.length > 0;
+  const hasMoreReviews = realReviews ? realReviews.items.length < realReviews.total : false;
 
   const getReviewsSummary = () => {
     if (hasRealReviews && realReviews) {
@@ -289,10 +315,10 @@ function AgencyProfileView({
         name: rev.reviewer.name,
         avatarUrl: rev.reviewer.avatarUrl ?? undefined,
         rating: rev.rating,
-        campaignTag: "COMPLETED CAMPAIGN",
         timeAgo: formatRelativeTime(rev.createdAt),
         comment: rev.comment ?? "",
-        helpfulCount: 0,
+        replyComment: rev.replyComment,
+        repliedAt: rev.repliedAt,
       }));
     }
     return [];
@@ -478,6 +504,16 @@ function AgencyProfileView({
             <TabsTrigger value="overview" className={NEW_TAB_TRIGGER_CLASS}>
               <span>Overview</span>
               {activeTab === "overview" && (
+                <motion.div
+                  layoutId="agency-underline"
+                  className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
+                  transition={{ type: "tween", ease: [0.4, 0, 0.2, 1], duration: 0.25 }}
+                />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="posts" className={NEW_TAB_TRIGGER_CLASS}>
+              <span>Posts</span>
+              {activeTab === "posts" && (
                 <motion.div
                   layoutId="agency-underline"
                   className="absolute bottom-0 left-2 right-2 h-[2px] rounded-[2px] bg-[#1F5F3F]"
@@ -839,6 +875,35 @@ function AgencyProfileView({
         </TabsContent>
 
         {/* ------------------------------------------------------------------
+            TAB: POSTS
+            ------------------------------------------------------------------ */}
+        <TabsContent value="posts" className="outline-none mt-0">
+          {!postsData || postsData.items.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No posts yet.
+            </p>
+          ) : (
+            <div className="space-y-5">
+              {postsData.items.map((item) => (
+                <PostCard key={item.id} item={item} />
+              ))}
+              {postsData.items.length < postsData.total && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPostsPage((p) => p + 1)}
+                    disabled={isFetchingPosts}
+                    className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
+                  >
+                    {isFetchingPosts ? "Loading..." : "Load More Posts"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ------------------------------------------------------------------
             TAB 2: PUBLIC ROSTER
             ------------------------------------------------------------------ */}
         <TabsContent value="roster" className="outline-none mt-0">
@@ -886,7 +951,7 @@ function AgencyProfileView({
                       </div>
 
                       <Link
-                        href={`/profile/${talent.name.toLowerCase().replace(" ", "")}`}
+                        href={`/profile/${talent.username}`}
                         className={cn(
                           buttonVariants({ variant: "outline", size: "sm" }),
                           "w-full text-xs font-semibold h-8.5 rounded-lg"
@@ -935,7 +1000,7 @@ function AgencyProfileView({
                 )}
 
                 {/* Case Study Cards */}
-                {displayCaseStudies.map((study: any) => (
+                {displayCaseStudies.map((study) => (
                   <div key={study.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
 
                     {/* Header Image class */}
@@ -955,22 +1020,16 @@ function AgencyProfileView({
                     {/* Meta info */}
                     <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                       <div className="space-y-1.5">
-                        <span className="text-[9px] font-bold text-[#476948] dark:text-[#a7d9b5] uppercase tracking-wider">
-                          {(study as any).category || "Campaign Case Study"}
-                        </span>
                         <h4 className="text-sm font-bold text-foreground leading-snug">{study.title}</h4>
-                        <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">
-                          {(study as any).brief || (study as any).client || "Campaign Brief details"}
-                        </p>
+                        <p className="text-[10px] text-muted-foreground leading-normal line-clamp-2">{study.brief}</p>
                       </div>
 
                       <div className="border-t border-border/50 pt-3 flex items-center justify-between">
-                        {/* Involved Avatars */}
-                        <div className="flex -space-x-1.5 overflow-hidden">
-                          {((study as any).talentAvatars || []).map((src: string, i: number) => (
-                            <Avatar key={i} size="sm" className="size-6 border-2 border-card">
-                              <AvatarFallback className="text-[8px] bg-muted/80">T</AvatarFallback>
-                            </Avatar>
+                        <div className="flex flex-wrap gap-1">
+                          {study.metrics.slice(1).map((metric, i) => (
+                            <Badge key={i} variant="secondary" className="text-[8px] font-bold px-1.5 py-0.5">
+                              {metric.label}: {metric.value}
+                            </Badge>
                           ))}
                         </div>
 
@@ -1001,55 +1060,119 @@ function AgencyProfileView({
             TAB 4: CAMPAIGNS
             ------------------------------------------------------------------ */}
         <TabsContent value="campaigns" className="outline-none mt-0">
-          <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-            No campaigns yet.
-          </p>
+          {!isOwnProfile ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              Campaign details are private to the agency and its clients.
+            </p>
+          ) : acceptedClientBrands.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No linked clients yet — link a brand client to start managing their campaigns.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {acceptedClientBrands.map((link) => (
+                  <button
+                    key={link.brand!.userId}
+                    type="button"
+                    onClick={() => setSelectedClientBrandUserId(link.brand!.userId)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      effectiveClientBrandUserId === link.brand!.userId
+                        ? "border-[#476948] bg-[#e6f4ea] text-[#2d4a35] dark:bg-[#1a261d] dark:text-[#daf0dd]"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {link.brand!.name}
+                  </button>
+                ))}
+              </div>
+
+              {isLoadingClientCampaigns ? (
+                <div className="space-y-3">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="h-24 animate-pulse rounded-2xl border border-border bg-muted" />
+                  ))}
+                </div>
+              ) : !selectedClientCampaigns || selectedClientCampaigns.items.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                  No campaigns for this client yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {selectedClientCampaigns.items.map((campaign) => (
+                    <Link
+                      key={campaign.id}
+                      href={`/campaigns/${campaign.id}`}
+                      className="block rounded-2xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="text-sm font-bold text-foreground">{campaign.name}</h4>
+                        <Badge
+                          variant="secondary"
+                          className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5"
+                        >
+                          {campaign.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                        <span>{campaign.budget ?? "Budget not set"}</span>
+                        {campaign.category ? <span>{campaign.category}</span> : null}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* ------------------------------------------------------------------
             TAB 5: REVIEWS
             ------------------------------------------------------------------ */}
         <TabsContent value="reviews" className="outline-none mt-0">
-          {!hasRealReviews ? (
-            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-              No reviews yet.
-            </p>
-          ) : (
-            <div className="space-y-5">
-              {/* Rating summary cards */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-6 justify-between">
+          <div className="space-y-5">
+            {/* Rating summary card */}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4 sm:space-y-0 sm:flex sm:items-center sm:gap-6 justify-between">
 
-                {/* Score */}
-                <div className="text-center sm:text-left space-y-1.5 sm:border-r sm:border-border/60 sm:pr-8">
-                  <div className="flex items-center justify-center sm:justify-start gap-1 text-3xl font-extrabold text-foreground">
-                    <Star className="size-6 fill-[#fbbf24] text-[#fbbf24]" />
-                    {reviewsSummary.averageRating.toFixed(1)}
-                  </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Based on {reviewsSummary.reviewCount} client reviews</p>
+              {/* Score */}
+              <div className="text-center sm:text-left space-y-1.5 sm:border-r sm:border-border/60 sm:pr-8">
+                <div className="flex items-center justify-center sm:justify-start gap-1 text-3xl font-extrabold text-foreground">
+                  <Star className="size-6 fill-[#fbbf24] text-[#fbbf24]" />
+                  {reviewsSummary.averageRating.toFixed(1)}
+                </div>
+                <p className="text-xs text-muted-foreground font-semibold">Based on {reviewsSummary.reviewCount} client reviews</p>
+                {!isOwnProfile && (
                   <Button
-                    onClick={() => toast.info("Review submissions are disabled in layout validation.")}
+                    onClick={() => setReviewDialogOpen(true)}
                     className="bg-[#476948] hover:bg-[#3d5a3e] text-white text-xs font-semibold rounded-lg h-8 px-4 mt-2"
                   >
                     Leave a Review
                   </Button>
-                </div>
-
-                {/* Bars Distribution */}
-                <div className="flex-1 max-w-sm space-y-1.5">
-                  {reviewsSummary.distribution.map((dist) => (
-                    <div key={dist.stars} className="flex items-center gap-2.5 text-xs text-muted-foreground font-medium">
-                      <span className="w-3 text-right">{dist.stars}</span>
-                      <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden border border-border/30">
-                        <div className="h-full bg-green-700 dark:bg-green-600 rounded-full" style={{ width: `${dist.percentage}%` }} />
-                      </div>
-                      <span className="w-8 text-right font-mono text-[11px] font-bold">{dist.percentage}%</span>
-                    </div>
-                  ))}
-                </div>
-
+                )}
               </div>
 
-              {/* Public Feedback lists */}
+              {/* Bars Distribution */}
+              <div className="flex-1 max-w-sm space-y-1.5">
+                {reviewsSummary.distribution.map((dist) => (
+                  <div key={dist.stars} className="flex items-center gap-2.5 text-xs text-muted-foreground font-medium">
+                    <span className="w-3 text-right">{dist.stars}</span>
+                    <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden border border-border/30">
+                      <div className="h-full bg-green-700 dark:bg-green-600 rounded-full" style={{ width: `${dist.percentage}%` }} />
+                    </div>
+                    <span className="w-8 text-right font-mono text-[11px] font-bold">{dist.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+
+            {/* Public Feedback lists */}
+            {!hasRealReviews ? (
+              <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+                No reviews yet.
+              </p>
+            ) : (
               <div className="space-y-3.5">
                 <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Public Feedback</h3>
 
@@ -1064,12 +1187,7 @@ function AgencyProfileView({
                             <AvatarFallback className="text-[10px] bg-muted/80">{initialsFromName(rev.name)}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="flex items-center gap-1.5">
-                              <h4 className="text-xs font-bold text-foreground leading-normal">{rev.name}</h4>
-                              <Badge className="text-[8px] font-bold bg-[#e6f4ea] text-[#2d4a35] dark:bg-green-950/40 dark:text-green-300 border-0 uppercase tracking-widest py-0.5">
-                                {rev.campaignTag}
-                              </Badge>
-                            </div>
+                            <h4 className="text-xs font-bold text-foreground leading-normal">{rev.name}</h4>
                             <span className="text-[9px] text-muted-foreground/80 leading-none">{rev.timeAgo}</span>
                           </div>
                         </div>
@@ -1093,41 +1211,80 @@ function AgencyProfileView({
                         {rev.comment}
                       </p>
 
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-3 pt-2">
-                        <button
-                          onClick={() => toast.success("Marked review as helpful!")}
-                          className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider flex items-center gap-1"
-                        >
-                          Helpful ({rev.helpfulCount})
-                        </button>
-                        <button
-                          onClick={() => toast.info("Direct review replies are disabled in layout validation.")}
-                          className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider"
-                        >
-                          Reply
-                        </button>
-                      </div>
+                      {rev.replyComment ? (
+                        <div className="ml-4 rounded-xl border border-border/60 bg-muted/40 p-3 space-y-1">
+                          <p className="text-[9px] font-bold text-foreground uppercase tracking-wider">Response from {profile.name}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{rev.replyComment}</p>
+                        </div>
+                      ) : isOwnProfile ? (
+                        replyingToReviewId === rev.id ? (
+                          <div className="space-y-2 pt-1">
+                            <Textarea
+                              value={replyDraft}
+                              onChange={(e) => setReplyDraft(e.target.value)}
+                              placeholder="Write a public reply..."
+                              rows={2}
+                              maxLength={1000}
+                              autoFocus
+                            />
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSubmitReply(rev.id)}
+                                disabled={isSubmittingReply || !replyDraft.trim()}
+                              >
+                                {isSubmittingReply ? "Posting..." : "Post reply"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setReplyingToReviewId(null);
+                                  setReplyDraft("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 pt-2">
+                            <button
+                              onClick={() => {
+                                setReplyingToReviewId(rev.id);
+                                setReplyDraft("");
+                              }}
+                              className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider"
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        )
+                      ) : null}
 
                     </li>
                   ))}
                 </ul>
 
-                <div className="text-center pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.info("All reviews are already displayed.")}
-                    className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
-                  >
-                    Load More Reviews
-                  </Button>
-                </div>
+                {hasMoreReviews && (
+                  <div className="text-center pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setReviewsPage((p) => p + 1)}
+                      disabled={isFetchingReviews}
+                      className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
+                    >
+                      {isFetchingReviews ? "Loading..." : "Load More Reviews"}
+                    </Button>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </TabsContent>
 
       </Tabs>
+
       {caseStudyDialogOpen && (
         <CaseStudyDialog
           key={editingCaseStudy?.id ?? "new"}
@@ -1941,13 +2098,19 @@ function StandardProfileView({
     skip: !profileData,
   });
 
-  const { data: reviewsData } = useGetReviewsForUserQuery(profile.userId);
+  const { data: reviewsData } = useGetReviewsForUserQuery({ userId: profile.userId });
+  const [postsPage, setPostsPage] = useState(1);
+  const { data: postsData, isFetching: isFetchingPosts } = useGetPostsByAuthorQuery({
+    userId: profile.userId,
+    page: postsPage,
+  });
 
   const [activeTab, setActiveTab] = useState("overview");
   const isTalent = role === "CREATOR" || role === "FREELANCER";
 
   const standardTabs = [
     { value: "overview", label: "Overview" },
+    { value: "posts", label: "Posts" },
     { value: "portfolio", label: "Portfolio" },
     { value: "experience", label: "Experience" },
     { value: "reviews", label: "Reviews" },
@@ -2400,6 +2563,32 @@ function StandardProfileView({
               {isOwnProfile ? <ProfileCompletionCard /> : null}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="posts" className="outline-none mt-0">
+          {!postsData || postsData.items.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
+              No posts yet.
+            </p>
+          ) : (
+            <div className="space-y-5">
+              {postsData.items.map((item) => (
+                <PostCard key={item.id} item={item} />
+              ))}
+              {postsData.items.length < postsData.total && (
+                <div className="text-center pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPostsPage((p) => p + 1)}
+                    disabled={isFetchingPosts}
+                    className="text-xs font-semibold h-9 rounded-xl border-border hover:bg-muted"
+                  >
+                    {isFetchingPosts ? "Loading..." : "Load More Posts"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="portfolio" className="outline-none mt-0">

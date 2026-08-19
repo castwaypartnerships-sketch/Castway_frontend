@@ -91,6 +91,7 @@ export const api = createApi({
   tagTypes: [
     "Session",
     "Feed",
+    "News",
     "SavedFeed",
     "Comments",
     "Replies",
@@ -119,6 +120,7 @@ export const api = createApi({
     "BrandAgencyLinks",
     "RevenueSplits",
     "RosterManagers",
+    "TeamInvites",
     "BrandTeam",
     "ShortlistComments",
     "ManagedTalent",

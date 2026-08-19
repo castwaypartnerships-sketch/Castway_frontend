@@ -29,7 +29,11 @@ import { canApplyToOpportunity } from "@/lib/rbac";
  * Feed or Opportunities list saw a live "Apply" button that only failed
  * after being clicked.
  */
-export function useApplyFlow(opportunityId: string, initiallyApplied = false, posterUserId?: string) {
+export function useApplyFlow(
+  opportunityId: string,
+  initiallyApplied = false,
+  posterUserId?: string | null,
+) {
   const [apply, { isLoading: isApplying, isSuccess }] = useApplyToOpportunityMutation();
   const hasApplied = initiallyApplied || isSuccess;
   const { data: session } = useGetSessionQuery();

@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 
-import type { FeedItem, PostCategory, PostVisibility } from "@/lib/types/feed";
+import type { FeedPostItem, PostCategory, PostVisibility } from "@/lib/types/feed";
 import { categoryLabel } from "@/components/feed/category-badge";
 import { PostEditor } from "@/components/feed/post-editor";
 import { InlineImageUpload } from "@/components/upload/inline-image-upload";
@@ -56,7 +56,7 @@ export function CreatePostDialog({
   /** Present = edit mode. Render this component with `key={post.id}` from
    * the caller so switching which post is being edited remounts it with
    * fresh initial state, rather than needing a resync effect. */
-  post?: FeedItem;
+  post?: FeedPostItem;
 }) {
   const isEditing = post !== undefined;
   const [createPost, { isLoading: isCreating }] = useCreatePostMutation();

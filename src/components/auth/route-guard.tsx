@@ -24,7 +24,8 @@ export function resolveDestination(
       (pathname === "/login" ||
         pathname === "/signup" ||
         pathname === "/forgot-password" ||
-        pathname === "/reset-password")
+        pathname === "/reset-password" ||
+        pathname === "/team/accept-invite")
     )
       return null;
     return "/login";

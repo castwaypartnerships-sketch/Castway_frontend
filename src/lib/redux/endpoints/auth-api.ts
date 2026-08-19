@@ -7,6 +7,9 @@ export interface SessionUser {
   isAdmin: boolean;
   isEmailVerified: boolean;
   isOnboarded: boolean;
+  /** Meaningful only for AGENCY_MANAGER (see backend lib/rbac/permissions.ts)
+   * — always [] for every other role. */
+  permissions: string[];
 }
 
 const SESSION_AFFECTING_TAGS = [

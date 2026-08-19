@@ -31,8 +31,11 @@ import {
 } from "@/lib/redux/endpoints/brand-agency-api";
 import {
   useCreateCampaignOnBehalfMutation,
+  useGetCampaignAnalyticsQuery,
+  useGetCampaignShortlistQuery,
   useGetClientCampaignsQuery,
 } from "@/lib/redux/endpoints/campaigns-api";
+import type { CampaignVisibility } from "@/lib/types/campaign";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -43,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { initialsFromName } from "@/lib/format";
 import { SectionHelp } from "@/components/shared/section-help";
 import { cn } from "@/lib/utils";
+import { PROFILE_CATEGORY_OPTIONS } from "@/lib/categories";
 
 export default function AgencyClientsPage() {
   const { data: session } = useGetSessionQuery();
@@ -71,16 +75,19 @@ function AgencyCampaignsDashboard() {
 
   // Active Selected client states (for filtering/actions)
   const [selectedBrandUserId, setSelectedBrandUserId] = useState<string>("all");
-  const [statusTab, setStatusTab] = useState<"all" | "active" | "draft" | "in-review" | "completed">("all");
-  
+  // Backend `CampaignStatus` is only DRAFT | ACTIVE | CLOSED — tabs mirror that
+  // exactly rather than promising statuses (e.g. "in review") that can never
+  // actually appear in the data.
+  const [statusTab, setStatusTab] = useState<"all" | "draft" | "active" | "closed">("all");
+
   // Create Campaign States
   const [formBrandUserId, setFormBrandUserId] = useState("");
-  const [formCategory, setFormCategory] = useState("Production");
+  const [formCategory, setFormCategory] = useState<string>(PROFILE_CATEGORY_OPTIONS[0]);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formBudget, setFormBudget] = useState("");
-  const [formDeadline, setFormDeadline] = useState("");
-  const [formVisibility, setFormVisibility] = useState<"public" | "private">("public");
+  const [formDeadline, setFormDeadline] = useState(""); // yyyy-mm-dd, from a native date input
+  const [formVisibility, setFormVisibility] = useState<CampaignVisibility>("PUBLIC");
   const [skillsList, setSkillsList] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
 
@@ -96,6 +103,18 @@ function AgencyCampaignsDashboard() {
     { skip: isAllSelected }
   );
 
+  // Formats a real `timelineEnd` into the "closes in Xd" style the card
+  // shows — no deadline set / already closed are their own honest states
+  // rather than a guessed number.
+  function formatClosesIn(timelineEnd: string | null): string {
+    if (!timelineEnd) return "No deadline set";
+    const diffMs = new Date(timelineEnd).getTime() - Date.now();
+    const diffDays = Math.ceil(diffMs / (24 * 60 * 60 * 1000));
+    if (diffDays < 0) return "Closed";
+    if (diffDays === 0) return "Closes today";
+    return `Closes in ${diffDays}d`;
+  }
+
   // Live campaigns for the currently selected client only — there is no
   // backend query that aggregates campaigns across all of an agency's
   // clients at once, so the "all" selection legitimately has nothing to show.
@@ -109,17 +128,13 @@ function AgencyCampaignsDashboard() {
       budget: string;
       category: string;
       closesIn: string;
-      applicantsCount: number;
-      assignedText: string;
-      assignedAvatars: string[];
-      isLive?: boolean;
     }> = [];
 
     if (!isAllSelected && liveBrandCampaigns?.items) {
       // Find client brand info
       const brandLink = activeClientBrands.find((c) => c.brand?.userId === selectedBrandUserId);
       const brandName = brandLink?.brand?.name ?? "Client Brand";
-      
+
       liveBrandCampaigns.items.forEach((brief) => {
         list.push({
           id: brief.id,
@@ -127,13 +142,9 @@ function AgencyCampaignsDashboard() {
           logoText: brandName.charAt(0).toUpperCase(),
           title: brief.name,
           status: brief.status,
-          budget: brief.budget ?? "$2k - $5k",
-          category: "Campaign",
-          closesIn: "closes in 7 days",
-          applicantsCount: 0,
-          assignedText: "Not yet assigned",
-          assignedAvatars: [],
-          isLive: true,
+          budget: brief.budget ?? "Not set",
+          category: brief.category ?? "Uncategorized",
+          closesIn: formatClosesIn(brief.timelineEnd),
         });
       });
     }
@@ -141,11 +152,7 @@ function AgencyCampaignsDashboard() {
     // Apply status tab filter
     return list.filter((item) => {
       if (statusTab === "all") return true;
-      if (statusTab === "active" && item.status === "ACTIVE") return true;
-      if (statusTab === "draft" && item.status === "DRAFT") return true;
-      if (statusTab === "in-review" && item.status === "IN_REVIEW") return true;
-      if (statusTab === "completed" && item.status === "COMPLETED") return true;
-      return false;
+      return item.status === statusTab.toUpperCase();
     });
   };
 
@@ -166,9 +173,7 @@ function AgencyCampaignsDashboard() {
     setSkillsList((prev) => prev.filter((s) => s !== skill));
   };
 
-  async function handleCreateCampaignSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    
+  async function submitCampaign(status: "DRAFT" | "ACTIVE") {
     // Fallback: If no client brand is selected or exists, show warning
     const brandTarget = formBrandUserId || (activeClientBrands[0]?.brand?.userId);
     if (!brandTarget) {
@@ -184,20 +189,38 @@ function AgencyCampaignsDashboard() {
           goals: formDescription.trim(),
           budget: formBudget.trim(),
           deliverables: skillsList,
+          category: formCategory,
+          visibility: formVisibility,
+          // Native date input gives "yyyy-mm-dd" (local) — the backend coerces
+          // any parseable date string, so this can go straight through.
+          timelineEnd: formDeadline || undefined,
+          status,
         },
       }).unwrap();
 
-      toast.success("Client Campaign brief published successfully!");
+      toast.success(
+        status === "DRAFT" ? "Draft saved successfully!" : "Client Campaign brief published successfully!",
+      );
       setView("list");
-      
+
       // Clear inputs
       setFormTitle("");
       setFormDescription("");
       setFormBudget("");
+      setFormCategory(PROFILE_CATEGORY_OPTIONS[0]);
+      setFormVisibility("PUBLIC");
+      setFormDeadline("");
       setSkillsList([]);
     } catch {
-      toast.error("Failed to create campaign brief on behalf of client.");
+      toast.error(
+        status === "DRAFT" ? "Failed to save draft." : "Failed to create campaign brief on behalf of client.",
+      );
     }
+  }
+
+  async function handleCreateCampaignSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitCampaign("ACTIVE");
   }
 
   return (
@@ -250,15 +273,19 @@ function AgencyCampaignsDashboard() {
                   <Label htmlFor="create-niche-select" className="text-xs font-bold text-muted-foreground uppercase">
                     Category / Niche
                   </Label>
-                  <Select value={formCategory} onValueChange={(val) => setFormCategory(val || "Production")}>
+                  <Select
+                    value={formCategory}
+                    onValueChange={(val) => setFormCategory(val || PROFILE_CATEGORY_OPTIONS[0])}
+                  >
                     <SelectTrigger id="create-niche-select" className="h-10 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Production" className="text-xs">Production</SelectItem>
-                      <SelectItem value="Content Creation" className="text-xs">Content Creation</SelectItem>
-                      <SelectItem value="Lifestyle" className="text-xs">Lifestyle</SelectItem>
-                      <SelectItem value="Sponsorship" className="text-xs">Sponsorship</SelectItem>
+                      {PROFILE_CATEGORY_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option} className="text-xs">
+                          {option}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -367,10 +394,10 @@ function AgencyCampaignsDashboard() {
                     Deadline / Application Window
                   </Label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Calendar className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                     <Input
                       id="create-timeline"
-                      placeholder="Aug 24, 2024 - Aug 31, 2024"
+                      type="date"
                       value={formDeadline}
                       onChange={(e) => setFormDeadline(e.target.value)}
                       className="pl-9 h-10 text-sm"
@@ -390,16 +417,16 @@ function AgencyCampaignsDashboard() {
                 {/* Visual toggle */}
                 <button
                   type="button"
-                  onClick={() => setFormVisibility((v) => (v === "public" ? "private" : "public"))}
+                  onClick={() => setFormVisibility((v) => (v === "PUBLIC" ? "PRIVATE" : "PUBLIC"))}
                   className={cn(
                     "relative inline-flex h-5.5 w-10.5 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-1 focus:ring-[#476948] focus:ring-offset-2",
-                    formVisibility === "public" ? "bg-[#476948]" : "bg-muted"
+                    formVisibility === "PUBLIC" ? "bg-[#476948]" : "bg-muted"
                   )}
                 >
                   <span
                     className={cn(
                       "pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
-                      formVisibility === "public" ? "translate-x-5" : "translate-x-0"
+                      formVisibility === "PUBLIC" ? "translate-x-5" : "translate-x-0"
                     )}
                   />
                 </button>
@@ -408,16 +435,16 @@ function AgencyCampaignsDashboard() {
               <div className="space-y-2.5 pt-1">
                 {/* Public Opt */}
                 <div
-                  onClick={() => setFormVisibility("public")}
+                  onClick={() => setFormVisibility("PUBLIC")}
                   className={cn(
                     "flex items-start gap-3 border rounded-xl p-3 cursor-pointer transition-colors",
-                    formVisibility === "public" ? "border-[#476948] bg-[#476948]/5" : "border-border hover:bg-muted/30"
+                    formVisibility === "PUBLIC" ? "border-[#476948] bg-[#476948]/5" : "border-border hover:bg-muted/30"
                   )}
                 >
                   <input
                     type="radio"
                     name="visibility"
-                    checked={formVisibility === "public"}
+                    checked={formVisibility === "PUBLIC"}
                     onChange={() => {}}
                     className="mt-1 accent-[#476948]"
                   />
@@ -431,16 +458,16 @@ function AgencyCampaignsDashboard() {
 
                 {/* Private Opt */}
                 <div
-                  onClick={() => setFormVisibility("private")}
+                  onClick={() => setFormVisibility("PRIVATE")}
                   className={cn(
                     "flex items-start gap-3 border rounded-xl p-3 cursor-pointer transition-colors",
-                    formVisibility === "private" ? "border-[#476948] bg-[#476948]/5" : "border-border hover:bg-muted/30"
+                    formVisibility === "PRIVATE" ? "border-[#476948] bg-[#476948]/5" : "border-border hover:bg-muted/30"
                   )}
                 >
                   <input
                     type="radio"
                     name="visibility"
-                    checked={formVisibility === "private"}
+                    checked={formVisibility === "PRIVATE"}
                     onChange={() => {}}
                     className="mt-1 accent-[#476948]"
                   />
@@ -459,10 +486,8 @@ function AgencyCampaignsDashboard() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  toast.info("Draft saved successfully!");
-                  setView("list");
-                }}
+                disabled={isCreating}
+                onClick={() => submitCampaign("DRAFT")}
                 className="text-xs font-semibold h-10"
               >
                 Save as Draft
@@ -546,7 +571,7 @@ function AgencyCampaignsDashboard() {
                 {/* Status Tabs */}
                 <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sm:w-auto shrink-0">
                   <div className="flex w-max items-center gap-1.5 bg-muted/65 p-1 rounded-xl border border-border/40 text-xs">
-                    {(["all", "active", "draft", "in-review", "completed"] as const).map((tab) => (
+                    {(["all", "draft", "active", "closed"] as const).map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setStatusTab(tab)}
@@ -644,28 +669,12 @@ function AgencyCampaignsDashboard() {
                           {campaign.closesIn}
                         </span>
                         <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Users className="size-3.5" />
-                          {campaign.applicantsCount} Applicants
-                        </span>
+                        <CampaignApplicantsBadge campaignId={campaign.id} />
                       </div>
 
                       {/* Assignee Details */}
                       <div className="border-t border-border/60 mt-4 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Assigned:</span>
-                          {campaign.assignedAvatars.length > 0 ? (
-                            <div className="flex -space-x-1.5 overflow-hidden">
-                              {campaign.assignedAvatars.map((src, i) => (
-                                <Avatar key={i} size="sm" className="size-6 border-2 border-card">
-                                  <AvatarFallback className="text-[8px] bg-muted/60">TR</AvatarFallback>
-                                </Avatar>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/80 italic">{campaign.assignedText}</span>
-                          )}
-                        </div>
+                        <CampaignAssignedSummary campaignId={campaign.id} />
 
                         {/* Card Actions */}
                         <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -772,6 +781,49 @@ function AgencyCampaignsDashboard() {
         </>
       )}
 
+    </div>
+  );
+}
+
+/** Real applicant count for one campaign card — `getCampaignAnalytics` is a
+ * per-campaign endpoint, so this has to live in its own component (one RTK
+ * Query hook instance per list item) rather than being computed inline while
+ * building the list. */
+function CampaignApplicantsBadge({ campaignId }: { campaignId: string }) {
+  const { data: analytics, isLoading } = useGetCampaignAnalyticsQuery(campaignId);
+  return (
+    <span className="flex items-center gap-1">
+      <Users className="size-3.5" />
+      {isLoading ? "…" : (analytics?.applicantCount ?? 0)} Applicants
+    </span>
+  );
+}
+
+/** Real shortlisted-talent avatars for one campaign card — see
+ * `CampaignApplicantsBadge` for why this is its own component. */
+function CampaignAssignedSummary({ campaignId }: { campaignId: string }) {
+  const { data, isLoading } = useGetCampaignShortlistQuery(campaignId);
+  const entries = data?.items ?? [];
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Assigned:</span>
+      {isLoading ? (
+        <span className="text-xs text-muted-foreground/80 italic">Loading…</span>
+      ) : entries.length > 0 ? (
+        <div className="flex -space-x-1.5 overflow-hidden">
+          {entries.map((entry) => (
+            <Avatar key={entry.creatorUserId} size="sm" className="size-6 border-2 border-card">
+              <AvatarImage src={entry.profile?.avatarUrl ?? undefined} />
+              <AvatarFallback className="text-[8px] bg-muted/60">
+                {initialsFromName(entry.profile?.name ?? "?")}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground/80 italic">Not yet assigned</span>
+      )}
     </div>
   );
 }

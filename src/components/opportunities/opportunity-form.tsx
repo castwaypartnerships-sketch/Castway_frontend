@@ -21,6 +21,10 @@ export const OPPORTUNITY_TYPE_OPTIONS: { value: OpportunityType; label: string }
   { value: "COLLABORATION", label: "Collaboration" },
   { value: "BRAND_DEAL", label: "Brand Deal" },
   { value: "FREELANCE_GIG", label: "Freelance Gig" },
+  { value: "SPONSORSHIP", label: "Sponsorship" },
+  { value: "AMBASSADORSHIP", label: "Ambassadorship" },
+  { value: "UGC_CONTENT", label: "UGC / Content Creation" },
+  { value: "EVENT_APPEARANCE", label: "Event / Appearance" },
 ];
 
 export function OpportunityForm({

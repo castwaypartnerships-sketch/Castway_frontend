@@ -12,12 +12,8 @@ import {
   UserPlus,
   Share2,
   Edit,
-  CheckCircle,
-  Clock,
-  Lock,
   Search,
   ExternalLink,
-  Circle,
   Download,
 } from "lucide-react";
 
@@ -51,18 +47,9 @@ import {
 } from "@/components/ui/select";
 import { ShortlistCommentThread } from "@/components/campaigns/shortlist-comment-thread";
 import { ApplicantsList } from "@/components/opportunities/applicants-list";
+import { OPPORTUNITY_TYPE_OPTIONS } from "@/components/opportunities/opportunity-form";
 import { initialsFromName } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-// Import visual placeholders
-import {
-  MOCK_PIPELINE_STAGES,
-  MOCK_CAMPAIGN_BRIEF,
-  MOCK_SKILLS,
-  MOCK_TIMELINE,
-  MOCK_AGENCY_INTERNAL,
-  MOCK_ASSIGNABLE_TALENT,
-} from "@/lib/mocks/campaigns-data";
 
 const CAMPAIGN_STATUS_LABEL: Record<CampaignStatus, string> = {
   DRAFT: "Draft",
@@ -75,13 +62,6 @@ const CAMPAIGN_STATUS_VARIANT: Record<CampaignStatus, "default" | "secondary" | 
   ACTIVE: "default",
   CLOSED: "secondary",
 };
-
-const OPPORTUNITY_TYPE_OPTIONS: { value: OpportunityType; label: string }[] = [
-  { value: "BRAND_DEAL", label: "Brand deal" },
-  { value: "COLLABORATION", label: "Collaboration" },
-  { value: "HIRING", label: "Hiring" },
-  { value: "FREELANCE_GIG", label: "Freelance gig" },
-];
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -167,11 +147,6 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
       });
     }
 
-    // 2. Add visual mockup fallbacks if list is empty
-    if (list.length === 0) {
-      list.push(...MOCK_ASSIGNABLE_TALENT);
-    }
-
     // Apply search query
     return list.filter((item) =>
       item.name.toLowerCase().includes(rosterSearch.toLowerCase())
@@ -203,8 +178,13 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
     );
   }
 
-  // Live count override for APPLIED pipeline status
-  const appliedCount = liveApplicants?.items?.length ?? 12;
+  const applicantItems = liveApplicants?.items ?? [];
+  const pipelineStages = [
+    { label: "PENDING", count: applicantItems.filter((a) => a.status === "PENDING").length, colorClass: "bg-slate-500" },
+    { label: "ACCEPTED", count: applicantItems.filter((a) => a.status === "ACCEPTED").length, colorClass: "bg-[#476948]" },
+    { label: "REJECTED", count: applicantItems.filter((a) => a.status === "REJECTED").length, colorClass: "bg-red-500" },
+    { label: "COMPLETED", count: applicantItems.filter((a) => a.status === "COMPLETED").length, colorClass: "bg-blue-500" },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-6 py-6">
@@ -283,8 +263,6 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
           {/* Header Brief Info */}
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              <span>NIKE</span>
-              <span>•</span>
               <Badge variant={CAMPAIGN_STATUS_VARIANT[campaign.status]} className="text-[9px] py-0.5 leading-none">
                 {CAMPAIGN_STATUS_LABEL[campaign.status]}
               </Badge>
@@ -305,21 +283,18 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Applicant Pipeline</h3>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {MOCK_PIPELINE_STAGES.map((stage) => {
-                    const countVal = stage.label === "APPLIED" ? appliedCount : stage.count;
-                    return (
-                      <div key={stage.label} className="border border-border rounded-xl p-3 space-y-2 bg-muted/20">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-muted-foreground tracking-wide">{stage.label}</span>
-                          <span className="text-xs font-bold font-mono">{countVal}</span>
-                        </div>
-                        {/* Progress line */}
-                        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div className={cn("h-full rounded-full", stage.colorClass)} style={{ width: countVal > 0 ? "50%" : "0%" }} />
-                        </div>
+                  {pipelineStages.map((stage) => (
+                    <div key={stage.label} className="border border-border rounded-xl p-3 space-y-2 bg-muted/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-muted-foreground tracking-wide">{stage.label}</span>
+                        <span className="text-xs font-bold font-mono">{stage.count}</span>
                       </div>
-                    );
-                  })}
+                      {/* Progress line */}
+                      <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className={cn("h-full rounded-full", stage.colorClass)} style={{ width: stage.count > 0 ? "50%" : "0%" }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -337,20 +312,8 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
                 </div>
                 
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {campaign.goals || MOCK_CAMPAIGN_BRIEF}
+                  {campaign.goals || "No brief provided yet."}
                 </p>
-              </div>
-
-              {/* Skills & Requirements */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Skills & Requirements</h3>
-                <div className="flex flex-wrap gap-2">
-                  {MOCK_SKILLS.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="px-2.5 py-1 text-xs font-semibold border border-border">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
               </div>
 
               {/* Project Timeline */}
@@ -359,29 +322,15 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
                   Project Timeline
                 </h3>
 
-                <ul className="space-y-4">
-                  {MOCK_TIMELINE.map((step) => (
-                    <li key={step.id} className="flex gap-3">
-                      {step.status === "done" ? (
-                        <CheckCircle className="size-5 text-success shrink-0 mt-0.5" />
-                      ) : step.status === "in-progress" ? (
-                        <Clock className="size-5 text-primary shrink-0 mt-0.5" />
-                      ) : (
-                        <Circle className="size-5 text-muted-foreground/35 shrink-0 mt-0.5" />
-                      )}
-                      
-                      <div className="min-w-0">
-                        <p className={cn(
-                          "text-xs font-bold leading-normal",
-                          step.status === "done" && "text-muted-foreground line-through"
-                        )}>
-                          {step.title}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{step.dateRange}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                {campaign.timelineStart || campaign.timelineEnd ? (
+                  <p className="text-xs font-bold text-foreground leading-normal">
+                    {campaign.timelineStart ? new Date(campaign.timelineStart).toLocaleDateString() : "No start date"}
+                    {" – "}
+                    {campaign.timelineEnd ? new Date(campaign.timelineEnd).toLocaleDateString() : "No end date"}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No timeline set.</p>
+                )}
               </div>
 
               {/* Linking Opportunities section & Shortlists */}
@@ -441,6 +390,11 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
                   />
                 </div>
 
+                {assignableTalentList.length === 0 ? (
+                  <p className="py-4 text-center text-[10px] text-muted-foreground">
+                    No accepted roster members yet.
+                  </p>
+                ) : (
                 <ul className="space-y-3">
                   {assignableTalentList.map((talent) => (
                     <li key={talent.id} className="flex items-center justify-between gap-2">
@@ -466,43 +420,12 @@ function AgencyCampaignDetailView({ campaignId }: { campaignId: string }) {
                     </li>
                   ))}
                 </ul>
+                )}
 
                 <div className="text-center pt-1 border-t border-border/40">
                   <Link href="/roster" className="text-[10px] font-bold text-[#476948] dark:text-[#a7d9b5] uppercase tracking-wider hover:underline">
                     View All Roster
                   </Link>
-                </div>
-              </div>
-
-              {/* Widget 3: Agency Internal Notes (Locked/Private) */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-border/40 pb-2">
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Agency Internal
-                  </h4>
-                  <Lock className="size-3.5 text-muted-foreground/60" />
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Primary Contact</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <Avatar size="sm" className="size-6">
-                        <AvatarFallback className="text-[8px] bg-muted">{MOCK_AGENCY_INTERNAL.primaryContact.initials}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-xs font-bold text-foreground leading-normal">{MOCK_AGENCY_INTERNAL.primaryContact.name}</p>
-                        <p className="text-[9px] text-muted-foreground leading-none">{MOCK_AGENCY_INTERNAL.primaryContact.role}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 border-t border-border/40">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Internal Notes</p>
-                    <p className="text-xs text-muted-foreground bg-muted/30 border border-border/80 rounded-lg p-2.5 leading-relaxed font-medium">
-                      {MOCK_AGENCY_INTERNAL.internalNotes}
-                    </p>
-                  </div>
                 </div>
               </div>
 

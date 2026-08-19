@@ -31,9 +31,13 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         </p>
       ) : (
         <>
-          <OpportunityCard opportunity={opportunity} />
-          <ApplyOnBehalf opportunityId={opportunity.id} />
-          <NotifyRoster opportunityId={opportunity.id} posterUserId={opportunity.poster.userId} />
+          <OpportunityCard opportunity={opportunity} fullDescription />
+          {opportunity.poster ? (
+            <>
+              <ApplyOnBehalf opportunityId={opportunity.id} />
+              <NotifyRoster opportunityId={opportunity.id} posterUserId={opportunity.poster.userId} />
+            </>
+          ) : null}
         </>
       )}
     </div>
